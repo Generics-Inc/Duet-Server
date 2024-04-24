@@ -10,11 +10,12 @@ async function bootstrap() {
   const PORT = +process.env.API_PORT || 8000;
   const app = await NestFactory.create(AppModule, {cors: true});
 
+  app.setGlobalPrefix('api');
   app.useGlobalFilters(new GuardianFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   const config = new DocumentBuilder()
-    .setTitle("Loregram Nest API")
+    .setTitle("DUET Nest API")
     .setDescription("Документация к REST API")
     .setVersion(process.env.npm_package_version)
     .addTag('App')
