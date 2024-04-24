@@ -12,7 +12,7 @@
     "db:push": "npx prisma db push",
     "db:seed": "npx prisma db seed",
     "start:dev": "nest start --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
     "start:mig": "npm run db:migration && npx prisma generate && npm run start:dev",
     "version": "changelogen --release --no-tag --no-commit"
   },
