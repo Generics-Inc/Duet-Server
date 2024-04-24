@@ -10,7 +10,6 @@ async function bootstrap() {
   const PORT = +process.env.API_PORT || 8000;
   const app = await NestFactory.create(AppModule, {cors: true});
 
-  app.setGlobalPrefix('api');
   app.useGlobalFilters(new GuardianFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
@@ -21,7 +20,7 @@ async function bootstrap() {
     .addTag('App')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/api/swagger', app, document);
+  SwaggerModule.setup('/swagger', app, document);
 
   const socketsServer: AsyncServerObject = {
     url: 'ws://localhost:4000',
