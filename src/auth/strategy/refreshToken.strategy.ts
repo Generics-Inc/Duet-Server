@@ -4,14 +4,16 @@ import {Injectable} from "@nestjs/common";
 import {UsersService} from "../../users/users.service";
 import {ConfigService} from "@nestjs/config";
 import {Request} from "express";
-import {PayloadReturnDto, TokenPayloadDto} from "./dto/payload.dto";
+import {PayloadReturnDto, TokenPayloadDto} from "./dto";
 import validate from './validate';
 import {ProfilesService} from "../../users/profiles/profiles.service";
+import {SessionsService} from "../../sessions/sessions.service";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
     constructor(
         private configService: ConfigService,
+        private sessionsService: SessionsService,
         private usersService: UsersService,
         private profilesService: ProfilesService
     ) {
@@ -23,6 +25,6 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
     }
 
     async validate(req: Request, payload: TokenPayloadDto): Promise<PayloadReturnDto> {
-        return await validate(req, payload, this.usersService, this.profilesService);
+        return await validate('refresh', req, payload, this.sessionsService, this.usersService, this.profilesService);
     }
 }

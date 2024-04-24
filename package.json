@@ -13,7 +13,8 @@
     "db:seed": "npx prisma db seed",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "start:mig": "npm run db:migration && npx prisma generate && npm run start:dev"
+    "start:mig": "npm run db:migration && npx prisma generate && npm run start:dev",
+    "version": "changelogen --release --no-tag --no-commit"
   },
   "dependencies": {
     "@nestjs/axios": "^3.0.1",
@@ -57,7 +58,8 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "4.2.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "changelogen": "^0.5.3"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

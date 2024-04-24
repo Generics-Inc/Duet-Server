@@ -1,27 +1,39 @@
 import {Request} from "express";
-import {PayloadReturnDto, TokenPayloadDto} from "./dto/payload.dto";
-import {AuthorizedUserNotFoundException} from "../../errors";
+import {PayloadReturnDto, TokenPayloadDto} from "./dto";
+import {AuthorizedSessionNotFoundException} from "../../errors";
 import {UsersService} from "../../users/users.service";
 import {ProfilesService} from "../../users/profiles/profiles.service";
+import {SessionsService} from "../../sessions/sessions.service";
 
 export default async function (
+    type: 'access' | 'refresh',
     req: Request,
     tokenPayload: TokenPayloadDto,
+    sessionsService: SessionsService,
     usersService: UsersService,
     profilesService: ProfilesService
 ): Promise<PayloadReturnDto> {
     const token = req.get('Authorization').replace('Bearer', '').trim();
 
-    const user = await usersService.getUser({ id: tokenPayload.id });
-    const profile = await profilesService.getProfile({ id: tokenPayload.id });
+    if (!Number.isInteger(tokenPayload.sessionId) || !Number.isInteger(tokenPayload.userId)) throw AuthorizedSessionNotFoundException;
 
-    //if (!user || !user.refreshToken) throw AuthorizedUserNotFoundException;
-    if (!user) throw AuthorizedUserNotFoundException;
+    const session = await sessionsService.getUniqueSession({ id: tokenPayload.sessionId })
+    const user = await usersService.getUniqueUser({ id: tokenPayload.userId });
+    const profile = await profilesService.getProfile({ userId: tokenPayload.userId });
+
+    if (
+        !session ||
+        !sessionsService.tokenLifeCheck(session, type === 'access' && token, type === 'refresh' && token) ||
+        !user
+    ) throw AuthorizedSessionNotFoundException;
+
+    await sessionsService.updateSessionLastActivity(session.id);
 
     return {
-        token,
         tokenPayload,
+        session,
         profile,
-        user
+        user,
+        token
     };
 }

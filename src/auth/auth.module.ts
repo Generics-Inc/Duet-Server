@@ -7,6 +7,7 @@ import {JwtModule} from "@nestjs/jwt";
 import {HttpModule} from "@nestjs/axios";
 import {UsersModule} from "../users/users.module";
 import {CryptoService} from "../crypto.service";
+import {SessionsService} from "../sessions/sessions.service";
 
 @Module({
     imports: [
@@ -26,7 +27,8 @@ import {CryptoService} from "../crypto.service";
         PrismaService,
         AccessTokenStrategy,
         RefreshTokenStrategy,
-        CryptoService
+        CryptoService,
+        SessionsService
     ]
 })
 export class AuthModule {

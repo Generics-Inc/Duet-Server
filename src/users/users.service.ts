@@ -30,8 +30,17 @@ export class UsersService {
         });
     }
 
-    async getUser<E extends boolean = false>(payload: Prisma.UserWhereUniqueInput, extend?: E) {
+    async getUniqueUser<E extends boolean = false>(payload: Prisma.UserWhereUniqueInput, extend?: E) {
         return (await this.prismaService.user.findUnique({
+            where: payload,
+            include: {
+                profile: extend,
+                sessions: extend
+            }
+        })) as E extends true ? UserIncludes : User;
+    }
+    async getUser<E extends boolean = false>(payload: Prisma.UserWhereInput, extend?: E) {
+        return (await this.prismaService.user.findFirst({
             where: payload,
             include: {
                 profile: extend,

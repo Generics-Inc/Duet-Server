@@ -1,5 +1,5 @@
 import {IsNotEmpty, IsObject, IsString, MinLength, ValidateNested} from "class-validator";
-import {DeviceDto} from "../../sessions/dto/device.dto";
+import {DeviceDto} from "../../sessions/dto";
 import {Type} from "class-transformer";
 
 export class UserLoginDto {

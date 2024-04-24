@@ -3,11 +3,12 @@ import {ExceptionGenerator} from "./ExceptionGenerator";
 // 401 - Unauthorized
 export const AuthorizedUserNotFoundException = new ExceptionGenerator(401, 1, 'Авторизированный пользователь не найден');
 export const AuthorizedSessionNotFoundException = new ExceptionGenerator(401, 2, 'Авторизированная сессия не найдена. Возможно она истекла или была закрыта');
+export const SessionIsNotValidException = new ExceptionGenerator(401, 3, 'Сессия не действительна. AccessToken уже был обновлён ранее');
 
 // 403 - Forbidden
 export const IncorrectPasswordException = new ExceptionGenerator(403, 0, 'Неверный пароль');
 export const DBWorkException = new ExceptionGenerator(403, 1, 'Ошибка работы базы данных');
-export const VKSilentTokenException = new ExceptionGenerator(403, 2, 'Токен был уже использован или недействетелен');
+export const VKSilentTokenException = new ExceptionGenerator(403, 2, 'Токен был уже использован или недействителен');
 export const VKGetUserException = new ExceptionGenerator(403, 3, 'Ошибка получения информации об вк пользователе');
 export const IncorrectIDFormatException = new ExceptionGenerator(403, 4, 'Неверный формат ID');
 

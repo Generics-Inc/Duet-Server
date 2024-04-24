@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from "../prisma.service";
-import { Prisma, User } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
-import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { HttpService } from "@nestjs/axios";
 import { UsersService } from "../users/users.service";
-import { PayloadReturnDto } from "./strategy/dto/payload.dto";
 import {
-    DeviceIsNotFoundException,
-    IncorrectPasswordException,
+    IncorrectPasswordException, SessionIsNotValidException,
     UserNotFoundException,
     VKGetUserException,
     VKSilentTokenException
@@ -24,28 +20,32 @@ import {
     VkSignInDto
 } from "./dto";
 import {CryptoService} from "../crypto.service";
+import {SessionsService} from "../sessions/sessions.service";
+import {PayloadReturnDto} from "./strategy/dto";
+import useUtils from "../composables/useUtils";
 
 @Injectable()
 export class AuthService {
+    private utils = useUtils();
+
     vkOrigin = 'https://api.vk.com/method/';
 
     constructor(
         private prismaService: PrismaService,
         private configService: ConfigService,
-        private jwtService: JwtService,
         private usersService: UsersService,
         private httpService: HttpService,
-        private cryptoService: CryptoService
+        private cryptoService: CryptoService,
+        private sessionsService: SessionsService
     ) {}
 
     async signIn(data: SignInDto): Promise<TokenInterface> {
-        const user = await this.usersService.getUser({ username: data.user.username });
+        const user = await this.usersService.getUniqueUser({ username: data.user.username });
 
         if (user) {
             if (await bcrypt.compare(data.user.password, user.password)) {
-                const tokens = await this.createTokens(user);
-                await this.updateRefreshToken(user.id, tokens.refreshToken);
-                return tokens;
+                const session = await this.sessionsService.createSession(user, data.device);
+                return session.tokens;
             } else {
                 throw IncorrectPasswordException;
             }
@@ -53,13 +53,11 @@ export class AuthService {
             throw UserNotFoundException;
         }
     }
-    async logOut(userId: number): Promise<void> {
+    async logOut(sessionId: number): Promise<void> {
         try {
-            // await this.usersService.updateUser(userId, {
-            //     refreshToken: null
-            // });
+            await this.sessionsService.closeSession(sessionId);
         } catch (e) {
-            throw DeviceIsNotFoundException;
+            throw e;
         }
     }
     async vkSignIn(payload: VkSignInDto): Promise<any> {
@@ -81,8 +79,8 @@ export class AuthService {
         }).then((res: any) => res.data.response) as VkUserInterface;
         if (!vkUser) throw VKGetUserException;
 
-        let user = await this.usersService.getUser({ username: 'ID' + vkUser.id });
-        if (!user && vkUser.screen_name) user = await this.usersService.getUser({ username: vkUser.screen_name });
+        let user = await this.usersService.getUniqueUser({ username: 'ID' + vkUser.id });
+        if (!user && vkUser.screen_name) user = await this.usersService.getUniqueUser({ username: vkUser.screen_name });
         if (!user) {
             const isUserAdmin = vkUser.id == this.configService.get('VK_ADMIN_ID', 0);
 
@@ -106,52 +104,17 @@ export class AuthService {
             user = await this.usersService.updateUser(user.id, { vkToken: this.cryptoService.encrypt(vkToken) });
         }
 
-        const tokens = await this.createTokens(user);
-        await this.updateRefreshToken(user.id, tokens.refreshToken);
-        return tokens;
+        const session = await this.sessionsService.createSession(user, payload.device);
+        return session.tokens;
     }
-    async refreshToken({ user, token }: PayloadReturnDto): Promise<any> {
-        // const refreshTokenMatches = await bcrypt.compare(
-        //     user.refreshToken,
-        //     token
-        // );
-        //if (!refreshTokenMatches) throw AuthorizedSessionNotFoundException;
+    async refreshToken({ user, session }: PayloadReturnDto, accessToken: string): Promise<any> {
+        this.utils.ifEmptyGivesError(this.sessionsService.tokenLifeCheck(session, accessToken), SessionIsNotValidException);
 
-        const tokens = await this.createTokens(user);
-        await this.updateRefreshToken(user.id, tokens.refreshToken);
+        const { tokens } = await this.sessionsService.updateSession(session.id);
         return tokens;
     }
 
-
-    private hashData(data: string): string {
-        return bcrypt.hashSync(data, 10);
-    }
     private formatDateString(date: string): string {
         return date.split('.').map(component => component.length === 1 ? '0' + component : component).join('.');
-    }
-    private async createTokens(data: User): Promise<TokenInterface> {
-        const payload = {
-            id: data.id,
-            username: data.username
-        };
-
-        const [accessToken, refreshToken] = await Promise.all([
-            this.jwtService.signAsync(payload, {
-                secret: this.configService.get('ACCESS_SECRET', ''),
-                expiresIn: '3d'
-            }),
-            this.jwtService.signAsync(payload, {
-                secret: this.configService.get('REFRESH_SECRET', ''),
-                expiresIn: '14d'
-            })
-        ])
-
-        return { accessToken, refreshToken };
-    }
-    private async updateRefreshToken(userId: number, token: string): Promise<void> {
-        const tokenHashed = this.hashData(token);
-        // await this.usersService.updateUser(userId, {
-        //     refreshToken: tokenHashed
-        // });
     }
 }

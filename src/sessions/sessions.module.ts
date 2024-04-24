@@ -8,6 +8,9 @@ import {PrismaService} from "../prisma.service";
     providers: [
         SessionsService,
         PrismaService
+    ],
+    exports: [
+        SessionsService
     ]
 })
 export class SessionsModule {
