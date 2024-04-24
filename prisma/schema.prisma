@@ -1,0 +1,107 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+
+  password String?
+  vkToken  String?
+
+  role     Role?     @default(USER)
+  profile  Profile?
+  sessions Session[]
+
+  @@unique([id, username])
+}
+
+model Session {
+  id           Int    @id @default(autoincrement())
+  userId       Int
+  deviceUUID   String
+  deviceName   String
+  deviceOS     String
+  refreshToken String
+
+  loggedAt       DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique
+  username  String @unique
+  firstName String
+  lastName  String
+  birthday  String
+
+  vkId    Int?
+  gender  Gender?
+  status  String?
+  photo   String?
+  groupId Int?
+
+  user          User?          @relation(fields: [userId, username], references: [id, username], onDelete: Cascade)
+  group         Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  groupsArchive GroupArchive[]
+
+  @@unique([userId, username])
+}
+
+model Group {
+  id          Int     @id @default(autoincrement())
+  forDeletion Boolean @default(false)
+
+  inviteCode String? @unique
+
+  profiles      Profile[]
+  groupsArchive GroupArchive[]
+}
+
+model GroupArchive {
+  id        Int @id @default(autoincrement())
+  groupId   Int
+  profileId Int
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Content {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  episodesVieved Int? @default(1)
+  vieved         Int? @default(1)
+
+  categories Category[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  color String
+
+  contentId Int?
+
+  Content Content? @relation(fields: [contentId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
