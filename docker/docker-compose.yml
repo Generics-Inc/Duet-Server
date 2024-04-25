@@ -28,6 +28,15 @@ services:
       - ${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}
     restart: unless-stopped
     command: -p ${POSTGRES_PORT:-5432}
+  minio:
+    container_name: duet-minio
+    image: minio/minio
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    env_file:
+      - .env
+    command: server /data --console-address ":9001"
 
 volumes:
   postgres:

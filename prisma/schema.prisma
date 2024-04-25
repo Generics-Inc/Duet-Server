@@ -61,10 +61,12 @@ model Profile {
 }
 
 model Group {
-  id          Int     @id @default(autoincrement())
-  forDeletion Boolean @default(false)
+  id   Int    @id @default(autoincrement())
+  name String
 
-  inviteCode String? @unique
+  forDeletion Boolean  @default(false)
+  inviteCode  String?  @unique
+  createdAt   DateTime @default(now())
 
   profiles      Profile[]
   groupsArchive GroupArchive[]
