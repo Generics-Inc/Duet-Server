@@ -28,9 +28,14 @@ async function main(): Promise<void> {
         update: adminData,
         create: adminData
     });
+
+    await prisma.superSecret.deleteMany();
+    process.env.SECRET && await prisma.superSecret.createMany({
+        data: (process.env.SECRET ?? '').split(';').map(el => ({ content: el.trim() }))
+    });
 }
 
 main()
-    .then(() => console.log('Сид базы даных - успешно инициализирован!'))
+    .then(() => console.log('Сид базы данных - успешно инициализирован!'))
     .catch(e => { console.error(e); process.exit(1) })
     .finally(async () => await prisma.$disconnect());

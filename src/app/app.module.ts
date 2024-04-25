@@ -6,6 +6,8 @@ import {ConfigModule} from "@nestjs/config";
 import {ScheduleModule} from "@nestjs/schedule";
 import {GroupsModule} from "../groups/groups.module";
 import {SessionsModule} from "../sessions/sessions.module";
+import { AppService } from './app.service';
+import {PrismaService} from "../prisma.service";
 
 @Module({
     imports: [
@@ -18,6 +20,10 @@ import {SessionsModule} from "../sessions/sessions.module";
         GroupsModule,
         SessionsModule
     ],
-    controllers: [AppController]
+    controllers: [AppController],
+    providers: [
+        PrismaService,
+        AppService
+    ]
 })
 export class AppModule {}
