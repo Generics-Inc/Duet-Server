@@ -3,12 +3,12 @@ import {PrismaService} from "../prisma.service";
 import {SessionIncludes} from "../types";
 import {Prisma, Session, User} from "@prisma/client";
 import {DeviceDto} from "./dto";
-import {TokenInterface} from "../auth/interfaces";
 import {JwtService} from "@nestjs/jwt";
 import {ConfigService} from "@nestjs/config";
 import useUtils from "../composables/useUtils";
 import {SessionNotFoundException} from "../errors";
 import * as bcrypt from "bcryptjs";
+import {TokensDto} from "../auth/dto";
 
 @Injectable()
 export class SessionsService {
@@ -111,7 +111,7 @@ export class SessionsService {
     private hashData(data: string): string {
         return bcrypt.hashSync(data, 12);
     }
-    private async createTokens(session: Session): Promise<TokenInterface> {
+    private async createTokens(session: Session): Promise<TokensDto> {
         const payload = {
             userId: session.userId,
             sessionId: session.id

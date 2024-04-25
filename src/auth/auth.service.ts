@@ -11,18 +11,17 @@ import {
     VKSilentTokenException
 } from "../errors";
 import {
-    TokenInterface,
     VkAccessInterface,
     VkUserInterface
 } from "./interfaces";
 import {
-    SignInDto,
+    SignInDto, TokensDto,
     VkSignInDto
 } from "./dto";
 import {CryptoService} from "../crypto.service";
 import {SessionsService} from "../sessions/sessions.service";
-import {PayloadReturnDto} from "./strategy/dto";
 import useUtils from "../composables/useUtils";
+import {Session} from "@prisma/client";
 
 @Injectable()
 export class AuthService {
@@ -39,7 +38,7 @@ export class AuthService {
         private sessionsService: SessionsService
     ) {}
 
-    async signIn(data: SignInDto): Promise<TokenInterface> {
+    async signIn(data: SignInDto): Promise<TokensDto> {
         const user = await this.usersService.getUniqueUser({ username: data.user.username });
 
         if (user) {
@@ -53,14 +52,7 @@ export class AuthService {
             throw UserNotFoundException;
         }
     }
-    async logOut(sessionId: number): Promise<void> {
-        try {
-            await this.sessionsService.closeSession(sessionId);
-        } catch (e) {
-            throw e;
-        }
-    }
-    async vkSignIn(payload: VkSignInDto): Promise<any> {
+    async vkSignIn(payload: VkSignInDto): Promise<TokensDto> {
         const req = await this.httpService.axiosRef.get(this.vkOrigin + 'auth.exchangeSilentAuthToken', {
             params: {
                 v: '5.199',
@@ -107,11 +99,18 @@ export class AuthService {
         const session = await this.sessionsService.createSession(user, payload.device);
         return session.tokens;
     }
-    async refreshToken({ user, session }: PayloadReturnDto, accessToken: string): Promise<any> {
+    async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
         this.utils.ifEmptyGivesError(this.sessionsService.tokenLifeCheck(session, accessToken), SessionIsNotValidException);
 
         const { tokens } = await this.sessionsService.updateSession(session.id);
         return tokens;
+    }
+    async logOut(sessionId: number): Promise<void> {
+        try {
+            await this.sessionsService.closeSession(sessionId);
+        } catch (e) {
+            throw e;
+        }
     }
 
     private formatDateString(date: string): string {

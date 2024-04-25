@@ -15,11 +15,26 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   const config = new DocumentBuilder()
-    .setTitle("DUET Nest API")
-    .setDescription("Документация к REST API")
-    .setVersion(process.env.npm_package_version)
-    .addTag('App')
-    .build();
+      .setTitle("DUET Nest API")
+      .setDescription("Документация к REST API")
+      .setVersion(process.env.npm_package_version)
+      .addApiKey({
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+        bearerFormat: 'JWT',
+        scheme: 'bearer',
+        description: 'Введите свой access токен в формате "Bearer xxx"'
+      }, 'AccessToken')
+      .addApiKey({
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+        bearerFormat: 'JWT',
+        scheme: 'bearer',
+        description: 'Введите свой refresh токен в формате "Bearer xxx"'
+      }, 'RefreshToken')
+      .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/swagger', app, document);
 
