@@ -19,8 +19,8 @@ export class AppController {
     }
 
     @ApiOperation({ summary: 'СУПЕР СЕКРЕТНО' })
-    @ApiSecurity('TokenAccess')
     @ApiResponse({ status: 200, type: SecretDto })
+    @ApiSecurity('AccessToken')
     @Get('secret')
     @Roles(Role.ADMIN)
     @UseGuards(HaveRoleAccessGuard)
