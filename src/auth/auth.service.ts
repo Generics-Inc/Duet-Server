@@ -53,16 +53,7 @@ export class AuthService {
         }
     }
     async vkSignIn(payload: VkSignInDto): Promise<TokensDto> {
-        const req = await this.httpService.axiosRef.get(this.vkOrigin + 'auth.exchangeSilentAuthToken', {
-            params: {
-                v: '5.199',
-                access_token: this.configService.get<string>('VK_ACCESS_TOKEN', ''),
-                ...payload.vk
-            }
-        }).then((res: any) => res.data.response) as VkAccessInterface;
-        if (!req) throw VKSilentTokenException;
-
-        const vkToken = req.access_token;
+        const vkToken = payload.vk.uuid ? await this.vkGetAccessToken(payload) : payload.vk.token;
         const vkUser = await this.httpService.axiosRef.get(this.vkOrigin + 'account.getProfileInfo', {
             params: {
                 v: '5.199',
@@ -113,6 +104,18 @@ export class AuthService {
         }
     }
 
+    private async vkGetAccessToken(payload: Required<VkSignInDto>): Promise<string> {
+        const req = await this.httpService.axiosRef.get(this.vkOrigin + 'auth.exchangeSilentAuthToken', {
+            params: {
+                v: '5.199',
+                access_token: this.configService.get<string>('VK_ACCESS_TOKEN', ''),
+                ...payload.vk
+            }
+        }).then((res: any) => res.data.response) as VkAccessInterface;
+        if (!req) throw VKSilentTokenException;
+
+        return req.access_token;
+    }
     private formatDateString(date: string): string {
         return date.split('.').map(component => component.length === 1 ? '0' + component : component).join('.');
     }

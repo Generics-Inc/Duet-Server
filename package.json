@@ -17,6 +17,7 @@
     "version": "changelogen --release --no-tag --no-commit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.564.0",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",

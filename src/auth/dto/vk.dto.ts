@@ -1,4 +1,4 @@
-import {IsNotEmpty, IsObject, IsString, ValidateNested} from "class-validator";
+import {IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested} from "class-validator";
 import {DeviceDto} from "../../sessions/dto";
 import {Type} from "class-transformer";
 import {ApiProperty} from "@nestjs/swagger";
@@ -9,9 +9,10 @@ export class VKDataDto {
     @IsString()
     token: string;
 
-    @ApiProperty({ description: 'Уникальный ID авторизации', type: String })
+    @ApiProperty({ description: 'Уникальный ID авторизации', type: String, required: false })
     @IsNotEmpty()
     @IsString()
+    @IsOptional()
     uuid: string;
 }
 
