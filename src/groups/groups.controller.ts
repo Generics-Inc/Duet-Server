@@ -1,4 +1,4 @@
-import {Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards} from '@nestjs/common';
+import {Controller, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} from '@nestjs/common';
 import {GroupsService} from "./groups.service";
 import {
     AccessTokenGuard,
@@ -15,8 +15,9 @@ import {
 import useUtils from "../composables/useUtils";
 import {GroupNotFoundException} from "../errors";
 import {GroupIncludes} from "../types";
-import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
-import {GroupDto, GroupExtendDto} from "./dto";
+import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
+import {CreateGroupDto, GroupDto, GroupExtendDto} from "./dto";
+import {PostFile, UploadedPostFile, UploadedPostFileReturn} from "../app/decorators";
 
 @ApiTags('Группы')
 @ApiSecurity('AccessToken')
@@ -66,13 +67,26 @@ export class GroupsController {
         return this.utils.ifEmptyGivesError(await this.groupsService.getGroupByProfileId(profileId, true), GroupNotFoundException);
     }
 
+    // @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
+    // @ApiResponse({ status: 201, type: GroupDto })
+    // @HttpCode(HttpStatus.CREATED)
+    // @Post()
+    // @UseGuards(OnlyNotHaveGroupGuard)
+    // async createGroup(@UserProfile('id') profileId: number): Promise<Group> {
+    //     return await this.groupsService.createGroup(profileId);
+    // }
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
+    @ApiBody({ type: CreateGroupDto })
     @ApiResponse({ status: 201, type: GroupDto })
     @HttpCode(HttpStatus.CREATED)
-    @Post()
+    @PostFile()
     @UseGuards(OnlyNotHaveGroupGuard)
-    async createGroup(@UserProfile('id') profileId: number): Promise<Group> {
-        return await this.groupsService.createGroup(profileId);
+    async createGroup(@UploadedPostFile({
+        fileSize: 5 * 1024 ** 2,
+        fileType: '.(jpg|jpeg|png)',
+        bodyType: CreateGroupDto
+    }) form: UploadedPostFileReturn<CreateGroupDto>, @UserProfile('id') profileId: number) {
+        return await this.groupsService.createGroup(profileId, form);
     }
 
     @ApiOperation({ summary: 'Присоединиться к группе по коду приглашения' })

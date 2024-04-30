@@ -3,7 +3,6 @@ import {ConfigService} from "@nestjs/config";
 import {FileNotFoundException} from "../errors";
 import * as AWS from "@aws-sdk/client-s3";
 import { createHash } from "crypto";
-import {join} from 'path';
 import useUtils from "../composables/useUtils";
 import {UploadResponseDto} from "./dto/upload.dto";
 
@@ -21,7 +20,7 @@ export class FilesService {
 
     constructor(private configService: ConfigService) {}
 
-    async upload(bucketName: string, fileDir: string, file: Buffer, host: string): Promise<UploadResponseDto> {
+    async upload(bucketName: string, fileDir: string, file: Buffer): Promise<UploadResponseDto> {
         await this.nextOrCreateBucket(bucketName);
 
         const imageName = this.utils.trimStr(fileDir, '/') + '/' + createHash("sha256").update(file).digest("hex") + '.png'

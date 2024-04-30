@@ -7,6 +7,9 @@ import {Prisma, Group} from "@prisma/client";
 import {GroupIncludes} from "../types";
 import {GroupsArchiveService} from "./archive/archive.service";
 import {ProfilesService} from "../users/profiles/profiles.service";
+import {CreateGroupDto} from "./dto";
+import {UploadedPostFileReturn} from "../app/decorators";
+import {FilesService} from "../files/files.service";
 
 @Injectable()
 export class GroupsService {
@@ -15,6 +18,7 @@ export class GroupsService {
     constructor(
         private prismaService: PrismaService,
         private profilesService: ProfilesService,
+        private filesService: FilesService,
         @Inject(forwardRef(() => GroupsArchiveService))
         private groupsArchiveService: GroupsArchiveService
     ) {}
@@ -54,7 +58,7 @@ export class GroupsService {
         });
     }
 
-    async createGroup(profileId: number): Promise<Group> {
+    async createGroupOld(profileId: number): Promise<Group> {
         const inviteCode = this.utils.createRandomString((await this.getAllGroups()).map(group => group.inviteCode));
 
         return this.prismaService.group.create({
@@ -64,6 +68,25 @@ export class GroupsService {
                 inviteCode
             }
         });
+    }
+    async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>): Promise<Group> {
+        const inviteCode = this.utils.createRandomString((await this.getAllGroups()).map(group => group.inviteCode));
+        const body = form.body;
+
+        const group = await this.prismaService.group.create({
+            data: {
+                name: body.name,
+                profiles: { connect: { id: profileId } },
+                inviteCode
+            }
+        });
+
+        const file = form.file ? await this.filesService.upload('group', `${group.id}`, form.file.buffer) : undefined;
+
+        return file ? await this.prismaService.group.update({
+            where: group,
+            data: { photo: file.link }
+        }): group;
     }
     async joinToGroup(profileId: number, inviteCode: string): Promise<Group> {
         this.utils.ifEmptyGivesError(await this.prismaService.group.findUnique({

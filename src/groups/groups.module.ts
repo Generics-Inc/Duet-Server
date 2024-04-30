@@ -5,6 +5,7 @@ import {PrismaService} from "../prisma.service";
 import {UsersModule} from "../users/users.module";
 import {GroupsArchiveService} from "./archive/archive.service";
 import {GroupsArchiveController} from "./archive/archive.controller";
+import {FilesService} from "../files/files.service";
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import {GroupsArchiveController} from "./archive/archive.controller";
     providers: [
         GroupsService,
         GroupsArchiveService,
-        PrismaService
+        PrismaService,
+        FilesService
     ]
 })
 export class GroupsModule {}
