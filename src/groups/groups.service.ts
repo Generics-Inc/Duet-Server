@@ -59,6 +59,7 @@ export class GroupsService {
 
         return this.prismaService.group.create({
             data: {
+                name: '',
                 profiles: { connect: { id: profileId } },
                 inviteCode
             }

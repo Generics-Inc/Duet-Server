@@ -13,6 +13,7 @@ import {FilesService} from "./files.service";
 import {Throttle} from "@nestjs/throttler";
 import {DownloadDto} from "./dto";
 import {UploadDto, UploadResponseDto} from "./dto/upload.dto";
+import {BucketDto} from "./dto/bucket.dto";
 
 const maxFileSize = 2.5 * 1024 ** 2;
 
@@ -21,7 +22,7 @@ export class FilesController {
     constructor(private filesService: FilesService) {}
 
     //@Throttle({ default: { ttl: 15000, limit: 1 }})
-    @Post('upload/:bucketName')
+    @Post('upload/:bucketName/')
     @UseInterceptors(FileInterceptor('file'))
     async uploadSingle(
         @UploadedFile(
@@ -32,7 +33,7 @@ export class FilesController {
                 ]
             })
         ) file: Express.Multer.File,
-        @Param('bucketName') bucketName: string,
+        @Param('bucketName') bucketName: BucketDto,
         @Body() body: UploadDto,
         @Headers() headers: { host: string }
     ): Promise<UploadResponseDto> {
@@ -41,11 +42,6 @@ export class FilesController {
 
     @Get('download/:bucketName/*')
     async downloadStreamable(@Res({ passthrough: true }) _: Response, @Param() { bucketName, 0: fileName }: DownloadDto) {
-        return new StreamableFile(await this.filesService.download(bucketName, fileName));
-    }
-
-    @Get('download1/:bucketName/*')
-    async downloadSingle(@Param() { bucketName, 0: fileName }: DownloadDto) {
         return new StreamableFile(await this.filesService.download(bucketName, fileName));
     }
 }
