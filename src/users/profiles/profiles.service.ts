@@ -29,7 +29,7 @@ export class ProfilesService {
             }
         }).then((profile: ProfileIncludes) => {
             if (!profile) return profile;
-            profile.groupId = profile.mainGroup?.id ?? profile.secondGroup?.id;
+            profile.groupId = profile.mainGroup?.id ?? profile.secondGroup?.id ?? null;
             if (!extend) this.includeWithDelete.map(k => delete profile[k]);
             return profile;
         })) as E extends true ? ProfileIncludes : Profile;
@@ -41,7 +41,7 @@ export class ProfilesService {
                 ...this.includeWithDelete.reduce((a, c) => { a[c] = true; return a; }, {})
             }
         }).then(profiles => profiles.map((profile: ProfileIncludes) => {
-            profile.groupId = profile.mainGroup?.id ?? profile.secondGroup?.id;
+            profile.groupId = profile.mainGroup?.id ?? profile.secondGroup?.id ?? null;
             if (!extend) this.includeWithDelete.map(k => delete profile[k]);
             return profile;
         }))) as E extends true ? ProfileIncludes[] : Profile[];
