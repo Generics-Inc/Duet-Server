@@ -9,15 +9,16 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String @unique
-
+  id       Int     @id @default(autoincrement())
+  username String  @unique
   password String?
-  vkToken  String?
+  role     Role?   @default(USER)
 
-  role     Role?     @default(USER)
-  profile  Profile?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   sessions Session[]
+  profile  Profile?
 
   @@unique([id, username])
 }
@@ -33,7 +34,7 @@ model Session {
   accessToken  String?
   refreshToken String?
 
-  loggedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
   lastActivityAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -47,36 +48,61 @@ model Profile {
   lastName  String
   birthday  String
 
+  groupId Int?
   vkId    Int?
   gender  Gender?
   status  String?
   photo   String?
-  groupId Int?
 
-  user          User?          @relation(fields: [userId, username], references: [id, username], onDelete: Cascade)
-  group         Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  groupsArchive GroupArchive[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user                    User                    @relation(fields: [userId, username], references: [id, username], onDelete: Cascade)
+  groupsArchives          GroupArchive[]
+  groupsRequestsToConnect GroupRequestToConnect[]
+  mainGroup               Group?                  @relation("mainProfile")
+  secondGroup             Group?                  @relation("secondProfile")
 
   @@unique([userId, username])
 }
 
 model Group {
-  id    Int     @id @default(autoincrement())
-  name  String
-  photo String?
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
 
-  forDeletion Boolean  @default(false)
-  inviteCode  String?  @unique
-  createdAt   DateTime @default(now())
+  mainProfileId   Int?    @unique
+  secondProfileId Int?    @unique
+  photo           String?
+  inviteCode      String? @unique
 
-  profiles      Profile[]
-  groupsArchive GroupArchive[]
+  relationStartedAt DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  groupArchives          GroupArchive[]
+  groupRequestsToConnect GroupRequestToConnect[]
+  mainProfile            Profile?                @relation("mainProfile", fields: [mainProfileId], references: [id])
+  secondProfile          Profile?                @relation("secondProfile", fields: [secondProfileId], references: [id])
+}
+
+model GroupRequestToConnect {
+  id        Int @id @default(autoincrement())
+  profileId Int
+  groupId   Int
+
+  createdAt DateTime @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
 }
 
 model GroupArchive {
   id        Int @id @default(autoincrement())
   groupId   Int
   profileId Int
+
+  createdAt DateTime @default(now())
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)

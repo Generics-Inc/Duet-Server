@@ -6,6 +6,8 @@ import {UserIncludes} from "../types";
 
 @Injectable()
 export class UsersService {
+    private include: (keyof Prisma.UserInclude)[] = ['profile', 'sessions'];
+
     constructor(
         private prismaService: PrismaService
     ) {}
@@ -42,18 +44,12 @@ export class UsersService {
     async getUser<E extends boolean = false>(payload: Prisma.UserWhereInput, extend?: E) {
         return (await this.prismaService.user.findFirst({
             where: payload,
-            include: {
-                profile: extend,
-                sessions: extend
-            }
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
         })) as E extends true ? UserIncludes : User;
     }
     async getUsers<E extends boolean = false>(extend?: E) {
         return (await this.prismaService.user.findMany({
-            include: {
-                profile: extend,
-                sessions: extend
-            }
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
         })) as E extends true ? UserIncludes[] : User[];
     }
 

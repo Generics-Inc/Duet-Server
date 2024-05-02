@@ -11,6 +11,7 @@ export const DBWorkException = new ExceptionGenerator(403, 1, 'Ошибка ра
 export const VKSilentTokenException = new ExceptionGenerator(403, 2, 'Токен был уже использован или недействителен');
 export const VKGetUserException = new ExceptionGenerator(403, 3, 'Ошибка получения информации об вк пользователе');
 export const IncorrectIDFormatException = new ExceptionGenerator(403, 4, 'Неверный формат ID');
+export const FileCreationException = new ExceptionGenerator(403, 5, 'Ошибка создания файла');
 
 // 404 - Not found
 export const DeviceIsNotFoundException = new ExceptionGenerator(404, 0, 'Устройство сессии не найдено');

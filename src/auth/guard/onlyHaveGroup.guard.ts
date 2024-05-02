@@ -6,8 +6,9 @@ import {AccessWithGroupDividedException} from "../../errors";
 export class OnlyHaveGroupGuard extends HaveRoleAccessGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isAccess = await super.canActivate(context);
+    const profile = this.data.profile;
 
-    if (!this.data.profile.groupId) throw AccessWithGroupDividedException;
+    if (!profile.groupId) throw AccessWithGroupDividedException;
 
     return Boolean(isAccess);
   }

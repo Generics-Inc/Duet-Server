@@ -70,8 +70,7 @@ export class AuthService {
             user = await this.usersService.createUser(
                 {
                     username: vkUser.screen_name ?? 'ID' + vkUser.id,
-                    role: isUserAdmin ? 'ADMIN' : 'USER',
-                    vkToken: this.cryptoService.encrypt(vkToken)
+                    role: isUserAdmin ? 'ADMIN' : 'USER'
                 },
                 {
                     vkId: vkUser.id,
@@ -83,8 +82,6 @@ export class AuthService {
                     photo: vkUser.photo_200
                 }
             );
-        } else {
-            user = await this.usersService.updateUser(user.id, { vkToken: this.cryptoService.encrypt(vkToken) });
         }
 
         const session = await this.sessionsService.createSession(user, payload.device);

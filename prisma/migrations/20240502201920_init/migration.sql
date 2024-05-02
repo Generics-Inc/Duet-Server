@@ -9,8 +9,9 @@ CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "username" TEXT NOT NULL,
     "password" TEXT,
-    "vkToken" TEXT,
     "role" "Role" DEFAULT 'USER',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -24,7 +25,7 @@ CREATE TABLE "Session" (
     "deviceOS" TEXT NOT NULL,
     "accessToken" TEXT,
     "refreshToken" TEXT,
-    "loggedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastActivityAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
@@ -38,11 +39,15 @@ CREATE TABLE "Profile" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "birthday" TEXT NOT NULL,
+    "groupAsMainId" INTEGER,
+    "groupAsSecondId" INTEGER,
+    "groupId" INTEGER,
     "vkId" INTEGER,
     "gender" "Gender",
     "status" TEXT,
     "photo" TEXT,
-    "groupId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
 );
@@ -50,10 +55,27 @@ CREATE TABLE "Profile" (
 -- CreateTable
 CREATE TABLE "Group" (
     "id" SERIAL NOT NULL,
-    "forDeletion" BOOLEAN NOT NULL DEFAULT false,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "mainProfileId" INTEGER,
+    "secondProfileId" INTEGER,
+    "photo" TEXT,
     "inviteCode" TEXT,
+    "relationStartedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Group_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "GroupRequestToConnect" (
+    "id" SERIAL NOT NULL,
+    "profileId" INTEGER NOT NULL,
+    "groupId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "GroupRequestToConnect_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -61,6 +83,7 @@ CREATE TABLE "GroupArchive" (
     "id" SERIAL NOT NULL,
     "groupId" INTEGER NOT NULL,
     "profileId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "GroupArchive_pkey" PRIMARY KEY ("id")
 );
@@ -109,6 +132,12 @@ CREATE UNIQUE INDEX "Profile_username_key" ON "Profile"("username");
 CREATE UNIQUE INDEX "Profile_userId_username_key" ON "Profile"("userId", "username");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Group_mainProfileId_key" ON "Group"("mainProfileId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Group_secondProfileId_key" ON "Group"("secondProfileId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Group_inviteCode_key" ON "Group"("inviteCode");
 
 -- AddForeignKey
@@ -118,7 +147,16 @@ ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_username_fkey" FOREIGN KEY ("userId", "username") REFERENCES "User"("id", "username") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Profile" ADD CONSTRAINT "Profile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Group" ADD CONSTRAINT "Group_mainProfileId_fkey" FOREIGN KEY ("mainProfileId") REFERENCES "Profile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Group" ADD CONSTRAINT "Group_secondProfileId_fkey" FOREIGN KEY ("secondProfileId") REFERENCES "Profile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GroupRequestToConnect" ADD CONSTRAINT "GroupRequestToConnect_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GroupRequestToConnect" ADD CONSTRAINT "GroupRequestToConnect_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "GroupArchive" ADD CONSTRAINT "GroupArchive_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;

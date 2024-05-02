@@ -12,6 +12,7 @@ import {TokensDto} from "../auth/dto";
 
 @Injectable()
 export class SessionsService {
+    private include: (keyof Prisma.SessionInclude)[] = ['user'];
     private utils = useUtils();
 
     constructor(
@@ -39,9 +40,7 @@ export class SessionsService {
     async getSessions<E extends boolean = false>(where?: Prisma.SessionWhereInput, extend?: E) {
         return (await this.prismaService.session.findMany({
             where: where,
-            include: {
-                user: extend
-            }
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
         })) as E extends true ? SessionIncludes[] : Session[];
     }
 

@@ -4,10 +4,12 @@ import useUtils from "../../composables/useUtils";
 import { Prisma } from ".prisma/client";
 import {GroupArchiveNotFoundException} from "../../errors";
 import {GroupsService} from "../groups.service";
-import {Group} from "@prisma/client";
+import {Group, GroupArchive} from "@prisma/client";
+import {GroupArchiveIncludes} from "../../types";
 
 @Injectable()
 export class GroupsArchiveService {
+    private include: (keyof Prisma.GroupArchiveInclude)[] = ['profile', 'group'];
     private utils = useUtils();
 
     constructor(
@@ -24,24 +26,18 @@ export class GroupsArchiveService {
             }
         });
     }
-    getArchiveByProfileId(profileId: number, extend = false) {
-        return this.prismaService.groupArchive.findMany({
+    async getArchiveByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
+        return (await this.prismaService.groupArchive.findMany({
             where: { profileId },
-            include: {
-                profile: extend,
-                group: extend
-            }
-        });
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
     }
 
-    getArchiveRecord(payload: Prisma.GroupArchiveWhereInput, extend = false) {
-        return this.prismaService.groupArchive.findFirst({
+    async getArchiveRecord<E extends boolean = false>(payload: Prisma.GroupArchiveWhereInput, extend?: E) {
+        return (await this.prismaService.groupArchive.findFirst({
             where: payload,
-            include: {
-                profile: extend,
-                group: extend
-            }
-        });
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupArchiveIncludes : GroupArchive;
     }
 
     createArchiveRecord(profileId: number, groupId: number) {
@@ -54,13 +50,13 @@ export class GroupsArchiveService {
     }
 
     async revertGroupFromArchive(profileId: number, recordId: number): Promise<Group> {
-        const record = this.utils.ifEmptyGivesError(await this.getArchiveRecord({
+        const { group, ...record } = this.utils.ifEmptyGivesError(await this.getArchiveRecord({
             id: recordId,
             profileId
-        }), GroupArchiveNotFoundException);
+        }, true), GroupArchiveNotFoundException);
 
         const updateGroup = this.groupsService.update(record.groupId, {
-            profiles: {
+            [!group.mainProfileId ? 'mainProfile' : 'secondProfile']: {
                 connect: {
                     id: profileId
                 }

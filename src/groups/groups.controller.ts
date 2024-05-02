@@ -67,14 +67,6 @@ export class GroupsController {
         return this.utils.ifEmptyGivesError(await this.groupsService.getGroupByProfileId(profileId, true), GroupNotFoundException);
     }
 
-    // @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
-    // @ApiResponse({ status: 201, type: GroupDto })
-    // @HttpCode(HttpStatus.CREATED)
-    // @Post()
-    // @UseGuards(OnlyNotHaveGroupGuard)
-    // async createGroup(@UserProfile('id') profileId: number): Promise<Group> {
-    //     return await this.groupsService.createGroup(profileId);
-    // }
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
     @ApiBody({ type: CreateGroupDto })
     @ApiResponse({ status: 201, type: GroupDto })
