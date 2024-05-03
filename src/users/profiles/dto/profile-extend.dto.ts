@@ -1,7 +1,7 @@
 import {ApiProperty} from "@nestjs/swagger";
 import {UserDto} from "../../dto";
 import {GroupDto} from "../../../groups/dto";
-import {GroupArchiveDto} from "../../../groups/archive/dto";
+import {GroupArchiveDto} from "../../../groups/archives/dto";
 import {ProfileDto} from "./profile.dto";
 
 export class ProfileExtendDto extends ProfileDto {

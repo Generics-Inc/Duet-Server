@@ -1,27 +1,35 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import {PrismaService} from "../prisma.service";
 import useUtils from "../composables/useUtils";
-import {FileCreationException, GroupNotFoundException, UserNotFoundException} from "../errors";
+import {
+    FileCreationException, GroupIsFullConflictException,
+    GroupNotFoundException,
+    GroupRequestConflictException,
+    UserNotFoundException
+} from "../errors";
 import {StatusDto} from "../globalDto";
 import {Prisma, Group} from "@prisma/client";
 import {GroupIncludes} from "../types";
-import {GroupsArchiveService} from "./archive/archive.service";
+import {GroupsArchivesService} from "./archives/archives.service";
 import {ProfilesService} from "../users/profiles/profiles.service";
 import {CreateGroupDto} from "./dto";
 import {UploadedPostFileReturn} from "../app/decorators";
 import {FilesService} from "../files/files.service";
+import {GroupsRequestsService} from "./requests/requests.service";
 
 @Injectable()
 export class GroupsService {
-    private include: (keyof Prisma.GroupInclude)[] = ['groupArchives', 'groupRequestsToConnect', 'mainProfile', 'secondProfile'];
+    private include: (keyof Prisma.GroupInclude)[] = ['groupArchives', 'groupRequests', 'mainProfile', 'secondProfile'];
     private utils = useUtils();
 
     constructor(
         private prismaService: PrismaService,
         private profilesService: ProfilesService,
         private filesService: FilesService,
-        @Inject(forwardRef(() => GroupsArchiveService))
-        private groupsArchiveService: GroupsArchiveService
+        @Inject(forwardRef(() => GroupsArchivesService))
+        private groupsArchivesService: GroupsArchivesService,
+        @Inject(forwardRef(() => GroupsRequestsService))
+        private groupsRequestsService: GroupsRequestsService
     ) {}
 
     async isThereGroupByProfileId(profileId: number): Promise<StatusDto> {
@@ -36,24 +44,21 @@ export class GroupsService {
         });
     }
 
-    async getAllGroups<E extends boolean = false>(extend?: E) {
-        return (await this.prismaService.group.findMany({
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupIncludes[] : Group[];
+    getAllGroups<E extends boolean = false>(extend?: E) {
+        return this.getGroupsWhere<E>(undefined, extend);
     }
 
+    getGroupById<E extends boolean = false>(id: number, extend?: E) {
+        return this.getUniqueGroupWhere<E>({ id }, extend);
+    }
     async getGroupByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
-        const profile = await this.utils.ifEmptyGivesError(this.profilesService.getProfile({ id: profileId}, true), UserNotFoundException);
-
+        const profile = this.utils.ifEmptyGivesError(await this.profilesService.getProfile({ id: profileId}, true), UserNotFoundException);
         if (!profile.groupId) return null;
 
-        return (await this.prismaService.group.findUnique({
-            where: { id: profile.groupId },
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupIncludes : Group;
+        return await this.getUniqueGroupWhere<E>({ id: profile.groupId }, extend);
     }
 
-    async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>): Promise<Group> {
+    async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>) {
         const inviteCode = this.utils.createRandomString((await this.getAllGroups()).map(group => group.inviteCode));
         const body = form.body;
         let file = undefined;
@@ -69,7 +74,7 @@ export class GroupsService {
         try {
             file = form.file ? await this.filesService.upload('group', `${group.id}`, form.file.buffer) : undefined;
         } catch (e) {
-            await this.prismaService.group.delete({ where: group });
+            await this.prismaService.group.delete({ where: { id: group.id } });
             throw FileCreationException;
         }
 
@@ -78,18 +83,15 @@ export class GroupsService {
             data: { photo: file.link }
         }): group;
     }
-    async joinToGroup(profileId: number, inviteCode: string): Promise<Group> {
-        this.utils.ifEmptyGivesError(await this.prismaService.group.findUnique({
+    async sendRequestToGroup(profileId: number, inviteCode: string) {
+        const group = this.utils.ifEmptyGivesError(await this.prismaService.group.findUnique({
             where: { inviteCode: inviteCode }
         }), GroupNotFoundException);
 
-        return this.prismaService.group.update({
-            where: { inviteCode: inviteCode },
-            data: {
-                secondProfile: { connect: { id: profileId } },
-                inviteCode: null
-            }
-        });
+        if (await this.groupsRequestsService.isRequestExist(profileId, group.id)) throw GroupRequestConflictException;
+        else if (group.secondProfileId) throw GroupIsFullConflictException;
+
+        return this.groupsRequestsService.createRequest(profileId, group.id);
     }
     async leaveFromGroup(profileId: number): Promise<GroupIncludes> {
         const group = this.utils.ifEmptyGivesError(await this.getGroupByProfileId(profileId, true), GroupNotFoundException);
@@ -98,7 +100,7 @@ export class GroupsService {
         const isMainUser = profileId === group.mainProfile?.id;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
 
-        const createGroupArchive = this.groupsArchiveService.createArchiveRecord(profileId, group.id);
+        const createGroupArchive = this.groupsArchivesService.createArchiveRecord(profileId, group.id);
         const updateGroup = this.update(group.id, {
             ...(!isLastUser && isMainUser ? {
                 mainProfile: { connect: { id: group.secondProfileId }},
@@ -109,5 +111,18 @@ export class GroupsService {
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
 
         return await this.getGroupByProfileId(profileId, true);
+    }
+
+    private async getUniqueGroupWhere<E extends boolean = false>(where: Prisma.GroupWhereUniqueInput, extend?: E) {
+        return (await this.prismaService.group.findUnique({
+            where,
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupIncludes : Group;
+    }
+    private async getGroupsWhere<E extends boolean = false>(where: Prisma.GroupWhereInput, extend?: E) {
+        return (await this.prismaService.group.findMany({
+            where,
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupIncludes[] : Group[];
     }
 }

@@ -3,9 +3,11 @@ import {GroupsController} from './groups.controller';
 import {GroupsService} from './groups.service';
 import {PrismaService} from "../prisma.service";
 import {UsersModule} from "../users/users.module";
-import {GroupsArchiveService} from "./archive/archive.service";
-import {GroupsArchiveController} from "./archive/archive.controller";
+import {GroupsArchivesService} from "./archives/archives.service";
+import {GroupsArchivesController} from "./archives/archives.controller";
 import {FilesService} from "../files/files.service";
+import {GroupsRequestsService} from "./requests/requests.service";
+import {GroupsRequestsController} from "./requests/requests.controller";
 
 @Module({
     imports: [
@@ -13,11 +15,13 @@ import {FilesService} from "../files/files.service";
     ],
     controllers: [
         GroupsController,
-        GroupsArchiveController
+        GroupsArchivesController,
+        GroupsRequestsController
     ],
     providers: [
         GroupsService,
-        GroupsArchiveService,
+        GroupsArchivesService,
+        GroupsRequestsService,
         PrismaService,
         FilesService
     ]

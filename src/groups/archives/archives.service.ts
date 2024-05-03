@@ -4,11 +4,11 @@ import useUtils from "../../composables/useUtils";
 import { Prisma } from ".prisma/client";
 import {GroupArchiveNotFoundException} from "../../errors";
 import {GroupsService} from "../groups.service";
-import {Group, GroupArchive} from "@prisma/client";
+import {GroupArchive} from "@prisma/client";
 import {GroupArchiveIncludes} from "../../types";
 
 @Injectable()
-export class GroupsArchiveService {
+export class GroupsArchivesService {
     private include: (keyof Prisma.GroupArchiveInclude)[] = ['profile', 'group'];
     private utils = useUtils();
 
@@ -18,21 +18,17 @@ export class GroupsArchiveService {
         private groupsService: GroupsService
     ) {}
 
-    getAllArchive(extend = false) {
-        return this.prismaService.groupArchive.findMany({
-            include: {
-                profile: extend,
-                group: extend
-            }
-        });
+    async getAllArchives<E extends boolean = false>(extend?: E) {
+        return (await this.prismaService.groupArchive.findMany({
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
     }
-    async getArchiveByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
+    async getArchivesByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
         return (await this.prismaService.groupArchive.findMany({
             where: { profileId },
             include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
         })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
     }
-
     async getArchiveRecord<E extends boolean = false>(payload: Prisma.GroupArchiveWhereInput, extend?: E) {
         return (await this.prismaService.groupArchive.findFirst({
             where: payload,
@@ -49,7 +45,7 @@ export class GroupsArchiveService {
         });
     }
 
-    async revertGroupFromArchive(profileId: number, recordId: number): Promise<Group> {
+    async revertGroupFromArchive(profileId: number, recordId: number) {
         const { group, ...record } = this.utils.ifEmptyGivesError(await this.getArchiveRecord({
             id: recordId,
             profileId

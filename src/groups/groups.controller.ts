@@ -2,15 +2,13 @@ import {Controller, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} from '@n
 import {GroupsService} from "./groups.service";
 import {
     AccessTokenGuard,
-    HaveRoleAccessGuard,
     OnlyHaveGroupGuard,
     OnlyNotHaveGroupGuard
 } from "../auth/guard";
 import {StatusDto} from "../globalDto";
-import {Group, Role} from "@prisma/client";
+import {Group} from "@prisma/client";
 import {
-    UserProfile,
-    Roles
+    UserProfile
 } from "../users/decorator";
 import useUtils from "../composables/useUtils";
 import {GroupNotFoundException} from "../errors";
@@ -33,24 +31,6 @@ export class GroupsController {
     @Get('isThereGroup')
     async isThereGroup(@UserProfile('id') profileId: number): Promise<StatusDto> {
         return await this.groupsService.isThereGroupByProfileId(profileId);
-    }
-
-    @ApiOperation({ summary: 'ADMIN: Вывести все активные группы пользователей' })
-    @ApiResponse({ type: GroupDto, isArray: true })
-    @Get()
-    @Roles(Role.ADMIN)
-    @UseGuards(HaveRoleAccessGuard)
-    getAllGroups(): Promise<Group[]> {
-        return this.groupsService.getAllGroups();
-    }
-
-    @ApiOperation({ summary: 'ADMIN: Вывести все активные группы пользователей в расширенном виде' })
-    @ApiResponse({ type: GroupExtendDto, isArray: true })
-    @Get('full')
-    @Roles(Role.ADMIN)
-    @UseGuards(HaveRoleAccessGuard)
-    getAllFullGroups(): Promise<GroupIncludes[]> {
-        return this.groupsService.getAllGroups(true);
     }
 
     @ApiOperation({ summary: 'Вывести активную группу авторизированного пользователя' })
@@ -81,14 +61,14 @@ export class GroupsController {
         return await this.groupsService.createGroup(profileId, form);
     }
 
-    @ApiOperation({ summary: 'Присоединиться к группе по коду приглашения' })
+    @ApiOperation({ summary: 'Отправить запрос на присоединение по коду приглашения' })
     @ApiParam({ description: 'Код приглашения', name: 'inviteCode', type: String })
     @ApiResponse({ status: 202, type: GroupDto })
     @HttpCode(HttpStatus.ACCEPTED)
     @Patch('join/:inviteCode')
     @UseGuards(OnlyNotHaveGroupGuard)
-    async joinToGroup(@UserProfile('id') profileId: number, @Param('inviteCode') inviteCode: string): Promise<Group> {
-        return await this.groupsService.joinToGroup(profileId, inviteCode);
+    sendRequestToGroup(@UserProfile('id') profileId: number, @Param('inviteCode') inviteCode: string) {
+        return this.groupsService.sendRequestToGroup(profileId, inviteCode);
     }
 
     @ApiOperation({ summary: 'Выйти из активной группы' })

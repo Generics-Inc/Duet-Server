@@ -21,6 +21,7 @@ model User {
   profile  Profile?
 
   @@unique([id, username])
+  @@map("Users")
 }
 
 model Session {
@@ -38,6 +39,8 @@ model Session {
   lastActivityAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Sessions")
 }
 
 model Profile {
@@ -57,13 +60,14 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user                    User                    @relation(fields: [userId, username], references: [id, username], onDelete: Cascade)
-  groupsArchives          GroupArchive[]
-  groupsRequestsToConnect GroupRequestToConnect[]
-  mainGroup               Group?                  @relation("mainProfile")
-  secondGroup             Group?                  @relation("secondProfile")
+  groupsArchives GroupArchive[]
+  groupsRequests GroupRequest[]
+  user           User           @relation(fields: [userId, username], references: [id, username], onDelete: Cascade)
+  mainGroup      Group?         @relation("mainProfile")
+  secondGroup    Group?         @relation("secondProfile")
 
   @@unique([userId, username])
+  @@map("Profiles")
 }
 
 model Group {
@@ -80,13 +84,15 @@ model Group {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  groupArchives          GroupArchive[]
-  groupRequestsToConnect GroupRequestToConnect[]
-  mainProfile            Profile?                @relation("mainProfile", fields: [mainProfileId], references: [id])
-  secondProfile          Profile?                @relation("secondProfile", fields: [secondProfileId], references: [id])
+  groupArchives GroupArchive[]
+  groupRequests GroupRequest[]
+  mainProfile   Profile?       @relation("mainProfile", fields: [mainProfileId], references: [id])
+  secondProfile Profile?       @relation("secondProfile", fields: [secondProfileId], references: [id])
+
+  @@map("Groups")
 }
 
-model GroupRequestToConnect {
+model GroupRequest {
   id        Int @id @default(autoincrement())
   profileId Int
   groupId   Int
@@ -95,6 +101,8 @@ model GroupRequestToConnect {
 
   profile Profile @relation(fields: [profileId], references: [id])
   group   Group   @relation(fields: [groupId], references: [id])
+
+  @@map("GroupsRequests")
 }
 
 model GroupArchive {
@@ -106,26 +114,8 @@ model GroupArchive {
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-}
 
-model Content {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  episodesVieved Int? @default(1)
-  vieved         Int? @default(1)
-
-  categories Category[]
-}
-
-model Category {
-  id    Int    @id @default(autoincrement())
-  name  String
-  color String
-
-  contentId Int?
-
-  Content Content? @relation(fields: [contentId], references: [id])
+  @@map("GroupsArchives")
 }
 
 enum Role {

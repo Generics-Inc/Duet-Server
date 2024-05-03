@@ -14,4 +14,5 @@ export type UserIncludes = PrismaIncludes<Prisma.$UserPayload>;
 export type ProfileIncludes = PrismaIncludes<Prisma.$ProfilePayload>;
 export type GroupIncludes = PrismaIncludes<Prisma.$GroupPayload>;
 export type GroupArchiveIncludes = PrismaIncludes<Prisma.$GroupArchivePayload>;
+export type GroupRequestIncludes = PrismaIncludes<Prisma.$GroupRequestPayload>;
 export type SessionIncludes = PrismaIncludes<Prisma.$SessionPayload>;
