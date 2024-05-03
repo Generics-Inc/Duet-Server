@@ -7,7 +7,6 @@ import {
     GroupRequestConflictException,
     UserNotFoundException
 } from "../errors";
-import {StatusDto} from "../globalDto";
 import {Prisma, Group} from "@prisma/client";
 import {GroupIncludes} from "../types";
 import {GroupsArchivesService} from "./archives/archives.service";
@@ -25,17 +24,13 @@ export class GroupsService {
     constructor(
         private prismaService: PrismaService,
         private filesService: FilesService,
+        @Inject(forwardRef(() => ProfilesService))
         private profilesService: ProfilesService,
         @Inject(forwardRef(() => GroupsArchivesService))
         private groupsArchivesService: GroupsArchivesService,
         @Inject(forwardRef(() => GroupsRequestsService))
         private groupsRequestsService: GroupsRequestsService
     ) {}
-
-    async isThereGroupByProfileId(profileId: number): Promise<StatusDto> {
-        const profile = await this.utils.ifEmptyGivesError(this.profilesService.getProfile({ id: profileId }), UserNotFoundException);
-        return { status: !!profile.groupId };
-    }
 
     update(id: number, data: Prisma.GroupUpdateInput) {
         return this.prismaService.group.update({
@@ -89,14 +84,14 @@ export class GroupsService {
         }), GroupNotFoundException);
 
         if (await this.groupsRequestsService.isRequestExist(profileId, group.id)) throw GroupRequestConflictException;
-        else if (group.secondProfileId) throw GroupIsFullConflictException;
+        else if (group.secondProfileId !== null) throw GroupIsFullConflictException;
 
         return this.groupsRequestsService.createRequest(profileId, group.id, inviteCode);
     }
     async leaveFromGroup(profileId: number): Promise<GroupIncludes> {
         const group = this.utils.ifEmptyGivesError(await this.getGroupByProfileId(profileId, true), GroupNotFoundException);
 
-        const isLastUser = !group.secondProfile?.id;
+        const isLastUser = group.secondProfile?.id === null;
         const isMainUser = profileId === group.mainProfile?.id;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
 

@@ -5,7 +5,6 @@ import {
     OnlyHaveGroupGuard,
     OnlyNotHaveGroupGuard
 } from "../auth/guard";
-import {StatusDto} from "../globalDto";
 import {
     UserProfile
 } from "../users/decorator";
@@ -25,13 +24,6 @@ export class GroupsController {
     private utils = useUtils();
 
     constructor(private groupsService: GroupsService) {}
-
-    @ApiOperation({ summary: 'Проверить есть ли активная группа' })
-    @ApiResponse({ type: StatusDto })
-    @Get('isThereGroup')
-    async isThereGroup(@UserProfile('id') profileId: number) {
-        return await this.groupsService.isThereGroupByProfileId(profileId);
-    }
 
     @ApiOperation({ summary: 'Вывести активную группу авторизированного пользователя' })
     @ApiResponse({ type: GroupDto })

@@ -1,8 +1,11 @@
-import {Injectable} from '@nestjs/common';
+import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import {Prisma, Profile, Role} from "@prisma/client";
 import {PrismaService} from "../../prisma.service";
 import {ProfileIncludes} from "../../types";
 import {ProfileAccessDividedException} from "../../errors";
+import {GroupsService} from "../../groups/groups.service";
+import {GroupsArchivesService} from "../../groups/archives/archives.service";
+import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
 
 
 @Injectable()
@@ -11,7 +14,11 @@ export class ProfilesService {
     private include: (keyof Prisma.ProfileInclude)[] = ['user', 'groupsArchives', 'groupsRequests', 'mainGroup', 'secondGroup'];
 
     constructor(
-        private prismaService: PrismaService
+        private prismaService: PrismaService,
+        @Inject(forwardRef(() => GroupsService))
+        private groupsService: GroupsService,
+        @Inject(forwardRef(() => GroupsArchivesService))
+        private groupsArchivesService: GroupsArchivesService,
     ) {}
 
     updateProfile(profileId: number, data: Prisma.ProfileUpdateInput): Promise<Profile> {
@@ -48,14 +55,22 @@ export class ProfilesService {
         }))) as E extends true ? ProfileIncludes[] : Profile[];
     }
 
+    async statusAboutProfile(profile: Profile): Promise<GroupStatusDto> {
+        const group = profile.groupId ? await this.groupsService.getGroupById(profile.groupId, true) : null;
+        const archive = await this.groupsArchivesService.getArchivesByProfileId(profile.id);
+        const isMain = group ? group.mainProfileId === profile.id : true;
+
+        const selfStatus = GroupStatusSelf[group ? 'IN_GROUP' : archive.length ? 'NOT_IN_GROUP_WITH_ARCHIVE' : 'NOT_IN_GROUP'];
+        const partnerStatus = GroupStatusPartner[group && group[isMain ? 'secondProfileId' : 'mainProfileId'] !== null ? 'IN_GROUP' : group && group.groupArchives.length ? 'GROUP_IN_ARCHIVE' : 'NO_PARTNER'];
+
+        return {
+            self: selfStatus,
+            partner: partnerStatus
+        };
+    }
     async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {
         const requester = await this.getProfile({ id: reqProfileId }, true);
-        const requesterGroup = requester.groupId ? await this.prismaService.group.findUnique({
-            where: { id: requester.groupId },
-            include: {
-                groupArchives: true
-            }
-        }) : null;
+        const requesterGroup = requester.groupId ? await this.groupsService.getGroupById(requester.groupId, true) : null;
 
         if (
             requester.user.role !== Role.ADMIN && (

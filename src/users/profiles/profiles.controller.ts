@@ -6,7 +6,7 @@ import {Profile} from "@prisma/client";
 import {UserNotFoundException} from "../../errors";
 import {ProfilesService} from "./profiles.service";
 import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
-import {ProfileDto} from "./dto";
+import {GroupStatusDto, ProfileDto} from "./dto";
 
 @ApiTags('Профили')
 @ApiSecurity('AccessToken')
@@ -16,6 +16,13 @@ export class ProfilesController {
     private utils = useUtils();
 
     constructor(private profilesService: ProfilesService) {}
+
+    @ApiOperation({ summary: 'Вывести статус активного пользователя' })
+    @ApiResponse({ type: GroupStatusDto })
+    @Get('status')
+    isThereGroup(@UserProfile() profile: Profile) {
+        return this.profilesService.statusAboutProfile(profile);
+    }
 
     @ApiOperation({ summary: 'Вывести профиль авторизированного пользователя' })
     @ApiResponse({ type: ProfileDto })
