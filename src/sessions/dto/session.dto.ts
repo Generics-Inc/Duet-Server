@@ -7,6 +7,9 @@ export class SessionDto {
     @ApiProperty({ description: 'ID пользователя', type: Number })
     userId: number;
 
+    @ApiProperty({ description: 'Индикатор текущей сессии', type: Boolean, default: false })
+    current: boolean;
+
     @ApiProperty({ description: 'Уникальный ID устройства', type: String })
     deviceUUID: string;
 
@@ -15,12 +18,6 @@ export class SessionDto {
 
     @ApiProperty({ description: 'Операционная система и версия устройства', type: String })
     deviceOS: string;
-
-    @ApiProperty({ description: 'Хэшированный токен доступа', type: String })
-    accessToken: string;
-
-    @ApiProperty({ description: 'Хэшированный токен обновления', type: String })
-    refreshToken: string;
 
     @ApiProperty({ description: 'Дата входа в систему', type: Date })
     loggedAt: Date;

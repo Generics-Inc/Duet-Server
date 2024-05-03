@@ -1,49 +1,48 @@
-import {Controller, Get, UseGuards} from '@nestjs/common';
-import {AccessTokenGuard, HaveRoleAccessGuard} from "../auth/guard";
+import {Body, Controller, Delete, Get, Param, ParseIntPipe, UseGuards} from '@nestjs/common';
+import {AccessTokenGuard} from "../auth/guard";
 import {SessionsService} from "./sessions.service";
-import {Roles, UserData} from "../users/decorator";
-import {Role, Session} from "@prisma/client";
-import {SessionIncludes} from "../types";
-import {ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
-import {SessionDto, SessionExtendDto} from "./dto";
+import {UserData, UserSession} from "../users/decorator";
+import {ApiBody, ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
+import {SessionDto} from "./dto";
+import {Session} from "@prisma/client";
+import useUtils from "../composables/useUtils";
+import {SessionNotFoundException} from "../errors";
+import {SessionCloseDto} from "./dto/session-close.dto";
 
 @ApiTags('Сессии')
+@ApiSecurity('AccessToken')
 @UseGuards(AccessTokenGuard)
 @Controller('sessions')
 export class SessionsController {
+    private utils = useUtils();
+
     constructor(private sessionsService: SessionsService) {}
 
-    @ApiOperation({ summary: 'ADMIN: Вывести все сессии всех пользователей' })
+    @ApiOperation({ summary: 'Вывести сессии авторизированного пользователя' })
     @ApiResponse({ type: SessionDto, isArray: true })
-    @ApiSecurity('AccessToken')
     @Get()
-    @Roles(Role.ADMIN)
-    @UseGuards(HaveRoleAccessGuard)
-    getAll(): Promise<Session[]> {
-        return this.sessionsService.getSessions();
-    }
-    @ApiOperation({ summary: 'ADMIN: Вывести все сессии всех пользователей в расширенном виде' })
-    @ApiResponse({ type: SessionExtendDto, isArray: true })
-    @ApiSecurity('AccessToken')
-    @Get('full')
-    @Roles(Role.ADMIN)
-    @UseGuards(HaveRoleAccessGuard)
-    getAllFull(): Promise<SessionIncludes[]> {
-        return this.sessionsService.getSessions(undefined, true);
+    async getMySessions(@UserData('id') userId: number, @UserSession() currentSession: Session) {
+        return this.sessionsService.cleanSessionsData(await this.sessionsService.getSessions({ userId }), currentSession)
     }
 
     @ApiOperation({ summary: 'Вывести сессии авторизированного пользователя' })
     @ApiResponse({ type: SessionDto, isArray: true })
-    @ApiSecurity('AccessToken')
-    @Get('me/all')
-    getMeAll(@UserData('id') userId: number): Promise<Session[]> {
-        return this.sessionsService.getSessions({ userId });
+    @Get('me')
+    getMe(@UserSession() currentSession: Session) {
+        return this.sessionsService.cleanSessionData(currentSession, currentSession);
     }
-    @ApiOperation({ summary: 'Вывести сессии авторизированного пользователя в расширенном виде' })
-    @ApiResponse({ type: SessionExtendDto, isArray: true })
-    @ApiSecurity('AccessToken')
-    @Get('me/all/full')
-    getMeAllFull(@UserData('id') userId: number): Promise<SessionIncludes[]> {
-        return this.sessionsService.getSessions({ userId }, true);
+
+    @ApiOperation({ summary: 'Закрыть сессию по ID' })
+    @ApiResponse({ })
+    @Delete('close/:id')
+    async closeSessionById(@UserData('id') userId: number, @Param('id', ParseIntPipe) id: number) {
+        this.utils.ifEmptyGivesError(await this.sessionsService.getSession({ userId, id }), SessionNotFoundException);
+        await this.sessionsService.closeSessionsByArrayIds(userId, [id]);
+    }
+    @ApiOperation({ summary: 'Массовое закрытие сессий по ID' })
+    @ApiBody({ type: SessionCloseDto })
+    @Delete('close')
+    async closeSessionsByIds(@UserData('id') userId: number, @Body() body: SessionCloseDto) {
+        await this.sessionsService.closeSessionsByArrayIds(userId, body.ids);
     }
 }

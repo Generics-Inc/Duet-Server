@@ -24,8 +24,8 @@ export class GroupsService {
 
     constructor(
         private prismaService: PrismaService,
-        private profilesService: ProfilesService,
         private filesService: FilesService,
+        private profilesService: ProfilesService,
         @Inject(forwardRef(() => GroupsArchivesService))
         private groupsArchivesService: GroupsArchivesService,
         @Inject(forwardRef(() => GroupsRequestsService))
@@ -91,7 +91,7 @@ export class GroupsService {
         if (await this.groupsRequestsService.isRequestExist(profileId, group.id)) throw GroupRequestConflictException;
         else if (group.secondProfileId) throw GroupIsFullConflictException;
 
-        return this.groupsRequestsService.createRequest(profileId, group.id);
+        return this.groupsRequestsService.createRequest(profileId, group.id, inviteCode);
     }
     async leaveFromGroup(profileId: number): Promise<GroupIncludes> {
         const group = this.utils.ifEmptyGivesError(await this.getGroupByProfileId(profileId, true), GroupNotFoundException);

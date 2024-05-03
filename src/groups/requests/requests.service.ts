@@ -31,9 +31,10 @@ export class GroupsRequestsService {
         }
     }
 
-    createRequest(profileId: number, groupId: number) {
+    createRequest(profileId: number, groupId: number, inviteCode: string) {
         return this.prismaService.groupRequest.create({
             data: {
+                inviteCode,
                 profile: { connect: { id: profileId }},
                 group: { connect: { id: groupId }}
             }

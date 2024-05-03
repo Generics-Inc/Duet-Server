@@ -40,8 +40,18 @@ export class SessionsService {
     async getSessions<E extends boolean = false>(where?: Prisma.SessionWhereInput, extend?: E) {
         return (await this.prismaService.session.findMany({
             where: where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {}),
         })) as E extends true ? SessionIncludes[] : Session[];
+    }
+
+    cleanSessionData(session: Session, currentSession: Session) {
+        delete session.accessToken;
+        delete session.refreshToken;
+        session.current = session.id === currentSession.id;
+        return session
+    }
+    cleanSessionsData(sessions: Session[], currentSession: Session) {
+        return sessions.map(session => this.cleanSessionData(session, currentSession));
     }
 
     async createSession(user: User, deviceMeta: DeviceDto) {
@@ -85,12 +95,19 @@ export class SessionsService {
         });
     }
     async closeSession(sessionId: number) {
-        console.log(sessionId)
         this.utils.ifEmptyGivesError(await this.getUniqueSession({ id: sessionId }), SessionNotFoundException);
 
         await this.prismaService.session.delete({
             where: {
                 id: sessionId
+            }
+        });
+    }
+    async closeSessionsByArrayIds(userId: number, sessionsIds: number[]) {
+        await this.prismaService.session.deleteMany({
+            where: {
+                id: { in: sessionsIds },
+                userId
             }
         });
     }

@@ -1,7 +1,8 @@
 import {Injectable} from '@nestjs/common';
-import {Prisma, Profile} from "@prisma/client";
+import {Prisma, Profile, Role} from "@prisma/client";
 import {PrismaService} from "../../prisma.service";
 import {ProfileIncludes} from "../../types";
+import {ProfileAccessDividedException} from "../../errors";
 
 
 @Injectable()
@@ -48,21 +49,25 @@ export class ProfilesService {
     }
 
     async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {
-        // const requester = await this.getProfile({ id: reqProfileId }, true);
-        // const requesterGroup = requester.groupId ? await this.prismaService.group.findUnique({
-        //     where: { id: requester.groupId },
-        //     include: {
-        //         profiles: true,
-        //         groupsArchive: true
-        //     }
-        // }) : null;
-        //
-        // if (
-        //     requester.user.role !== Role.ADMIN && (
-        //         (!requester.group && reqProfileId !== resProfileId) ||
-        //         (requester.group && ![...requesterGroup.profiles, ...requesterGroup.groupsArchive].some(profile => profile.id === resProfileId))
-        //     )
-        // ) throw ProfileAccessDividedException;
+        const requester = await this.getProfile({ id: reqProfileId }, true);
+        const requesterGroup = requester.groupId ? await this.prismaService.group.findUnique({
+            where: { id: requester.groupId },
+            include: {
+                groupArchives: true
+            }
+        }) : null;
+
+        if (
+            requester.user.role !== Role.ADMIN && (
+                reqProfileId !== resProfileId && (
+                    !requesterGroup || ![
+                        ...requesterGroup.groupArchives.map(r => r.profileId),
+                        requesterGroup.mainProfileId,
+                        requesterGroup.secondProfileId
+                    ].includes(resProfileId)
+                )
+            )
+        ) throw ProfileAccessDividedException;
 
         return this.getProfile({ id: resProfileId });
     }

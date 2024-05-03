@@ -24,6 +24,9 @@ import {GroupsRequestsController} from "./requests/requests.controller";
         GroupsRequestsService,
         PrismaService,
         FilesService
+    ],
+    exports: [
+        GroupsService
     ]
 })
 export class GroupsModule {}

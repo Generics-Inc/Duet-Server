@@ -20,6 +20,7 @@ CREATE TABLE "Users" (
 CREATE TABLE "Sessions" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
+    "current" BOOLEAN NOT NULL DEFAULT false,
     "deviceUUID" TEXT NOT NULL,
     "deviceName" TEXT NOT NULL,
     "deviceOS" TEXT NOT NULL,
@@ -131,10 +132,10 @@ ALTER TABLE "Groups" ADD CONSTRAINT "Groups_mainProfileId_fkey" FOREIGN KEY ("ma
 ALTER TABLE "Groups" ADD CONSTRAINT "Groups_secondProfileId_fkey" FOREIGN KEY ("secondProfileId") REFERENCES "Profiles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GroupsRequests" ADD CONSTRAINT "GroupsRequests_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profiles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GroupsRequests" ADD CONSTRAINT "GroupsRequests_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GroupsRequests" ADD CONSTRAINT "GroupsRequests_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GroupsRequests" ADD CONSTRAINT "GroupsRequests_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "GroupsArchives" ADD CONSTRAINT "GroupsArchives_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;

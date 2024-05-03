@@ -20,6 +20,9 @@ export class ProfileDto {
     @ApiProperty({ description: 'День рождения', type: String })
     birthday: string;
 
+    @ApiProperty({ description: 'ID активной группы', type: Number, required: false, default: 0 })
+    groupId?: number;
+
     @ApiProperty({ description: 'ID VK', type: Number, required: false, default: 284470002 })
     vkId?: number;
 
@@ -29,9 +32,12 @@ export class ProfileDto {
     @ApiProperty({ description: 'Статус (о себе)', type: String, required: false, default: 'Казак с плеч' })
     status?: string;
 
-    @ApiProperty({ description: 'Ссылка на фото профиля', type: String })
-    photo: string;
+    @ApiProperty({ description: 'Ссылка на фото профиля', type: String, required: false })
+    photo?: string;
 
-    @ApiProperty({ description: 'ID активной группы', type: Number, required: false, default: 0 })
-    groupId?: number;
+    @ApiProperty({ description: 'Дата создания профиля', type: Date })
+    createdAt: Date;
+
+    @ApiProperty({ description: 'Дата последнего изменения профиля', type: Date })
+    updatedAt: Date;
 }
