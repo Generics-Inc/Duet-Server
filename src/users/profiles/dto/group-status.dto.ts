@@ -16,6 +16,6 @@ export class GroupStatusDto {
     @ApiProperty({ description: 'Информация об активном пользователе', enum: GroupStatusSelf })
     self: GroupStatusSelf;
 
-    @ApiProperty({ description: 'Информация об партнёре активной группы', enum: GroupStatusSelf })
+    @ApiProperty({ description: 'Информация об партнёре активной группы', enum: GroupStatusPartner })
     partner: GroupStatusPartner;
 }
