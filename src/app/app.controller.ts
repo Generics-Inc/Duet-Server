@@ -5,11 +5,15 @@ import {HaveRoleAccessGuard} from "../auth/guard";
 import {Roles} from "../users/decorator";
 import {Role} from "@prisma/client";
 import {AppService} from "./app.service";
+import {OpenaiService} from "../singles/openai.service";
 
 @ApiTags('Сервер')
 @Controller()
 export class AppController {
-    constructor(private appService: AppService) {}
+    constructor(
+        private appService: AppService,
+        private openaiService: OpenaiService
+    ) {}
 
     @ApiOperation({ summary: 'Проверка работы сервера' })
     @ApiResponse({ status: 200, type: PingDto })

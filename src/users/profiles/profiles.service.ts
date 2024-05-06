@@ -1,7 +1,7 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
-import {Prisma, Profile, Role} from "@prisma/client";
-import {PrismaService} from "../../prisma.service";
-import {ProfileIncludes} from "../../types";
+import {GroupArchive, Prisma, Profile, Role} from "@prisma/client";
+import {PrismaService} from "../../singles";
+import {GroupIncludes, ProfileIncludes} from "../../types";
 import {ProfileAccessDividedException} from "../../errors";
 import {GroupsService} from "../../groups/groups.service";
 import {GroupsArchivesService} from "../../groups/archives/archives.service";
@@ -56,16 +56,27 @@ export class ProfilesService {
     }
 
     async statusAboutProfile(profile: Profile): Promise<GroupStatusDto> {
+        const getSelfStatusKey = (archive: GroupArchive[], group?: GroupIncludes): GroupStatusSelf => {
+            if (group) return GroupStatusSelf.IN_GROUP;
+            else if (archive.length) return GroupStatusSelf.NOT_IN_GROUP_WITH_ARCHIVE;
+            else return GroupStatusSelf.NOT_IN_GROUP;
+        };
+        const getPartnerStatusKey = (group?: GroupIncludes): GroupStatusPartner => {
+            const isMain = group ? group.mainProfileId === profile.id : true;
+
+            if (!group) return GroupStatusPartner.NO_PARTNER;
+            else if (group[isMain ? 'secondProfileId' : 'mainProfileId'] !== null) return GroupStatusPartner.IN_GROUP;
+            else if (group.groupArchives.length) return GroupStatusPartner.GROUP_IN_ARCHIVE;
+            else if (!group.inviteCode) return GroupStatusPartner.LEAVED;
+            else return GroupStatusPartner.NO_PARTNER;
+        };
+
         const group = profile.groupId ? await this.groupsService.getGroupById(profile.groupId, true) : null;
         const archive = await this.groupsArchivesService.getArchivesByProfileId(profile.id);
-        const isMain = group ? group.mainProfileId === profile.id : true;
-
-        const selfStatus = GroupStatusSelf[group ? 'IN_GROUP' : archive.length ? 'NOT_IN_GROUP_WITH_ARCHIVE' : 'NOT_IN_GROUP'];
-        const partnerStatus = GroupStatusPartner[group && group[isMain ? 'secondProfileId' : 'mainProfileId'] !== null ? 'IN_GROUP' : group && group.groupArchives.length ? 'GROUP_IN_ARCHIVE' : 'NO_PARTNER'];
 
         return {
-            self: selfStatus,
-            partner: partnerStatus
+            self: getSelfStatusKey(archive, group),
+            partner: getPartnerStatusKey(group)
         };
     }
     async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {

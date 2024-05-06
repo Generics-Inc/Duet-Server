@@ -42,8 +42,8 @@ export class GroupsRequestsController {
     @ApiParam({ description: 'ID Запроса на присоединение', name: 'id', type: String })
     @Patch('cancel/:id')
     @UseGuards(OnlyHaveGroupGuard)
-    cancelRequestToJoin(@Param('id', ParseIntPipe) id: number) {
-        return this.groupsRequestsService.actionWithRequest(id, 0);
+    cancelRequestToJoin(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
+        return this.groupsRequestsService.actionWithRequest(id, groupId ,0);
     }
 
     @ApiOperation({ summary: 'Принять запрос на присоединение к активной группе активного пользователя' })
@@ -51,8 +51,8 @@ export class GroupsRequestsController {
     @ApiResponse({ type: GroupDto, isArray: true})
     @Patch('accept/:id')
     @UseGuards(OnlyHaveGroupGuard)
-    acceptRequestToJoin(@Param('id', ParseIntPipe) id: number) {
-        return this.groupsRequestsService.actionWithRequest(id, 1);
+    acceptRequestToJoin(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
+        return this.groupsRequestsService.actionWithRequest(id, groupId, 1);
     }
 
     @ApiOperation({ summary: 'Удалить запрос на присоединение к группе активного пользователя' })

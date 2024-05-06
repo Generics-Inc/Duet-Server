@@ -1,5 +1,5 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
-import {PrismaService} from "../../prisma.service";
+import {PrismaService} from "../../singles";
 import useUtils from "../../composables/useUtils";
 import { Prisma } from ".prisma/client";
 import {GroupsService} from "../groups.service";
@@ -45,6 +45,9 @@ export class GroupsRequestsService {
     getRequestById<E extends boolean = false>(id: number, extend?: E) {
         return this.getRequestWhere<E>({ id }, extend);
     }
+    getRequestByIdAndGroupId<E extends boolean = false>(id: number, groupId: number, extend?: E) {
+        return this.getRequestWhere<E>({ id, groupId }, extend);
+    }
     getRequestByProfileAndGroupId<E extends boolean = false>(profileId: number, groupId: number, extend?: E) {
         return this.getRequestWhere<E>({ profileId, groupId }, extend);
     }
@@ -59,14 +62,14 @@ export class GroupsRequestsService {
         return this.getRequestsWhere<E>({ profileId }, extend);
     }
 
-    async actionWithRequest(id: number, action: 1 | 0) {
-        const request = this.utils.ifEmptyGivesError(await this.getRequestById(id, true), GroupRequestNotFoundException);
+    async actionWithRequest(actionId: number, groupId: number, action: 1 | 0) {
+        const request = this.utils.ifEmptyGivesError(await this.getRequestByIdAndGroupId(actionId, groupId, true), GroupRequestNotFoundException);
         if (request.profile.groupId) throw UserAlreadyInGroupConflictException;
         else if (request.group.secondProfileId) throw GroupIsFullConflictException;
 
         switch (action) {
             case 0:
-                return this.deleteRequestById(id);
+                return this.deleteRequestById(actionId);
             case 1:
                 const deleteGroupRequests = this.deleteRequestsByGroupId(request.groupId);
                 const deleteProfileRequests = this.deleteRequestsByProfileId(request.profileId);

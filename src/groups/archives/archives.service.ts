@@ -1,11 +1,12 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
-import {PrismaService} from "../../prisma.service";
+import {PrismaService} from "../../singles";
 import useUtils from "../../composables/useUtils";
 import { Prisma } from ".prisma/client";
 import {GroupArchiveNotFoundException} from "../../errors";
 import {GroupsService} from "../groups.service";
 import {GroupArchive} from "@prisma/client";
 import {GroupArchiveIncludes} from "../../types";
+import {GroupsRequestsService} from "../requests/requests.service";
 
 @Injectable()
 export class GroupsArchivesService {
@@ -15,7 +16,9 @@ export class GroupsArchivesService {
     constructor(
         private prismaService: PrismaService,
         @Inject(forwardRef(() => GroupsService))
-        private groupsService: GroupsService
+        private groupsService: GroupsService,
+        @Inject(forwardRef(() => GroupsRequestsService))
+        private groupsRequestsService: GroupsRequestsService
     ) {}
 
     async getAllArchives<E extends boolean = false>(extend?: E) {
@@ -58,9 +61,10 @@ export class GroupsArchivesService {
                 }
             }
         });
+        const deleteRequests = this.groupsRequestsService.deleteRequestsByProfileId(profileId);
         const deleteRecord = this.deleteArchiveRecordById(record.id, profileId);
 
-        await this.prismaService.$transaction([updateGroup, deleteRecord]);
+        await this.prismaService.$transaction([updateGroup, deleteRequests, deleteRecord]);
 
         return this.groupsService.getGroupByProfileId(profileId);
     }

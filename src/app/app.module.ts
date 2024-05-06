@@ -7,10 +7,11 @@ import {ScheduleModule} from "@nestjs/schedule";
 import {GroupsModule} from "../groups/groups.module";
 import {SessionsModule} from "../sessions/sessions.module";
 import {AppService} from './app.service';
-import {PrismaService} from "../prisma.service";
+import {PrismaService} from "../singles";
 import {FilesModule} from "../files/files.module";
 import {ThrottlerGuard, ThrottlerModule} from "@nestjs/throttler";
 import {APP_GUARD} from "@nestjs/core";
+import {OpenaiService} from "../singles/openai.service";
 
 @Module({
     imports: [
@@ -30,8 +31,9 @@ import {APP_GUARD} from "@nestjs/core";
     ],
     controllers: [AppController],
     providers: [
-        PrismaService,
         AppService,
+        PrismaService,
+        OpenaiService,
         {
             provide: APP_GUARD,
             useClass: ThrottlerGuard

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from "../prisma.service";
+import { PrismaService } from "../singles";
 import * as bcrypt from "bcryptjs";
 import { ConfigService } from "@nestjs/config";
 import { HttpService } from "@nestjs/axios";
@@ -18,7 +18,7 @@ import {
     SignInDto, TokensDto,
     VkSignInDto
 } from "./dto";
-import {CryptoService} from "../crypto.service";
+import {CryptoService} from "../singles";
 import {SessionsService} from "../sessions/sessions.service";
 import useUtils from "../composables/useUtils";
 import {Session} from "@prisma/client";

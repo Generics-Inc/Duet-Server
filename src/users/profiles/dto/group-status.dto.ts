@@ -8,6 +8,7 @@ export enum GroupStatusSelf {
 export enum GroupStatusPartner {
     NO_PARTNER = 'NO_PARTNER',
     GROUP_IN_ARCHIVE = 'GROUP_IN_ARCHIVE',
+    LEAVED = 'LEAVED',
     IN_GROUP = 'IN_GROUP'
 }
 

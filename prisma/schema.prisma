@@ -51,10 +51,10 @@ model Profile {
   firstName String
   lastName  String
   birthday  String
+  gender    Gender @default(NOT_SPECIFIED)
 
   groupId Int?
   vkId    Int?
-  gender  Gender?
   status  String?
   photo   String?
 
@@ -128,6 +128,8 @@ enum Role {
 enum Gender {
   MALE
   FEMALE
+  OTHER
+  NOT_SPECIFIED
 }
 
 model SuperSecret {

@@ -1,5 +1,5 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
-import {PrismaService} from "../prisma.service";
+import {PrismaService} from "../singles";
 import useUtils from "../composables/useUtils";
 import {
     FileCreationException, GroupIsFullConflictException,
@@ -73,10 +73,16 @@ export class GroupsService {
             throw FileCreationException;
         }
 
-        return file ? await this.prismaService.group.update({
+        if (!file) return group;
+
+        const requestsToJoinDelete = this.groupsRequestsService.deleteRequestsByProfileId(profileId);
+        const groupUpdate = this.prismaService.group.update({
             where: { id: group.id },
             data: { photo: file.link }
-        }): group;
+        });
+
+        return await this.prismaService.$transaction([requestsToJoinDelete, groupUpdate])
+            .then(r => r[1]);
     }
     async sendRequestToGroup(profileId: number, inviteCode: string) {
         const group = this.utils.ifEmptyGivesError(await this.prismaService.group.findUnique({
@@ -91,7 +97,7 @@ export class GroupsService {
     async leaveFromGroup(profileId: number): Promise<GroupIncludes> {
         const group = this.utils.ifEmptyGivesError(await this.getGroupByProfileId(profileId, true), GroupNotFoundException);
 
-        const isLastUser = group.secondProfile?.id === null;
+        const isLastUser = group.secondProfileId === null;
         const isMainUser = profileId === group.mainProfile?.id;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
 
