@@ -90,8 +90,7 @@ export class AuthService {
     async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
         this.utils.ifEmptyGivesError(this.sessionsService.tokenLifeCheck(session, accessToken), SessionIsNotValidException);
 
-        const { tokens } = await this.sessionsService.updateSession(session.id);
-        return tokens;
+        return await this.sessionsService.updateSession(session.id).then(res => res.tokens);
     }
     async logOut(sessionId: number): Promise<void> {
         try {

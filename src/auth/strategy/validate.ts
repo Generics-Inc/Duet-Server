@@ -17,9 +17,9 @@ export default async function (
 
     if (!Number.isInteger(tokenPayload.sessionId) || !Number.isInteger(tokenPayload.userId)) throw AuthorizedSessionNotFoundException;
 
-    const session = await sessionsService.getUniqueSession({ id: tokenPayload.sessionId })
-    const user = await usersService.getUniqueUser({ id: tokenPayload.userId });
-    const profile = await profilesService.getProfile({ userId: tokenPayload.userId });
+    const session = await sessionsService.getUniqueSession({ id: tokenPayload.sessionId }, true)
+    const user = await usersService.getUniqueUser({ id: tokenPayload.userId }, true);
+    const profile = await profilesService.getProfile({ userId: tokenPayload.userId }, true);
 
     if (
         !session ||

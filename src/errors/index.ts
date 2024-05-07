@@ -35,6 +35,7 @@ export const RoleAccessDividedException = new ExceptionGenerator(423, 0, 'Дос
 export const AccessWithGroupDividedException = new ExceptionGenerator(423, 1, 'Доступ заблокирован! Требуется активная группа');
 export const AccessWithoutGroupDividedException = new ExceptionGenerator(423, 2, 'Доступ заблокирован! У вас не должно быть активной группы');
 export const ProfileAccessDividedException = new ExceptionGenerator(423, 3, 'Доступ заблокирован! Вы не можете получить доступ к профилю чужого пользователя');
+export const AccessWithoutMainRightsInGroupDividedException = new ExceptionGenerator(423, 4, 'Доступ заблокирован! Требуется активная группа и права на главного в группе');
 
 // 520 - Unknown
 export const UnknownErrorException = new ExceptionGenerator(520, 0, 'Неизвестная ошибка');

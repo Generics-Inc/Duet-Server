@@ -1,8 +1,8 @@
-import {Controller, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} from '@nestjs/common';
+import {Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} from '@nestjs/common';
 import {GroupsService} from "./groups.service";
 import {
     AccessTokenGuard,
-    OnlyHaveGroupGuard,
+    OnlyHaveGroupGuard, OnlyMainInGroupGuard,
     OnlyNotHaveGroupGuard
 } from "../auth/guard";
 import {
@@ -42,7 +42,7 @@ export class GroupsController {
     @Throttle({ default: { ttl: 15000, limit: 1 }})
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
     @ApiBody({ type: CreateGroupDto })
-    @ApiResponse({ status: 201, type: GroupDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
     @HttpCode(HttpStatus.CREATED)
     @PostFile()
     @UseGuards(OnlyNotHaveGroupGuard)
@@ -55,9 +55,20 @@ export class GroupsController {
     }
 
     @Throttle({ default: { ttl: 15000, limit: 1 }})
+    @ApiOperation({ summary: 'Сгенерировать новый inviteCode активной группы' })
+    @ApiBody({ type: CreateGroupDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
+    @HttpCode(HttpStatus.CREATED)
+    @Patch('generateNewInviteCode')
+    @UseGuards(OnlyMainInGroupGuard)
+    generateNewInviteCode() {
+        return 'SOSI'
+    }
+
+    @Throttle({ default: { ttl: 15000, limit: 1 }})
     @ApiOperation({ summary: 'Отправить запрос на присоединение по коду приглашения' })
     @ApiParam({ description: 'Код приглашения', name: 'inviteCode', type: String })
-    @ApiResponse({ status: 201, type: GroupRequestDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: GroupRequestDto })
     @HttpCode(HttpStatus.CREATED)
     @Patch('join/:inviteCode')
     @UseGuards(OnlyNotHaveGroupGuard)
@@ -66,9 +77,9 @@ export class GroupsController {
     }
 
     @ApiOperation({ summary: 'Выйти из активной группы' })
-    @ApiResponse({ status: 200, type: GroupExtendDto })
+    @ApiResponse({ status: HttpStatus.OK, type: GroupExtendDto })
     @HttpCode(HttpStatus.OK)
-    @Patch('leave')
+    @Delete('leave')
     @UseGuards(OnlyHaveGroupGuard)
     async leaveFromGroup(@UserProfile('id') profileId: number) {
         return await this.groupsService.leaveFromGroup(profileId);

@@ -37,21 +37,21 @@ export class AuthController {
     @ApiOperation({ summary: 'Выход из аккаунта (с удалением сессии) [Рекомендуется]' })
     @ApiResponse({ status: 204 })
     @ApiSecurity('AccessToken')
-    @UseGuards(AccessTokenGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @Post('/logout')
+    @UseGuards(AccessTokenGuard)
     logOut(@UserSession('id') sessionId: number): Promise<void> {
         return this.authService.logOut(sessionId);
     }
 
     @ApiOperation({ summary: 'Обновление токена доступа токеном обновления' })
     @ApiBody({ type: RefreshDto })
-    @ApiResponse({ status: 205, type: TokensDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: TokensDto })
     @ApiSecurity('RefreshToken')
-    @UseGuards(RefreshTokenGuard)
-    @HttpCode(HttpStatus.RESET_CONTENT)
+    @HttpCode(HttpStatus.CREATED)
     @Post('/refresh')
-    refreshToken(@UserSession() session: Session, @Body() body: RefreshDto): Promise<TokensDto> {
+    @UseGuards(RefreshTokenGuard)
+    refreshToken(@UserSession() session: Session, @Body() body: RefreshDto) {
         return this.authService.refreshToken(session, body.accessToken);
     }
 }

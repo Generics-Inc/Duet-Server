@@ -3,8 +3,8 @@ import {AccessTokenGuard} from "./accessToken.guard";
 import {RoleAccessDividedException} from "../../errors";
 import {Reflector} from "@nestjs/core";
 import {Role} from "@prisma/client";
-import {ROLES_KEY} from "../../users/decorator/roles.decorator";
-import {PayloadReturnDto} from "../strategy/dto/payload.dto";
+import {ROLES_KEY} from "../../users/decorator";
+import {PayloadReturnDto} from "../strategy/dto";
 
 @Injectable()
 export class HaveRoleAccessGuard extends AccessTokenGuard {

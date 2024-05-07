@@ -1,4 +1,4 @@
-import {Profile, Session, User} from "@prisma/client";
+import {ProfileIncludes, SessionIncludes, UserIncludes} from "../../../types";
 
 export class TokenPayloadDto {
   userId: number;
@@ -9,8 +9,8 @@ export class TokenPayloadDto {
 
 export class PayloadReturnDto {
   tokenPayload: TokenPayloadDto;
-  session: Session;
-  user: User;
-  profile: Profile;
+  session: SessionIncludes;
+  user: UserIncludes;
+  profile: ProfileIncludes;
   token: string;
 }
