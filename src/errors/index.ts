@@ -27,8 +27,8 @@ export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Запра�
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');
 export const GroupArchiveIncludeConflictException = new ExceptionGenerator(409, 1, 'Группа с такими данными, уже находится в архиве');
 export const GroupRequestConflictException = new ExceptionGenerator(409, 2, 'Запрос, на присоединение в группу, уже существует. Ожидайте ответа от владельца');
-export const GroupIsFullConflictException = new ExceptionGenerator(409, 3, 'Группа уже полная (как ты это сделал?)');
-export const UserAlreadyInGroupConflictException = new ExceptionGenerator(409, 3, 'Пользователь уже находится в группе');
+export const GroupIsFullConflictException = new ExceptionGenerator(409, 3, 'Группа уже полная');
+export const UserAlreadyInGroupConflictException = new ExceptionGenerator(409, 4, 'Пользователь уже находится в группе');
 
 // 423 - Locked
 export const RoleAccessDividedException = new ExceptionGenerator(423, 0, 'Доступ к данному эндпоинту запрещён!');

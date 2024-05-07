@@ -32,7 +32,10 @@ export class GroupsArchivesService {
             include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
         })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
     }
-    async getArchiveRecord<E extends boolean = false>(payload: Prisma.GroupArchiveWhereInput, extend?: E) {
+    private async getArchiveRecordById<E extends boolean = false>(id: number, extend?: E) {
+        return this.getArchiveRecord<E>({ id }, extend);
+    }
+    private async getArchiveRecord<E extends boolean = false>(payload: Prisma.GroupArchiveWhereInput, extend?: E) {
         return (await this.prismaService.groupArchive.findFirst({
             where: payload,
             include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
@@ -47,7 +50,6 @@ export class GroupsArchivesService {
             }
         });
     }
-
     async revertGroupFromArchive(profileId: number, recordId: number) {
         const { group, ...record } = this.utils.ifEmptyGivesError(await this.getArchiveRecord({
             id: recordId,
@@ -69,6 +71,17 @@ export class GroupsArchivesService {
         return this.groupsService.getGroupByProfileId(profileId);
     }
     deleteArchiveRecordById(id: number, profileId: number) {
+        return this.prismaService.groupArchive.delete({
+            where: {
+                id,
+                profileId
+            }
+        });
+    }
+    async deleteArchiveRecordWithChecks(id: number, profileId: number) {
+        const archiveRecord = this.utils.ifEmptyGivesError(await this.getArchiveRecordById(id));
+
+
         return this.prismaService.groupArchive.delete({
             where: {
                 id,

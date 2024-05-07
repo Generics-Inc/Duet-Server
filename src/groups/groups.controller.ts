@@ -46,23 +46,22 @@ export class GroupsController {
     @HttpCode(HttpStatus.CREATED)
     @PostFile()
     @UseGuards(OnlyNotHaveGroupGuard)
-    async createGroup(@UploadedPostFile({
+    createGroup(@UploadedPostFile({
         fileSize: 5 * 1024 ** 2,
         fileType: '.(jpg|jpeg|png)',
         bodyType: CreateGroupDto
     }) form: UploadedPostFileReturn<CreateGroupDto>, @UserProfile('id') profileId: number) {
-        return await this.groupsService.createGroup(profileId, form);
+        return this.groupsService.createGroup(profileId, form);
     }
 
     @Throttle({ default: { ttl: 15000, limit: 1 }})
     @ApiOperation({ summary: 'Сгенерировать новый inviteCode активной группы' })
-    @ApiBody({ type: CreateGroupDto })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
     @HttpCode(HttpStatus.CREATED)
-    @Patch('generateNewInviteCode')
+    @Patch('generateInviteCode')
     @UseGuards(OnlyMainInGroupGuard)
-    generateNewInviteCode() {
-        return 'SOSI'
+    generateNewInviteCode(@UserProfile('groupId') groupId: number) {
+        return this.groupsService.updateInviteCode(groupId);
     }
 
     @Throttle({ default: { ttl: 15000, limit: 1 }})
@@ -76,12 +75,21 @@ export class GroupsController {
         return this.groupsService.sendRequestToGroup(profileId, inviteCode);
     }
 
+    @ApiOperation({ summary: 'Выгнать приглашенного партнёра из группы' })
+    @ApiResponse({ status: HttpStatus.OK })
+    @HttpCode(HttpStatus.OK)
+    @Delete('kickPartner')
+    @UseGuards(OnlyMainInGroupGuard)
+    kickPartnerFromGroup(@UserProfile('groupId') groupId: number) {
+        return this.groupsService.kickSecondPartnerFromGroup(groupId);
+    }
+
     @ApiOperation({ summary: 'Выйти из активной группы' })
-    @ApiResponse({ status: HttpStatus.OK, type: GroupExtendDto })
+    @ApiResponse({ status: HttpStatus.OK })
     @HttpCode(HttpStatus.OK)
     @Delete('leave')
     @UseGuards(OnlyHaveGroupGuard)
-    async leaveFromGroup(@UserProfile('id') profileId: number) {
-        return await this.groupsService.leaveFromGroup(profileId);
+    leaveFromGroup(@UserProfile('id') profileId: number) {
+        return this.groupsService.leaveFromGroup(profileId);
     }
 }

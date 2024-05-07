@@ -54,7 +54,7 @@ export class GroupsService {
     }
 
     async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>) {
-        const inviteCode = this.utils.createRandomString((await this.getAllGroups()).map(group => group.inviteCode));
+        const inviteCode = this.utils.createRandomString();
         const body = form.body;
         let file = undefined;
 
@@ -76,13 +76,17 @@ export class GroupsService {
         if (!file) return group;
 
         const requestsToJoinDelete = this.groupsRequestsService.deleteRequestsByProfileId(profileId);
-        const groupUpdate = this.prismaService.group.update({
-            where: { id: group.id },
-            data: { photo: file.link }
-        });
+        const groupUpdate = this.update(group.id, { photo: file.link });
 
         return await this.prismaService.$transaction([requestsToJoinDelete, groupUpdate])
             .then(r => r[1]);
+    }
+    async updateInviteCode(groupId: number) {
+        const group = this.utils.ifEmptyGivesError(await this.getGroupById(groupId, true));
+
+        if (group.secondProfileId || group.groupArchives.length) throw GroupIsFullConflictException;
+
+        return this.update(groupId, { inviteCode: this.utils.createRandomString() });
     }
     async sendRequestToGroup(profileId: number, inviteCode: string) {
         const group = this.utils.ifEmptyGivesError(await this.prismaService.group.findUnique({
@@ -94,7 +98,16 @@ export class GroupsService {
 
         return this.groupsRequestsService.createRequest(profileId, group.id, inviteCode);
     }
-    async leaveFromGroup(profileId: number): Promise<GroupIncludes> {
+    async kickSecondPartnerFromGroup(groupId: number) {
+        const group = this.utils.ifEmptyGivesError(await this.getGroupById(groupId, true));
+
+        if (!group.secondProfileId) throw UserNotFoundException;
+
+        return this.update(groupId, {
+            secondProfile: { disconnect: true }
+        });
+    }
+    async leaveFromGroup(profileId: number) {
         const group = this.utils.ifEmptyGivesError(await this.getGroupByProfileId(profileId, true), GroupNotFoundException);
 
         const isLastUser = group.secondProfileId === null;
@@ -111,7 +124,7 @@ export class GroupsService {
 
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
 
-        return await this.getGroupByProfileId(profileId, true);
+        return;
     }
 
     private async getUniqueGroupWhere<E extends boolean = false>(where: Prisma.GroupWhereUniqueInput, extend?: E) {

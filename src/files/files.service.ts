@@ -32,7 +32,7 @@ export class FilesService {
         }));
 
         return {
-            link: `/api/files/download/${bucketName}/${imageName}`
+            link: origin + `/api/files/download/${bucketName}/${imageName}`
         };
     }
     async download(bucketName: string, fileName: string) {
