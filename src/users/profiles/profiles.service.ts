@@ -28,6 +28,9 @@ export class ProfilesService {
         });
     }
 
+    async getProfileById<E extends boolean = false>(id: number, extend?: E) {
+        return this.getProfile({ id }, extend);
+    }
     async getProfile<E extends boolean = false>(payload: Prisma.ProfileWhereUniqueInput, extend?: E) {
         return (await this.prismaService.profile.findUnique({
             where: payload,

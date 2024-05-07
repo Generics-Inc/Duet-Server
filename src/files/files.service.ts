@@ -1,14 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
-import {FileDeletingException, FileNotFoundException, FolderNotFoundException} from "../errors";
+import {
+    BasketNotFoundException,
+    DirectoryAccessDividedException,
+    FileDeletingException,
+    FileNotFoundException,
+    FolderNotFoundException, UserNotFoundException
+} from "../errors";
 import * as AWS from "@aws-sdk/client-s3";
 import { createHash } from "crypto";
 import useUtils from "../composables/useUtils";
 import {UploadResponseDto} from "./dto/upload.dto";
 import {UploadedPostFileReturn} from "../app/decorators";
+import {ProfilesService} from "../users/profiles/profiles.service";
 
 @Injectable()
 export class FilesService {
+    private profileKeysToRights = {
+        'group': 'groupId'
+    };
     private utils = useUtils();
     private s3Client = new AWS.S3({
         region: 'ru',
@@ -19,9 +29,14 @@ export class FilesService {
         endpoint: this.configService.get('MINIO_ORIGIN', 'http://127.0.0.1:9000'),
     });
 
-    constructor(private configService: ConfigService) {}
+    constructor(
+        private configService: ConfigService,
+        @Inject(forwardRef(() => ProfilesService))
+        private profilesService: ProfilesService
+    ) {}
 
-    async upload(bucketName: string, fileDir: string, form: UploadedPostFileReturn): Promise<UploadResponseDto> {
+    async upload(profileId: number, bucketName: string, fileDir: string, form: UploadedPostFileReturn): Promise<UploadResponseDto> {
+        if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileDir)) throw DirectoryAccessDividedException;
         await this.nextOrCreateBucket(bucketName);
 
         const file = form.file.buffer;
@@ -39,7 +54,8 @@ export class FilesService {
             link: `${form.host}/api/files/download/${bucketName}/${imageName}`
         };
     }
-    async download(bucketName: string, fileName: string) {
+    async download(profileId: number, bucketName: string, fileName: string) {
+        if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileName)) throw DirectoryAccessDividedException;
         if (!await this.isFileExist(bucketName, fileName)) throw FileNotFoundException;
 
         return await this.s3Client.send(new AWS.GetObjectCommand({
@@ -47,7 +63,8 @@ export class FilesService {
             Key: fileName
         })).then(file => file.Body.transformToByteArray());
     }
-    async deleteFile(bucketName: string, fileName: string) {
+    async deleteFile(profileId: number, bucketName: string, fileName: string) {
+        if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileName)) throw DirectoryAccessDividedException;
         if (!await this.isFileExist(bucketName, fileName)) throw FileNotFoundException;
 
         try {
@@ -59,7 +76,8 @@ export class FilesService {
             throw FileDeletingException;
         }
     }
-    async deleteFolder(bucketName: string, folderPath: string) {
+    async deleteFolder(profileId: number, bucketName: string, folderPath: string) {
+        if (!await this.isHaveAccessToDirectory(profileId, bucketName, folderPath)) throw DirectoryAccessDividedException;
         if (!await this.isFolderExist(bucketName, folderPath)) throw FolderNotFoundException;
 
         const filesKeys = await this.s3Client.listObjectsV2({
@@ -77,6 +95,15 @@ export class FilesService {
         }
     }
 
+    private async isHaveAccessToDirectory(profileId: number, bucketName: string, path: string): Promise<boolean> {
+        if (!Object.keys(this.profileKeysToRights).includes(bucketName)) throw BasketNotFoundException;
+
+        const profile = this.utils.ifEmptyGivesError(await this.profilesService.getProfileById(profileId), UserNotFoundException);
+        const profileValue = profile[this.profileKeysToRights[bucketName]];
+        const directoryId = Number.parseInt(path.split('/')[0] ?? '-1');
+
+        return !(profileValue === null || directoryId === -1 || profileValue !== directoryId);
+    }
     private async isFolderExist(bucketName: string, folderPath: string): Promise<boolean> {
         try {
             return !!await this.s3Client.listObjectsV2({

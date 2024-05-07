@@ -35,6 +35,9 @@ export class GroupsArchivesService {
     private async getArchiveRecordById<E extends boolean = false>(id: number, extend?: E) {
         return this.getArchiveRecord<E>({ id }, extend);
     }
+    private async getArchiveRecordByIdAndProfileId<E extends boolean = false>(id: number, profileId: number, extend?: E) {
+        return this.getArchiveRecord<E>({ id, profileId }, extend);
+    }
     private async getArchiveRecord<E extends boolean = false>(payload: Prisma.GroupArchiveWhereInput, extend?: E) {
         return (await this.prismaService.groupArchive.findFirst({
             where: payload,
@@ -79,11 +82,11 @@ export class GroupsArchivesService {
         });
     }
     async deleteArchiveRecordWithChecks(id: number, profileId: number) {
-        const archiveRecord = this.utils.ifEmptyGivesError(await this.getArchiveRecordById(id), GroupArchiveNotFoundException);
+        const archiveRecord = this.utils.ifEmptyGivesError(await this.getArchiveRecordByIdAndProfileId(id, profileId), GroupArchiveNotFoundException);
         const group = this.utils.ifEmptyGivesError(await this.groupsService.getGroupById(archiveRecord.groupId, true), GroupNotFoundException);
         const isLastUser = group.groupArchives.length === 1;
 
-        if (isLastUser) await this.groupsService.deleteById(group.id);
+        if (isLastUser) await this.groupsService.deleteById(profileId, group.id);
         else await this.deleteArchiveRecordById(id, profileId);
     }
 }

@@ -9,6 +9,7 @@ import {FilesService} from "./files.service";
 import {DownloadDto} from "./dto";
 import {ApiOperation, ApiParam, ApiProduces, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {AccessTokenGuard} from "../auth/guard";
+import {UserProfile} from "../users/decorator";
 
 @ApiTags('Файлы')
 @ApiSecurity('AccessToken')
@@ -36,7 +37,11 @@ export class FilesController {
         status: HttpStatus.OK,
     })
     @Get('download/:bucketName/*')
-    async downloadStreamable(@Res({ passthrough: true }) _: Response, @Param() { bucketName, 0: fileName }: DownloadDto) {
-        return new StreamableFile(await this.filesService.download(bucketName, fileName));
+    async downloadStreamable(
+        @Res({ passthrough: true }) _: Response,
+        @UserProfile('id') profileId: number,
+        @Param() { bucketName, 0: fileName }: DownloadDto
+    ) {
+        return new StreamableFile(await this.filesService.download(profileId, bucketName as any, fileName));
     }
 }

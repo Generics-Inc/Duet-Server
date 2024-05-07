@@ -24,6 +24,7 @@ export const GroupArchiveNotFoundException = new ExceptionGenerator(404, 5, 'З�
 export const GroupRequestNotFoundException = new ExceptionGenerator(404, 6, 'Запрос на вступление в группу, не найден');
 export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Файл не найден');
 export const FolderNotFoundException = new ExceptionGenerator(404, 8, 'Папка не найдена');
+export const BasketNotFoundException = new ExceptionGenerator(404, 9, 'Контейнер не найден');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');
@@ -38,6 +39,7 @@ export const AccessWithGroupDividedException = new ExceptionGenerator(423, 1, '�
 export const AccessWithoutGroupDividedException = new ExceptionGenerator(423, 2, 'Доступ заблокирован! У вас не должно быть активной группы');
 export const ProfileAccessDividedException = new ExceptionGenerator(423, 3, 'Доступ заблокирован! Вы не можете получить доступ к профилю чужого пользователя');
 export const AccessWithoutMainRightsInGroupDividedException = new ExceptionGenerator(423, 4, 'Доступ заблокирован! Требуется активная группа и права на главного в группе');
+export const DirectoryAccessDividedException = new ExceptionGenerator(423, 5, 'Доступ заблокирован! Вы не имеете доступа к этой директории');
 
 // 520 - Unknown
 export const UnknownErrorException = new ExceptionGenerator(520, 0, 'Неизвестная ошибка');

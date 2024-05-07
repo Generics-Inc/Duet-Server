@@ -46,7 +46,7 @@ export class GroupsArchivesController {
     @ApiResponse({ status: 200, type: GroupArchiveDto })
     @HttpCode(HttpStatus.OK)
     @Delete(':id')
-    deleteArchiveById(@UserProfile('id') userId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.groupsArchivesService.deleteArchiveRecordWithChecks(id, userId);
+    deleteArchiveById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
+        return this.groupsArchivesService.deleteArchiveRecordWithChecks(id, profileId);
     }
 }

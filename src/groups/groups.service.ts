@@ -67,7 +67,7 @@ export class GroupsService {
         });
 
         try {
-            file = form.file ? await this.filesService.upload('group', `${group.id}`, form) : undefined;
+            file = form.file ? await this.filesService.upload(profileId, 'group', `${group.id}`, form) : undefined;
         } catch (e) {
             console.error(e);
             await this.prismaService.group.delete({ where: { id: group.id } });
@@ -125,8 +125,8 @@ export class GroupsService {
 
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
     }
-    async deleteById(groupId: number) {
-        await this.filesService.deleteFolder('group', groupId.toString());
+    async deleteById(profileId: number, groupId: number) {
+        await this.filesService.deleteFolder(profileId, 'group', groupId.toString());
 
         return this.prismaService.group.delete({
             where: { id: groupId }
