@@ -67,8 +67,9 @@ export class GroupsService {
         });
 
         try {
-            file = form.file ? await this.filesService.upload('group', `${group.id}`, form.file.buffer) : undefined;
+            file = form.file ? await this.filesService.upload('group', `${group.id}`, form) : undefined;
         } catch (e) {
+            console.error(e);
             await this.prismaService.group.delete({ where: { id: group.id } });
             throw FileCreationException;
         }
@@ -123,8 +124,13 @@ export class GroupsService {
         })
 
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
+    }
+    async deleteById(groupId: number) {
+        await this.filesService.deleteFolder('group', groupId.toString());
 
-        return;
+        return this.prismaService.group.delete({
+            where: { id: groupId }
+        });
     }
 
     private async getUniqueGroupWhere<E extends boolean = false>(where: Prisma.GroupWhereUniqueInput, extend?: E) {

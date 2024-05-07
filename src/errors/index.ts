@@ -12,6 +12,7 @@ export const VKSilentTokenException = new ExceptionGenerator(403, 2, 'Токен
 export const VKGetUserException = new ExceptionGenerator(403, 3, 'Ошибка получения информации об вк пользователе');
 export const IncorrectIDFormatException = new ExceptionGenerator(403, 4, 'Неверный формат ID');
 export const FileCreationException = new ExceptionGenerator(403, 5, 'Ошибка создания файла');
+export const FileDeletingException = new ExceptionGenerator(403, 6, 'Ошибка удаления файла');
 
 // 404 - Not found
 export const DeviceIsNotFoundException = new ExceptionGenerator(404, 0, 'Устройство сессии не найдено');
@@ -21,7 +22,8 @@ export const DataNotFoundException = new ExceptionGenerator(404, 3, 'Данны�
 export const GroupNotFoundException = new ExceptionGenerator(404, 4, 'Группа не найдена');
 export const GroupArchiveNotFoundException = new ExceptionGenerator(404, 5, 'Запись, в архиве пользователя, о группе, не найдена');
 export const GroupRequestNotFoundException = new ExceptionGenerator(404, 6, 'Запрос на вступление в группу, не найден');
-export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Запрашиваемый файл не найден');
+export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Файл не найден');
+export const FolderNotFoundException = new ExceptionGenerator(404, 8, 'Папка не найдена');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');

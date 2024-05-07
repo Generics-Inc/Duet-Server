@@ -2,7 +2,7 @@ import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import {PrismaService} from "../../singles";
 import useUtils from "../../composables/useUtils";
 import { Prisma } from ".prisma/client";
-import {GroupArchiveNotFoundException} from "../../errors";
+import {GroupArchiveNotFoundException, GroupNotFoundException} from "../../errors";
 import {GroupsService} from "../groups.service";
 import {GroupArchive} from "@prisma/client";
 import {GroupArchiveIncludes} from "../../types";
@@ -79,14 +79,11 @@ export class GroupsArchivesService {
         });
     }
     async deleteArchiveRecordWithChecks(id: number, profileId: number) {
-        const archiveRecord = this.utils.ifEmptyGivesError(await this.getArchiveRecordById(id));
+        const archiveRecord = this.utils.ifEmptyGivesError(await this.getArchiveRecordById(id), GroupArchiveNotFoundException);
+        const group = this.utils.ifEmptyGivesError(await this.groupsService.getGroupById(archiveRecord.groupId, true), GroupNotFoundException);
+        const isLastUser = group.groupArchives.length === 1;
 
-
-        return this.prismaService.groupArchive.delete({
-            where: {
-                id,
-                profileId
-            }
-        });
+        if (isLastUser) await this.groupsService.deleteById(group.id);
+        else await this.deleteArchiveRecordById(id, profileId);
     }
 }

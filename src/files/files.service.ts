@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
-import {FileNotFoundException} from "../errors";
+import {FileDeletingException, FileNotFoundException, FolderNotFoundException} from "../errors";
 import * as AWS from "@aws-sdk/client-s3";
 import { createHash } from "crypto";
 import useUtils from "../composables/useUtils";
 import {UploadResponseDto} from "./dto/upload.dto";
+import {UploadedPostFileReturn} from "../app/decorators";
 
 @Injectable()
 export class FilesService {
@@ -20,10 +21,13 @@ export class FilesService {
 
     constructor(private configService: ConfigService) {}
 
-    async upload(bucketName: string, fileDir: string, file: Buffer): Promise<UploadResponseDto> {
+    async upload(bucketName: string, fileDir: string, form: UploadedPostFileReturn): Promise<UploadResponseDto> {
         await this.nextOrCreateBucket(bucketName);
 
-        const imageName = this.utils.trimStr(fileDir, '/') + '/' + createHash("sha256").update(file).digest("hex") + '.png'
+        const file = form.file.buffer;
+        const imageName = this.utils.trimStr(fileDir, '/') + '/' + createHash("sha256")
+            .update(file)
+            .digest("hex") + '.png';
 
         await this.s3Client.send(new AWS.PutObjectCommand({
             Bucket: bucketName,
@@ -32,7 +36,7 @@ export class FilesService {
         }));
 
         return {
-            link: origin + `/api/files/download/${bucketName}/${imageName}`
+            link: `${form.host}/api/files/download/${bucketName}/${imageName}`
         };
     }
     async download(bucketName: string, fileName: string) {
@@ -43,7 +47,46 @@ export class FilesService {
             Key: fileName
         })).then(file => file.Body.transformToByteArray());
     }
+    async deleteFile(bucketName: string, fileName: string) {
+        if (!await this.isFileExist(bucketName, fileName)) throw FileNotFoundException;
 
+        try {
+            await this.s3Client.deleteObject({
+                Bucket: bucketName,
+                Key: fileName
+            });
+        } catch(error) {
+            throw FileDeletingException;
+        }
+    }
+    async deleteFolder(bucketName: string, folderPath: string) {
+        if (!await this.isFolderExist(bucketName, folderPath)) throw FolderNotFoundException;
+
+        const filesKeys = await this.s3Client.listObjectsV2({
+            Bucket: bucketName,
+            Prefix: folderPath
+        }).then(res => res.Contents.map(file => ({ Key: file.Key })));
+
+        try {
+            await this.s3Client.deleteObjects({
+                Bucket: bucketName,
+                Delete: { Objects: filesKeys }
+            });
+        } catch(error) {
+            throw FileDeletingException;
+        }
+    }
+
+    private async isFolderExist(bucketName: string, folderPath: string): Promise<boolean> {
+        try {
+            return !!await this.s3Client.listObjectsV2({
+                Bucket: bucketName,
+                Prefix: folderPath
+            }).then(res => res.Contents);
+        } catch (_) {
+            return false;
+        }
+    }
     private async isFileExist(bucketName: string, fileName: string): Promise<boolean> {
         try {
             await this.s3Client.headObject({

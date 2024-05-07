@@ -1,4 +1,4 @@
-import {Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} from '@nestjs/common';
+import {Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, UseGuards} from '@nestjs/common';
 import {AccessTokenGuard, OnlyNotHaveGroupGuard} from "../../auth/guard";
 import {GroupsArchivesService} from "./archives.service";
 import {UserProfile} from "../../users/decorator";
@@ -46,8 +46,7 @@ export class GroupsArchivesController {
     @ApiResponse({ status: 200, type: GroupArchiveDto })
     @HttpCode(HttpStatus.OK)
     @Delete(':id')
-    deleteArchiveById(@UserProfile('id') userId: number, @Param('id') id: string) {
-        this.utils.checkIdCurrent(id);
-        return this.groupsArchivesService.deleteArchiveRecordById(+id, userId);
+    deleteArchiveById(@UserProfile('id') userId: number, @Param('id', ParseIntPipe) id: number) {
+        return this.groupsArchivesService.deleteArchiveRecordWithChecks(id, userId);
     }
 }
