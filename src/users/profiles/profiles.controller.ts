@@ -27,15 +27,15 @@ export class ProfilesController {
     @ApiOperation({ summary: 'Вывести профиль авторизированного пользователя' })
     @ApiResponse({ type: ProfileDto })
     @Get('me')
-    getMyProfile(@UserProfile() profile: Profile): Profile {
-        return profile;
+    getMyProfile(@UserProfile() profile: Profile) {
+        return this.profilesService.getProfileById(profile.id);
     }
 
     @ApiOperation({ summary: 'Вывести профиль по ID' })
     @ApiParam({ description: 'ID пользователя', name: 'id', type: Number })
     @ApiResponse({ type: ProfileDto })
     @Get(':id')
-    async getUserById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number): Promise<Profile> {
+    async getUserById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
         return this.utils.ifEmptyGivesError(await this.profilesService.getProfileByIdHandler(profileId, id), UserNotFoundException);
     }
 }
