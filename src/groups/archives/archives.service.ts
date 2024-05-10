@@ -84,7 +84,7 @@ export class GroupsArchivesService {
     async deleteArchiveRecordWithChecks(id: number, profileId: number) {
         const archiveRecord = this.utils.ifEmptyGivesError(await this.getArchiveRecordByIdAndProfileId(id, profileId), GroupArchiveNotFoundException);
         const group = this.utils.ifEmptyGivesError(await this.groupsService.getGroupById(archiveRecord.groupId, true), GroupNotFoundException);
-        const isLastUser = group.groupArchives.length === 1;
+        const isLastUser = group.groupArchives.length === 1 && group.mainProfileId === null;
 
         if (isLastUser) await this.groupsService.deleteById(profileId, group.id);
         else await this.deleteArchiveRecordById(id, profileId);
