@@ -64,22 +64,26 @@ export class ProfilesService {
             else if (archive.length) return GroupStatusSelf.NOT_IN_GROUP_WITH_ARCHIVE;
             else return GroupStatusSelf.NOT_IN_GROUP;
         };
-        const getPartnerStatusKey = (group?: GroupIncludes): GroupStatusPartner => {
-            const isMain = group ? group.mainProfileId === profile.id : true;
-
+        const getPartnerStatusKey = (partnerId?: number, group?: GroupIncludes): GroupStatusPartner => {
             if (!group) return GroupStatusPartner.NO_PARTNER;
-            else if (group[isMain ? 'secondProfileId' : 'mainProfileId'] !== null) return GroupStatusPartner.IN_GROUP;
+            else if (partnerId !== null) return GroupStatusPartner.IN_GROUP;
             else if (group.groupArchives.length) return GroupStatusPartner.GROUP_IN_ARCHIVE;
             else if (!group.inviteCode) return GroupStatusPartner.LEAVED;
             else return GroupStatusPartner.NO_PARTNER;
         };
 
+
         const group = profile.groupId ? await this.groupsService.getGroupById(profile.groupId, true) : null;
         const archive = await this.groupsArchivesService.getArchivesByProfileId(profile.id);
+        const isMain = group ? group.mainProfileId === profile.id : false;
+        const partnerId = group?.[isMain ? 'secondProfileId' : 'mainProfileId'] ?? null;
 
         return {
-            self: getSelfStatusKey(archive, group),
-            partner: getPartnerStatusKey(group)
+            selfId: profile.id,
+            partnerId: partnerId,
+            selfStatus: getSelfStatusKey(archive, group),
+            partnerStatus: getPartnerStatusKey(partnerId, group),
+            isMainInGroup: isMain
         };
     }
     async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {

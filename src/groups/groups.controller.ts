@@ -39,7 +39,7 @@ export class GroupsController {
         return this.utils.ifEmptyGivesError(await this.groupsService.getGroupByProfileId(profileId, true), GroupNotFoundException);
     }
 
-    @Throttle({ default: { ttl: 15000, limit: 1 }})
+    @Throttle({ default: { ttl: 10000, limit: 1 }})
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
     @ApiBody({ type: CreateGroupDto })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
@@ -54,7 +54,7 @@ export class GroupsController {
         return this.groupsService.createGroup(profileId, form);
     }
 
-    @Throttle({ default: { ttl: 15000, limit: 1 }})
+    @Throttle({ default: { ttl: 10000, limit: 1 }})
     @ApiOperation({ summary: 'Сгенерировать новый inviteCode активной группы' })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
     @HttpCode(HttpStatus.CREATED)
@@ -64,7 +64,7 @@ export class GroupsController {
         return this.groupsService.updateInviteCode(groupId);
     }
 
-    @Throttle({ default: { ttl: 15000, limit: 1 }})
+    @Throttle({ default: { ttl: 10000, limit: 1 }})
     @ApiOperation({ summary: 'Отправить запрос на присоединение по коду приглашения' })
     @ApiParam({ description: 'Код приглашения', name: 'inviteCode', type: String })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupRequestDto })

@@ -13,9 +13,18 @@ export enum GroupStatusPartner {
 }
 
 export class GroupStatusDto {
-    @ApiProperty({ description: 'Информация об активном пользователе', enum: GroupStatusSelf })
-    self: GroupStatusSelf;
+    @ApiProperty({ description: 'ID профиля активного пользователя', type: Number })
+    selfId: number;
 
-    @ApiProperty({ description: 'Информация об партнёре активной группы', enum: GroupStatusPartner })
-    partner: GroupStatusPartner;
+    @ApiProperty({ description: 'ID профиля партнёра активной группы', type: Number, required: false })
+    partnerId?: number;
+
+    @ApiProperty({ description: 'Статус активного пользователя', enum: GroupStatusSelf })
+    selfStatus: GroupStatusSelf;
+
+    @ApiProperty({ description: 'Статус партнёра активной группы', enum: GroupStatusPartner })
+    partnerStatus: GroupStatusPartner;
+
+    @ApiProperty({ description: 'Статус главного в активной группе', type: Boolean })
+    isMainInGroup: boolean;
 }
