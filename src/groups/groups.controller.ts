@@ -47,7 +47,7 @@ export class GroupsController {
     @PostFile()
     @UseGuards(OnlyNotHaveGroupGuard)
     createGroup(@UploadedPostFile({
-        fileSize: 5 * 1024 ** 2,
+        fileSize: 500 * 1024 ** 2,
         fileType: '.(jpg|jpeg|png)',
         bodyType: CreateGroupDto
     }) form: UploadedPostFileReturn<CreateGroupDto>, @UserProfile('id') profileId: number) {

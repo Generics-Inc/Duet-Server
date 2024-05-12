@@ -1,11 +1,12 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {IsDate, IsNotEmpty, IsOptional, IsString} from "class-validator";
+import {IsDate, IsNotEmpty, IsOptional, IsString, Length} from "class-validator";
 import {Type} from "class-transformer";
 
 export class CreateGroupDto {
     @ApiProperty({ description: 'Наименование', type: String })
     @IsString()
     @IsNotEmpty()
+    @Length(3, 40)
     name: string;
 
     @ApiProperty({ description: 'Дата начала отношений', type: Date })

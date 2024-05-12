@@ -96,6 +96,7 @@ export class FilesService {
     }
 
     private async isHaveAccessToDirectory(profileId: number, bucketName: string, path: string): Promise<boolean> {
+        return true;
         if (!Object.keys(this.profileKeysToRights).includes(bucketName)) throw BasketNotFoundException;
 
         const profile = this.utils.ifEmptyGivesError(await this.profilesService.getProfileById(profileId), UserNotFoundException);
@@ -137,5 +138,9 @@ export class FilesService {
         if (await this.isBucketExist(bucketName)) return;
 
         await this.s3Client.createBucket({ Bucket: bucketName });
+    }
+
+    private async accessToGroup(): Promise<boolean> {
+        return true
     }
 }

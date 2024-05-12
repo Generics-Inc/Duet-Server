@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import {validateOrReject} from "class-validator";
 import {ExceptionGenerator} from "../../errors/ExceptionGenerator";
+import useUtils from "../../composables/useUtils";
 
 export type UploadedPostFileConfig<BT> = {
     fileSize: number;
@@ -24,11 +25,14 @@ function isDate(date: any) {
 }
 
 export const UploadedPostFile = createParamDecorator(async <BT>(config: UploadedPostFileConfig<BT>, ctx: ExecutionContext): Promise<UploadedPostFileReturn<BT>> => {
+    const {trimStr} = useUtils();
     const req = ctx.switchToHttp().getRequest();
     const host = `${req.protocol}://${req.headers['host']}`;
     const params = req.params;
-    const body = req.body;
-    const file = req.file;
+    const body = Object
+        .entries(req.body)
+        .reduce((accum, [key, value]: [string, string]) => ({ ...accum, [key]: trimStr(value, '"') }), {} as BT);
+    const file = req.file as Express.Multer.File;
 
     await new ParseFilePipe({
         validators: [
