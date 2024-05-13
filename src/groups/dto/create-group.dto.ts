@@ -20,6 +20,6 @@ export class CreateGroupDto {
     @IsOptional()
     description?: string;
 
-    @ApiProperty({ description: 'Файл изображения', type: Buffer })
-    file: Buffer;
+    @ApiProperty({ description: 'Файл изображения', type: Buffer, required: false })
+    file?: Buffer;
 }

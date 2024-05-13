@@ -2,6 +2,7 @@ import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import {PrismaService} from "../singles";
 import useUtils from "../composables/useUtils";
 import {
+    DirectoryAccessDividedException,
     FileCreationException, GroupIsFullConflictException,
     GroupNotFoundException,
     GroupRequestConflictException,
@@ -126,7 +127,8 @@ export class GroupsService {
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
     }
     async deleteById(profileId: number, groupId: number) {
-        await this.filesService.deleteFolder(profileId, 'group', groupId.toString());
+        if ((await this.filesService.deleteFolder(profileId, 'group', groupId.toString())) === 3)
+            throw DirectoryAccessDividedException;
 
         return this.prismaService.group.delete({
             where: { id: groupId }

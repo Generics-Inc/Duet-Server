@@ -4,8 +4,7 @@ import {
     BasketNotFoundException,
     DirectoryAccessDividedException,
     FileDeletingException,
-    FileNotFoundException,
-    FolderNotFoundException, UserNotFoundException
+    FileNotFoundException
 } from "../errors";
 import * as AWS from "@aws-sdk/client-s3";
 import { createHash } from "crypto";
@@ -17,7 +16,7 @@ import {ProfilesService} from "../users/profiles/profiles.service";
 @Injectable()
 export class FilesService {
     private profileKeysToRights = {
-        'group': 'groupId'
+        'group': this.accessToGroup
     };
     private utils = useUtils();
     private s3Client = new AWS.S3({
@@ -64,21 +63,22 @@ export class FilesService {
         })).then(file => file.Body.transformToByteArray());
     }
     async deleteFile(profileId: number, bucketName: string, fileName: string) {
-        if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileName)) throw DirectoryAccessDividedException;
-        if (!await this.isFileExist(bucketName, fileName)) throw FileNotFoundException;
+        if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileName)) return 3;
+        if (!await this.isFileExist(bucketName, fileName)) return 2;
 
         try {
             await this.s3Client.deleteObject({
                 Bucket: bucketName,
                 Key: fileName
             });
+            return 0;
         } catch(error) {
-            throw FileDeletingException;
+            return 1;
         }
     }
     async deleteFolder(profileId: number, bucketName: string, folderPath: string) {
-        if (!await this.isHaveAccessToDirectory(profileId, bucketName, folderPath)) throw DirectoryAccessDividedException;
-        if (!await this.isFolderExist(bucketName, folderPath)) throw FolderNotFoundException;
+        if (!await this.isHaveAccessToDirectory(profileId, bucketName, folderPath)) return 3;
+        if (!await this.isFolderExist(bucketName, folderPath)) return 2;
 
         const filesKeys = await this.s3Client.listObjectsV2({
             Bucket: bucketName,
@@ -90,20 +90,43 @@ export class FilesService {
                 Bucket: bucketName,
                 Delete: { Objects: filesKeys }
             });
+            return 0;
         } catch(error) {
-            throw FileDeletingException;
+            return 1;
+        }
+    }
+
+    async deleteFileOrThrow(profileId: number, bucketName: string, fileName: string) {
+        switch (await this.deleteFile(profileId, bucketName, fileName)) {
+            case 0:
+                return true;
+            case 1:
+                throw FileDeletingException;
+            case 2:
+                throw FileNotFoundException;
+            case 3:
+                throw DirectoryAccessDividedException;
+        }
+    }
+    async deleteFolderOrThrow(profileId: number, bucketName: string, fileName: string) {
+        switch (await this.deleteFolder(profileId, bucketName, fileName)) {
+            case 0:
+                return true;
+            case 1:
+                throw FileDeletingException;
+            case 2:
+                throw FileNotFoundException;
+            case 3:
+                throw DirectoryAccessDividedException;
         }
     }
 
     private async isHaveAccessToDirectory(profileId: number, bucketName: string, path: string): Promise<boolean> {
-        return true;
         if (!Object.keys(this.profileKeysToRights).includes(bucketName)) throw BasketNotFoundException;
 
-        const profile = this.utils.ifEmptyGivesError(await this.profilesService.getProfileById(profileId), UserNotFoundException);
-        const profileValue = profile[this.profileKeysToRights[bucketName]];
         const directoryId = Number.parseInt(path.split('/')[0] ?? '-1');
 
-        return !(profileValue === null || directoryId === -1 || profileValue !== directoryId);
+        return this.profileKeysToRights[bucketName].bind(this, profileId, directoryId)();
     }
     private async isFolderExist(bucketName: string, folderPath: string): Promise<boolean> {
         try {
@@ -140,7 +163,13 @@ export class FilesService {
         await this.s3Client.createBucket({ Bucket: bucketName });
     }
 
-    private async accessToGroup(): Promise<boolean> {
-        return true
+    private async accessToGroup(profileId: number, directoryId?: number): Promise<boolean> {
+        if (!directoryId) return false;
+
+        const profile = await this.profilesService.getProfileById(profileId, true);
+        const isGroupInArchive = !!profile.groupsArchives.find(rec => rec.groupId === directoryId);
+        const isGroupActive = profile.groupId === directoryId;
+
+        return isGroupActive || isGroupInArchive;
     }
 }
