@@ -13,7 +13,7 @@ export class VKDataDto {
     @IsNotEmpty()
     @IsString()
     @IsOptional()
-    uuid: string;
+    uuid?: string;
 }
 
 export class VkSignInDto {

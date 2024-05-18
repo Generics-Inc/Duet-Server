@@ -3,6 +3,12 @@ generator client {
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.svg"
+  theme    = "neutral"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -45,8 +51,7 @@ model Session {
 }
 
 model Profile {
-  id        Int    @id @default(autoincrement())
-  userId    Int    @unique
+  id        Int    @unique
   username  String @unique
   firstName String
   lastName  String
@@ -63,11 +68,13 @@ model Profile {
 
   groupsArchives GroupArchive[]
   groupsRequests GroupRequest[]
-  user           User           @relation(fields: [userId, username], references: [id, username], onDelete: Cascade)
+  user           User           @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
   mainGroup      Group?         @relation("mainProfile")
   secondGroup    Group?         @relation("secondProfile")
+  MovieTag       MovieTag[]
+  Movie          Movie[]
 
-  @@unique([userId, username])
+  @@unique([id, username])
   @@map("Profiles")
 }
 
@@ -78,8 +85,8 @@ model Group {
 
   mainProfileId   Int?    @unique
   secondProfileId Int?    @unique
-  photo           String?
   inviteCode      String? @unique
+  photo           String?
 
   relationStartedAt DateTime
   createdAt         DateTime @default(now())
@@ -87,6 +94,8 @@ model Group {
 
   groupArchives GroupArchive[]
   groupRequests GroupRequest[]
+  movies        Movie[]
+  moviesTags    MovieTag[]
   mainProfile   Profile?       @relation("mainProfile", fields: [mainProfileId], references: [id], onDelete: SetNull)
   secondProfile Profile?       @relation("secondProfile", fields: [secondProfileId], references: [id], onDelete: SetNull)
 
@@ -118,6 +127,83 @@ model GroupArchive {
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@map("GroupsArchives")
+}
+
+model Movie {
+  id      Int       @id @default(autoincrement())
+  groupId Int
+  name    String
+  type    MovieType
+
+  rating      Int     @default(0)
+  isWatched   Boolean @default(false)
+  profileId   Int?
+  description String?
+  photo       String?
+
+  createdAt DateTime @default(now())
+
+  seasons MovieSeason[]
+  tags    MovieTag[]    @relation("movieTags")
+  group   Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile Profile?      @relation(fields: [profileId], references: [id], onDelete: SetNull)
+
+  @@map("Movies")
+}
+
+model MovieSeason {
+  id        Int     @id @default(autoincrement())
+  movieId   Int
+  isWatched Boolean @default(false)
+
+  name String?
+
+  series MovieSeria[]
+  movie  Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("MoviesSeasons")
+}
+
+model MovieSeria {
+  id        Int     @id @default(autoincrement())
+  seasonId  Int
+  isWatched Boolean @default(false)
+
+  name String?
+
+  season MovieSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@map("MoviesSeries")
+}
+
+model MovieTag {
+  id      Int    @id @default(autoincrement())
+  groupId Int
+  name    String
+  color   String
+
+  profileId Int?
+
+  createdAt DateTime @default(now())
+
+  movies  Movie[]  @relation("movieTags")
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+
+  @@map("MoviesTags")
+}
+
+model Photo {
+  id    Int    @id @default(autoincrement())
+  useId Int
+  url   String
+}
+
+enum MovieType {
+  FILM
+  SERIAL
+  ANUME
+  CARTOON
 }
 
 enum Role {

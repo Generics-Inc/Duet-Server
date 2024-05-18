@@ -125,7 +125,7 @@ export class SessionsService {
         return token.split('.').pop();
     }
     private hashData(data: string): string {
-        return bcrypt.hashSync(data, 12);
+        return bcrypt.hashSync(data, 10);
     }
     private async createTokens(session: Session): Promise<TokensDto> {
         const payload = {

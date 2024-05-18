@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from "../singles";
 import * as bcrypt from "bcryptjs";
 import { ConfigService } from "@nestjs/config";
 import { HttpService } from "@nestjs/axios";
@@ -18,63 +17,51 @@ import {
     SignInDto, TokensDto,
     VkSignInDto
 } from "./dto";
-import {CryptoService} from "../singles";
 import {SessionsService} from "../sessions/sessions.service";
 import useUtils from "../composables/useUtils";
 import {Session} from "@prisma/client";
+import {ExceptionGenerator} from "../errors/ExceptionGenerator";
 
 @Injectable()
 export class AuthService {
     private utils = useUtils();
 
-    vkOrigin = 'https://api.vk.com/method/';
-
     constructor(
-        private prismaService: PrismaService,
         private configService: ConfigService,
         private usersService: UsersService,
         private httpService: HttpService,
-        private cryptoService: CryptoService,
         private sessionsService: SessionsService
     ) {}
 
     async signIn(data: SignInDto): Promise<TokensDto> {
-        const user = await this.usersService.getUniqueUser({ username: data.user.username });
+        const user = this.utils.ifEmptyGivesError(await this.usersService.getUniqueUser({ username: data.user.username }), UserNotFoundException);
 
-        if (user) {
-            if (await bcrypt.compare(data.user.password, user.password)) {
-                const session = await this.sessionsService.createSession(user, data.device);
-                return session.tokens;
-            } else {
-                throw IncorrectPasswordException;
-            }
+        if (await bcrypt.compare(data.user.password, user.password)) {
+            return await this.sessionsService.createSession(user, data.device).then(r => r.tokens);
         } else {
-            throw UserNotFoundException;
+            throw IncorrectPasswordException;
         }
     }
     async vkSignIn(payload: VkSignInDto): Promise<TokensDto> {
-        const vkToken = payload.vk.uuid ? await this.vkGetAccessToken(payload) : payload.vk.token;
-        const vkUser = await this.httpService.axiosRef.get(this.vkOrigin + 'account.getProfileInfo', {
-            params: {
-                v: '5.199',
-                access_token: vkToken
-            }
-        }).then((res: any) => res.data.response) as VkUserInterface;
-        if (!vkUser) throw VKGetUserException;
+        const vkToken = payload.vk.uuid ? await this.vkRequest<VkAccessInterface>('auth.exchangeSilentAuthToken', {
+            access_token: this.configService.get<string>('VK_ACCESS_TOKEN', ''),
+            ...payload
+        }, VKSilentTokenException).then(r => r.access_token) : payload.vk.token;
+        const vkUser = await this.vkRequest<VkUserInterface>('account.getProfileInfo', {
+            access_token: vkToken
+        }, VKGetUserException);
 
         let user = await this.usersService.getUniqueUser({ username: 'ID' + vkUser.id });
         if (!user && vkUser.screen_name) user = await this.usersService.getUniqueUser({ username: vkUser.screen_name });
         if (!user) {
-            const isUserAdmin = vkUser.id == this.configService.get('VK_ADMIN_ID', 0);
-
             user = await this.usersService.createUser(
                 {
                     username: vkUser.screen_name ?? 'ID' + vkUser.id,
-                    role: isUserAdmin ? 'ADMIN' : 'USER'
+                    role: 'USER'
                 },
                 {
                     vkId: vkUser.id,
-                    gender: vkUser.sex === 1 ? 'FEMALE' : vkUser.sex === 2 ? 'MALE' : null,
+                    gender: vkUser.sex === 1 ? 'FEMALE' : vkUser.sex === 2 ? 'MALE' : 'NOT_SPECIFIED',
                     firstName: vkUser.first_name,
                     lastName: vkUser.last_name,
                     birthday: this.formatDateString(vkUser.bdate),
@@ -84,8 +71,7 @@ export class AuthService {
             );
         }
 
-        const session = await this.sessionsService.createSession(user, payload.device);
-        return session.tokens;
+        return await this.sessionsService.createSession(user, payload.device).then(r => r.tokens);
     }
     async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
         this.utils.ifEmptyGivesError(this.sessionsService.tokenLifeCheck(session, accessToken), SessionIsNotValidException);
@@ -100,17 +86,16 @@ export class AuthService {
         }
     }
 
-    private async vkGetAccessToken(payload: Required<VkSignInDto>): Promise<string> {
-        const req = await this.httpService.axiosRef.get(this.vkOrigin + 'auth.exchangeSilentAuthToken', {
+    private async vkRequest<T>(endpoint: string, body: Object, ifNullThrow?: ExceptionGenerator) {
+        const response = await this.httpService.axiosRef.get(`https://api.vk.com/method/${endpoint}`, {
             params: {
                 v: '5.199',
-                access_token: this.configService.get<string>('VK_ACCESS_TOKEN', ''),
-                ...payload.vk
+                ...body
             }
-        }).then((res: any) => res.data.response) as VkAccessInterface;
-        if (!req) throw VKSilentTokenException;
+        }).then((res: any) => res.data.response) as T;
+        if (!response && ifNullThrow) throw ifNullThrow;
 
-        return req.access_token;
+        return response;
     }
     private formatDateString(date: string): string {
         return date.split('.').map(component => component.length === 1 ? '0' + component : component).join('.');

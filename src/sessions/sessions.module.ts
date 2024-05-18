@@ -10,7 +10,8 @@ import {PrismaService} from "../singles";
         PrismaService
     ],
     exports: [
-        SessionsService
+        SessionsService,
+        PrismaService
     ]
 })
 export class SessionsModule {

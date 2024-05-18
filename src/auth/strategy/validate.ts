@@ -19,7 +19,7 @@ export default async function (
 
     const session = await sessionsService.getUniqueSession({ id: tokenPayload.sessionId }, true)
     const user = await usersService.getUniqueUser({ id: tokenPayload.userId }, true);
-    const profile = await profilesService.getProfile({ userId: tokenPayload.userId }, true);
+    const profile = await profilesService.getProfile({ id: tokenPayload.userId }, true);
 
     if (
         !session ||

@@ -1,12 +1,11 @@
 import {Module} from '@nestjs/common';
 import {AuthService} from './auth.service';
 import {AuthController} from './auth.controller';
-import {PrismaService, CryptoService} from "../singles";
 import {AccessTokenStrategy, RefreshTokenStrategy} from "./strategy";
 import {JwtModule} from "@nestjs/jwt";
 import {HttpModule} from "@nestjs/axios";
 import {UsersModule} from "../users/users.module";
-import {SessionsService} from "../sessions/sessions.service";
+import {SessionsModule} from "../sessions/sessions.module";
 
 @Module({
     imports: [
@@ -18,16 +17,14 @@ import {SessionsService} from "../sessions/sessions.service";
             }
         }),
         HttpModule.register({}),
-        UsersModule
+        UsersModule,
+        SessionsModule
     ],
     controllers: [AuthController],
     providers: [
         AuthService,
-        PrismaService,
         AccessTokenStrategy,
-        RefreshTokenStrategy,
-        CryptoService,
-        SessionsService
+        RefreshTokenStrategy
     ]
 })
 export class AuthModule {
