@@ -42,7 +42,6 @@ export class FilesController {
         @UserProfile('id') profileId: number,
         @Param() { bucketName, 0: fileName }: DownloadDto
     ) {
-        console.log('auth')
         return new StreamableFile(await this.filesService.download(profileId, bucketName as any, fileName));
     }
 }

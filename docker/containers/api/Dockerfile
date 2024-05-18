@@ -5,6 +5,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma
 
+ENV PUPPETEER_SKIP_DOWNLOAD true
+
 RUN npm install
 
 COPY . .

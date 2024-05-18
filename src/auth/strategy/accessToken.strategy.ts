@@ -25,7 +25,6 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     async validate(req: Request, payload: TokenPayloadDto): Promise<PayloadReturnDto> {
-        console.log(req, payload)
         return await validate('access', req, payload, this.sessionsService, this.usersService, this.profilesService);
     }
 }

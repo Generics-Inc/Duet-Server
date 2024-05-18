@@ -10,7 +10,6 @@ import * as AWS from "@aws-sdk/client-s3";
 import { createHash } from "crypto";
 import useUtils from "../composables/useUtils";
 import {UploadResponseDto} from "./dto/upload.dto";
-import {UploadedPostFileReturn} from "../app/decorators";
 import {ProfilesService} from "../users/profiles/profiles.service";
 
 @Injectable()
@@ -34,11 +33,10 @@ export class FilesService {
         private profilesService: ProfilesService
     ) {}
 
-    async upload(profileId: number, bucketName: string, fileDir: string, form: UploadedPostFileReturn): Promise<UploadResponseDto> {
+    async upload(profileId: number, bucketName: string, fileDir: string, file: Buffer): Promise<UploadResponseDto> {
         if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileDir)) throw DirectoryAccessDividedException;
         await this.nextOrCreateBucket(bucketName);
 
-        const file = form.file.buffer;
         const imageName = this.utils.trimStr(fileDir, '/') + '/' + createHash("sha256")
             .update(file)
             .digest("hex") + '.png';
@@ -50,7 +48,7 @@ export class FilesService {
         }));
 
         return {
-            link: `${form.host}/api/files/download/${bucketName}/${imageName}`
+            link: `/files/download/${bucketName}/${imageName}`
         };
     }
     async download(profileId: number, bucketName: string, fileName: string) {

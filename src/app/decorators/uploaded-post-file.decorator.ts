@@ -14,7 +14,6 @@ export type UploadedPostFileConfig<BT> = {
     bodyType?: BT;
 };
 export type UploadedPostFileReturn<T = {}> = {
-    host: string;
     params: { [name: string]: any };
     file?: Express.Multer.File;
     body: Omit<T, 'file'>;
@@ -27,7 +26,6 @@ function isDate(date: any) {
 export const UploadedPostFile = createParamDecorator(async <BT>(config: UploadedPostFileConfig<BT>, ctx: ExecutionContext): Promise<UploadedPostFileReturn<BT>> => {
     const {trimStr} = useUtils();
     const req = ctx.switchToHttp().getRequest();
-    const host = `${req.protocol}://${req.headers['host']}`;
     const params = req.params;
     const body = Object
         .entries(req.body)
@@ -55,7 +53,6 @@ export const UploadedPostFile = createParamDecorator(async <BT>(config: Uploaded
     }
 
     return {
-        host,
         params,
         file,
         body

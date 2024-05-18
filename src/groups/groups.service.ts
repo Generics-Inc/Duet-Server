@@ -68,7 +68,7 @@ export class GroupsService {
         });
 
         try {
-            file = form.file ? await this.filesService.upload(profileId, 'group', `${group.id}`, form) : undefined;
+            file = form.file ? await this.filesService.upload(profileId, 'group', `${group.id}`, form.file.buffer) : undefined;
         } catch (e) {
             console.error(e);
             await this.prismaService.group.delete({ where: { id: group.id } });
