@@ -17,6 +17,7 @@
     "studio": "npx prisma studio",
     "db:migration": "npx prisma migrate dev --name init",
     "db:push": "npx prisma db push",
+    "db:push:force": "npx prisma db push --force-reset",
     "db:seed": "npx prisma db seed",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/src/main",
