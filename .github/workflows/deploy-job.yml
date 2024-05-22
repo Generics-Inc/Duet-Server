@@ -1,0 +1,13 @@
+name: Deploy by runner
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: Build and run server
+        run: ls
