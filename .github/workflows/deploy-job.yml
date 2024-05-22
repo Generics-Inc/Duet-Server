@@ -9,5 +9,14 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - name: Build and run server
-        run: ls
+      - name: Checkout repository
+        run: actions/checkout@v4
+        with:
+          repo: ../.
+          path: server
+      - name: Pull changes from server
+        run: git pull
+      - name: Build and up container
+        run: ./build.sh rebuild server
+      - name: Clean old images
+        run: ./build.sh clean
