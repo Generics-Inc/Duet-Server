@@ -19,7 +19,7 @@ export class AppController {
     @ApiResponse({ status: 200, type: PingDto })
     @Get('ping')
     ping(): PingDto {
-        return { message: 'pong' };
+        return { message: 'pong1' };
     }
 
     @ApiOperation({ summary: 'СУПЕР СЕКРЕТНО' })
