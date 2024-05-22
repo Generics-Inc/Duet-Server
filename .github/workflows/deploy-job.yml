@@ -5,18 +5,15 @@ on:
     branches:
       - master
 
-
 jobs:
   build:
     runs-on: self-hosted
     steps:
-      - name: TEST
-        run: pwd
       - name: Update server directory from git
         run: |
           cd ~/devops/
           git submodule update --reference server --remote
       - name: Build and up container
-        run: ./build.sh rebuild server
+        run: ~/devops/build.sh rebuild server
       - name: Clean old images
-        run: ./build.sh clean
+        run: ~/devops/build.sh clean
