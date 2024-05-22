@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Open devOps directory
         run: cd ~/devops/
+      - name: TEST
+        run: pwd
       - name: Update server directory from git
         run: git submodule update --reference server --remote
       - name: Build and up container
