@@ -13,8 +13,6 @@ jobs:
       run:
         working-directory: ~/devops/
     steps:
-      - name: Open devOps directory
-        run: cd ~/devops/
       - name: TEST
         run: pwd
       - name: Update server directory from git
