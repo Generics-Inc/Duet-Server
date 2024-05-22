@@ -1,3 +1,5 @@
+[![Deploy](https://github.com/Generics-Inc/Duet-Server/actions/workflows/deploy-job.yml/badge.svg)](https://github.com/Generics-Inc/Duet-Server/actions/workflows/deploy-job.yml)
+
 ## Installation
 
 ```bash
