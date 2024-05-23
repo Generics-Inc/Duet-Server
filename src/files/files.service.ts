@@ -24,7 +24,8 @@ export class FilesService {
             accessKeyId: this.configService.getOrThrow('MINIO_ACCESS_KEY'),
             secretAccessKey: this.configService.getOrThrow('MINIO_SECRET_KEY'),
         },
-        endpoint: this.configService.get('MINIO_ORIGIN', 'http://127.0.0.1:9000'),
+        endpoint: this.configService.get('MINIO_SERVER_URL', 'http://127.0.0.1:9000'),
+        forcePathStyle: true
     });
 
     constructor(
