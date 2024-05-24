@@ -1,4 +1,5 @@
-import {PrismaService} from "../singles";
+import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
+import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupIncludes} from "../types";
 
 export type AccessCheckReturn = Promise<{
@@ -7,28 +8,14 @@ export type AccessCheckReturn = Promise<{
     stages?: { [name: string]: boolean };
 }>;
 
-async function getProfileById(prismaService: PrismaService, id: number) {
-    const profile = await prismaService.profile.findUnique({
-        where: {id},
-        include: {
-            groupsArchives: true,
-            mainGroup: true,
-            secondGroup: true
-        }
-    });
-    if (!profile) return profile;
-    profile.groupId = profile.mainGroup?.id ?? profile.secondGroup?.id ?? null;
-    return profile;
-}
-
 export async function accessToGroup(
-    prismaService: PrismaService,
+    usersProfilesModelService: UsersProfilesModelService,
     reqProfileId: number,
     groupId?: number
 ): AccessCheckReturn {
     if (!groupId) return { status: false };
 
-    const profile = await getProfileById(prismaService, reqProfileId);
+    const profile = await usersProfilesModelService.getProfileById(reqProfileId, true);
     const isGroupInArchive = !!profile.groupsArchives.find(record => record.groupId === groupId);
     const isGroupActive = profile.groupId === groupId;
 
@@ -42,20 +29,15 @@ export async function accessToGroup(
 }
 
 export async function accessToProfile(
-    prismaService: PrismaService,
+    usersProfilesModelService: UsersProfilesModelService,
+    groupsModelService: GroupsModelService,
     reqProfileId: number,
     profileId?: number
 ): AccessCheckReturn {
     if (!profileId) return { status: false };
 
-    const requester = await getProfileById(prismaService, reqProfileId);
-    const requesterGroup = requester.groupId ? await prismaService.group.findUnique({
-        where: { id: requester.groupId },
-        include: {
-            groupArchives: true,
-            groupRequests: true
-        }
-    }) : null;
+    const requester = await usersProfilesModelService.getProfileById(reqProfileId);
+    const requesterGroup = requester.groupId ? await groupsModelService.getGroupById(requester.groupId, true) : null;
 
     const isCurrentProfile = reqProfileId === profileId;
     const isProfileInGroup = requesterGroup && [requesterGroup.mainProfileId, requesterGroup.secondProfileId].includes(profileId);
@@ -76,16 +58,17 @@ export async function accessToProfile(
 }
 
 export async function accessToProfileWithRequests(
-    prismaService: PrismaService,
+    usersProfilesModelService: UsersProfilesModelService,
+    groupsModelService: GroupsModelService,
     reqProfileId: number,
     profileId?: number
 ): AccessCheckReturn {
-    const baseAccess = await accessToProfile(prismaService, reqProfileId, profileId);
+    const baseAccess = await accessToProfile(usersProfilesModelService, groupsModelService, reqProfileId, profileId);
 
     if (baseAccess.status) {
         return baseAccess;
     } else {
-        const { requesterGroup } = baseAccess.ctx as { requesterGroup: GroupIncludes };
+        const requesterGroup = baseAccess.ctx.requesterGroup as GroupIncludes;
 
         const isProfileInGroupRequests = requesterGroup && requesterGroup.groupRequests.map(record => record.profileId).includes(profileId);
 

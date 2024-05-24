@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
-import { scryptSync, createCipheriv, createDecipheriv } from 'crypto';
+import {scryptSync, createCipheriv, createDecipheriv} from 'crypto';
 
 @Injectable()
 export class CryptoService {

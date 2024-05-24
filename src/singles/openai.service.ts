@@ -1,5 +1,5 @@
-import {Injectable} from "@nestjs/common";
 import OpenAI from 'openai';
+import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 import {ChatCompletion} from "openai/resources";
 

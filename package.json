@@ -23,6 +23,11 @@
     "start:mig": "npm run db:migration && npx prisma generate && npm run start:dev",
     "version": "changelogen --release --no-tag --no-commit"
   },
+  "_moduleAliases": {
+    "@root": "src",
+    "@models": "src/models",
+    "@modules": "src/modules"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.564.0",
     "@nestjs/axios": "^3.0.1",
@@ -44,6 +49,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "dotenv": "^16.3.1",
+    "module-alias": "^2.2.3",
     "nestjs-asyncapi": "^1.2.1",
     "openai": "^4.41.0",
     "passport": "^0.6.0",
