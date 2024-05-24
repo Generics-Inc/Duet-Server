@@ -1,13 +1,13 @@
 import {Module} from '@nestjs/common';
 import {FilesService} from './files.service';
 import {FilesController} from './files.controller';
-import {UsersModule} from "../users/users.module";
+import {PrismaService} from "../singles";
 
 @Module({
-    imports: [
-        UsersModule
+    providers: [
+        FilesService,
+        PrismaService
     ],
-    providers: [FilesService],
     controllers: [FilesController],
     exports: [FilesService]
 })

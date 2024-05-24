@@ -6,6 +6,7 @@ import {ProfileAccessDividedException} from "../../errors";
 import {GroupsService} from "../../groups/groups.service";
 import {GroupsArchivesService} from "../../groups/archives/archives.service";
 import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
+import {accessToProfile} from "../../helpers";
 
 
 @Injectable()
@@ -87,20 +88,7 @@ export class ProfilesService {
         };
     }
     async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {
-        const requester = await this.getProfile({ id: reqProfileId }, true);
-        const requesterGroup = requester.groupId ? await this.groupsService.getGroupById(requester.groupId, true) : null;
-
-        if (
-            requester.user.role !== Role.ADMIN && (
-                reqProfileId !== resProfileId && (
-                    !requesterGroup || ![
-                        ...requesterGroup.groupArchives.map(r => r.profileId),
-                        requesterGroup.mainProfileId,
-                        requesterGroup.secondProfileId
-                    ].includes(resProfileId)
-                )
-            )
-        ) throw ProfileAccessDividedException;
+        if (await accessToProfile(this.prismaService, reqProfileId, resProfileId)) throw ProfileAccessDividedException;
 
         return this.getProfile({ id: resProfileId });
     }

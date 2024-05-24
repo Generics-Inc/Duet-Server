@@ -1,7 +1,11 @@
-import {Injectable} from '@nestjs/common';
+import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import {Prisma, Profile, User} from "@prisma/client";
 import {PrismaService} from "../singles";
 import {UserIncludes} from "../types";
+import {FilesService} from "../files/files.service";
+import {HttpService} from "@nestjs/axios";
+import {FileCreationException} from "../errors";
+import {ProfilesService} from "./profiles/profiles.service";
 
 
 @Injectable()
@@ -9,14 +13,17 @@ export class UsersService {
     private include: (keyof Prisma.UserInclude)[] = ['profile', 'sessions'];
 
     constructor(
-        private prismaService: PrismaService
+        private profilesService: ProfilesService,
+        private prismaService: PrismaService,
+        private httpService: HttpService,
+        private filesService: FilesService
     ) {}
 
-    createUser(
+    async createUser(
         userData: Omit<Prisma.UserCreateInput, 'profile' | 'sessions'>,
         profileData: Omit<Prisma.ProfileCreateWithoutUserInput, 'group' | 'groupsArchive'>
     ): Promise<User> {
-        return this.prismaService.user.create({
+        const user = await this.prismaService.user.create({
             data: {
                 ...userData,
                 profile: {
@@ -24,6 +31,30 @@ export class UsersService {
                 }
             }
         });
+
+        if (profileData.photo) {
+            try {
+                const uploadedPhoto = await this.httpService.axiosRef.get(profileData.photo, {
+                    responseType: 'arraybuffer'
+                }).then(r => Buffer.from(r.data));
+                profileData.photo = uploadedPhoto ? (await this.filesService.upload({
+                    profileId: user.id,
+                    bucketName: 'profile',
+                    fileName: 'main',
+                    fileDir: user.id.toFixed(),
+                    file: uploadedPhoto
+                })).link : undefined;
+            } catch (e) {
+                console.error(e);
+                await this.deleteUserById(user.id);
+                throw FileCreationException;
+            }
+        } else {
+            profileData.photo = undefined;
+        }
+
+        await this.profilesService.updateProfile(user.id, { photo: profileData.photo });
+        return await this.getUniqueUser({ id: user.id });
     }
     updateUser(userId: number, data: Prisma.UserUpdateInput): Promise<User> {
         return this.prismaService.user.update({
