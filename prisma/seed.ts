@@ -23,8 +23,7 @@ async function main(): Promise<void> {
                     create: {
                         firstName: `${isAdmin ? 'Админ' : 'Юзер'} #${idModify}`,
                         lastName: `${isAdmin ? 'Админов' : 'Юзеров'} #${idModify}`,
-                        birthday: `01.01.${2000 + idModify}`,
-                        photo: 'https://vectorified.com/images/admin-logo-icon-16.jpg'
+                        birthday: `01.01.${2000 + idModify}`
                     }
                 }
             }

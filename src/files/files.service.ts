@@ -1,4 +1,4 @@
-import {forwardRef, Inject, Injectable} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
 import {
     BasketNotFoundException,
@@ -10,12 +10,16 @@ import * as AWS from "@aws-sdk/client-s3";
 import { createHash } from "crypto";
 import useUtils from "../composables/useUtils";
 import {UploadResponseDto} from "./dto/upload.dto";
-import {ProfilesService} from "../users/profiles/profiles.service";
+import {PrismaService} from "../singles";
+import * as Sharp from 'sharp';
+import {accessToGroup, accessToProfileWithRequests} from "../helpers";
+import {FilesAccessConfig, FilesUploadConfig} from "./entities";
 
 @Injectable()
 export class FilesService {
-    private profileKeysToRights = {
-        'group': this.accessToGroup
+    private profileKeysToRights: FilesAccessConfig = {
+        'group': accessToGroup,
+        'profile': accessToProfileWithRequests
     };
     private utils = useUtils();
     private s3Client = new AWS.S3({
@@ -30,26 +34,30 @@ export class FilesService {
 
     constructor(
         private configService: ConfigService,
-        @Inject(forwardRef(() => ProfilesService))
-        private profilesService: ProfilesService
+        private prismaService: PrismaService
     ) {}
 
-    async upload(profileId: number, bucketName: string, fileDir: string, file: Buffer): Promise<UploadResponseDto> {
-        if (!await this.isHaveAccessToDirectory(profileId, bucketName, fileDir)) throw DirectoryAccessDividedException;
-        await this.nextOrCreateBucket(bucketName);
+    async upload(config: FilesUploadConfig): Promise<UploadResponseDto> {
+        const _config: Required<FilesUploadConfig> = {
+            fileName: createHash("sha256").update(config.file).digest("hex"),
+            sharpBuilder: (file) => file,
+            ...config
+        };
 
-        const imageName = this.utils.trimStr(fileDir, '/') + '/' + createHash("sha256")
-            .update(file)
-            .digest("hex") + '.png';
+        if (!await this.isHaveAccessToDirectory(_config.profileId, _config.bucketName, _config.fileDir))
+            throw DirectoryAccessDividedException;
+        await this.nextOrCreateBucket(_config.bucketName);
+
+        const buildFileName = `${this.utils.trimStr(config.fileDir, '/')}/${_config.fileName}.png`;
 
         await this.s3Client.send(new AWS.PutObjectCommand({
-            Bucket: bucketName,
-            Key: imageName,
-            Body: file
+            Bucket: _config.bucketName,
+            Key: buildFileName,
+            Body: await _config.sharpBuilder(Sharp(_config.file)).png().toBuffer()
         }));
 
         return {
-            link: `/files/download/${bucketName}/${imageName}`
+            link: `/files/download/${_config.bucketName}/${buildFileName}`
         };
     }
     async download(profileId: number, bucketName: string, fileName: string) {
@@ -125,8 +133,10 @@ export class FilesService {
 
         const directoryId = Number.parseInt(path.split('/')[0] ?? '-1');
 
-        return this.profileKeysToRights[bucketName].bind(this, profileId, directoryId)();
+        let r = await this.profileKeysToRights[bucketName].bind(this, this.prismaService, profileId, directoryId)();
+        return r.status;
     }
+
     private async isFolderExist(bucketName: string, folderPath: string): Promise<boolean> {
         try {
             return !!await this.s3Client.listObjectsV2({
@@ -160,15 +170,5 @@ export class FilesService {
         if (await this.isBucketExist(bucketName)) return;
 
         await this.s3Client.createBucket({ Bucket: bucketName });
-    }
-
-    private async accessToGroup(profileId: number, directoryId?: number): Promise<boolean> {
-        if (!directoryId) return false;
-
-        const profile = await this.profilesService.getProfileById(profileId, true);
-        const isGroupInArchive = !!profile.groupsArchives.find(rec => rec.groupId === directoryId);
-        const isGroupActive = profile.groupId === directoryId;
-
-        return isGroupActive || isGroupInArchive;
     }
 }
