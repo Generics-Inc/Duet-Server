@@ -6,21 +6,27 @@ on:
       - master
 
 jobs:
-  build:
+  pull:
     runs-on: self-hosted
     steps:
-      - name: Update server directory from git
+      - name: Pull data from GitHub repository
         run: |
           cd ~/
           git submodule update --reference server --remote
-      - name: TEST
+  build:
+    runs-on: self-hosted
+    needs: pull
+    steps:
+      - name: Run local rebuild container script
         run: |
-          pwd
-#      - name: Build and up container
-#        run: |
-#          cd ~/devops/
-#          ./build.sh rebuild server
-#      - name: Clean old images
-#        run: |
-#          cd ~/devops/
-#          ./build.sh clean
+          cd ~/
+          ./build.sh rebuild server
+  clean:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Clean old images
+        run: |
+          cd ~/
+          ./build.sh clean
+
