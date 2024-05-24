@@ -12,9 +12,9 @@ import {
     VKGetUserException,
     VKSilentTokenException
 } from "@root/errors";
+import {UsersProfilesService} from "@modules/users/profiles/profiles.service";
 import {UsersBaseService} from "@modules/usersBase/usersBase.service";
 import {SessionsService} from "@modules/sessions/sessions.service";
-import {ProfilesService} from "@modules/profiles/profiles.service";
 import {SignInDto, TokensDto, VkSignInDto} from "./dto";
 import {VkAccessInterface, VkUserInterface} from "./interfaces";
 
@@ -25,14 +25,14 @@ export class AuthService {
 
     constructor(
         private usersService: UsersBaseService,
-        private profilesService: ProfilesService,
+        private profilesService: UsersProfilesService,
         private sessionsService: SessionsService,
         private configService: ConfigService,
         private httpService: HttpService
     ) {}
 
     async signIn(data: SignInDto): Promise<TokensDto> {
-        const user = this.utils.ifEmptyGivesError(await this.usersService.getUniqueUser({ username: data.user.username }), UserNotFoundException);
+        const user = this.utils.ifEmptyGivesError(await this.usersService.getUserByUsername(data.user.username), UserNotFoundException);
 
         if (await bcrypt.compare(data.user.password, user.password)) {
             return await this.sessionsService.createSession(user, data.device).then(r => r.tokens);
@@ -49,8 +49,8 @@ export class AuthService {
             access_token: vkToken
         }, VKGetUserException);
 
-        let user = await this.usersService.getUniqueUser({ username: 'ID' + vkUser.id });
-        if (!user && vkUser.screen_name) user = await this.usersService.getUniqueUser({ username: vkUser.screen_name });
+        let user = await this.usersService.getUserByUsername('ID' + vkUser.id);
+        if (!user && vkUser.screen_name) user = await this.usersService.getUserByUsername(vkUser.screen_name);
         if (!user) {
             user = await this.profilesService.createUser(
                 {
@@ -72,13 +72,13 @@ export class AuthService {
         return await this.sessionsService.createSession(user, payload.device).then(r => r.tokens);
     }
     async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
-        this.utils.ifEmptyGivesError(this.sessionsService.tokenLifeCheck(session, accessToken), SessionIsNotValidException);
+        this.utils.ifEmptyGivesError(this.sessionsService.getBase().isTokenAlive(session, accessToken), SessionIsNotValidException);
 
-        return await this.sessionsService.updateSession(session.id).then(res => res.tokens);
+        return await this.sessionsService.updateSessionById(session.id).then(res => res.tokens);
     }
     async logOut(sessionId: number): Promise<void> {
         try {
-            await this.sessionsService.closeSession(sessionId);
+            await this.sessionsService.getBase().deleteSessionById(sessionId);
         } catch (e) {
             throw e;
         }

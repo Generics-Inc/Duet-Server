@@ -2,11 +2,10 @@ import {Module} from '@nestjs/common';
 import {JwtModule} from "@nestjs/jwt";
 import {HttpModule} from "@nestjs/axios";
 import {SessionsModule} from "@modules/sessions/sessions.module";
-import {UsersBaseModule} from "@modules/usersBase/usersBase.module";
-import {ProfilesModule} from "@modules/profiles/profiles.module";
 import {AccessTokenStrategy, RefreshTokenStrategy} from "./strategy";
 import {AuthController} from "./auth.controller";
 import {AuthService} from "./auth.service";
+import {UsersModule} from "@modules/users/users.module";
 
 @Module({
     imports: [
@@ -18,9 +17,8 @@ import {AuthService} from "./auth.service";
             }
         }),
         HttpModule.register({}),
-        UsersBaseModule,
-        ProfilesModule,
-        SessionsModule
+        SessionsModule,
+        UsersModule
     ],
     controllers: [AuthController],
     providers: [

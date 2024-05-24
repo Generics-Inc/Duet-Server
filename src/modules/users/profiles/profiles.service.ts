@@ -3,26 +3,31 @@ import {Injectable} from '@nestjs/common';
 import {HttpService} from "@nestjs/axios";
 import {GroupIncludes} from "@root/types";
 import {PrismaService} from "@root/singles";
-import {FileCreationException} from "@root/errors";
+import {AccessToEntity} from "@root/helpers";
+import {FileCreationException, ProfileAccessDividedException} from "@root/errors";
 import {GroupsArchivesBaseService} from "@modules/groupsBase/archivesBase/archivesBase.service";
+import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
 import {GroupsBaseService} from "@modules/groupsBase/groupsBase.service";
-import {FilesService} from "@modules/files/files.service";
-import {ProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
 import {UsersBaseService} from "@modules/usersBase/usersBase.service";
+import {FilesService} from "@modules/files/files.service";
 import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
 
 
 @Injectable()
-export class ProfilesService {
+export class UsersProfilesService {
     constructor(
         private groupsBaseService: GroupsBaseService,
         private groupsArchivesBaseService: GroupsArchivesBaseService,
         private usersBaseService: UsersBaseService,
-        private profilesBaseService: ProfilesBaseService,
+        private usersProfilesBaseService: UsersProfilesBaseService,
         private filesService: FilesService,
         private httpService: HttpService,
         private prismaService: PrismaService
     ) {}
+
+    getBase() {
+        return this.usersProfilesBaseService;
+    }
 
     async createUser(
         userData: Omit<Prisma.UserCreateInput, 'profile' | 'sessions'>,
@@ -58,8 +63,8 @@ export class ProfilesService {
             profileData.photo = undefined;
         }
 
-        await this.profilesBaseService.updateProfile(user.id, { photo: profileData.photo });
-        return await this.usersBaseService.getUniqueUser({ id: user.id });
+        await this.usersProfilesBaseService.updateProfile(user.id, { photo: profileData.photo });
+        return await this.usersBaseService.getUserById(user.id);
     }
 
     async statusAboutProfile(profile: Profile): Promise<GroupStatusDto> {
@@ -90,4 +95,12 @@ export class ProfilesService {
             isMainInGroup: isMain
         };
     }
+
+    async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {
+        if (await AccessToEntity.accessToProfile(this.usersProfilesBaseService, this.groupsBaseService, reqProfileId, resProfileId))
+            throw ProfileAccessDividedException;
+
+        return this.usersProfilesBaseService.getProfileById(resProfileId);
+    }
+
 }

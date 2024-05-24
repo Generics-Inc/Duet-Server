@@ -3,9 +3,9 @@ import {ExtractJwt, Strategy} from "passport-jwt";
 import {PassportStrategy} from "@nestjs/passport";
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
-import {ProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
+import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
+import {SessionsBaseService} from "@modules/sessionsBase/sessionsBase.service";
 import {UsersBaseService} from "@modules/usersBase/usersBase.service";
-import {SessionsService} from "@modules/sessions/sessions.service";
 import {PayloadReturnDto, TokenPayloadDto} from "./dto";
 import validate from './validate';
 
@@ -13,9 +13,9 @@ import validate from './validate';
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     constructor(
         private configService: ConfigService,
-        private sessionsService: SessionsService,
-        private usersService: UsersBaseService,
-        private profilesService: ProfilesBaseService
+        private sessionsBaseService: SessionsBaseService,
+        private usersBaseService: UsersBaseService,
+        private usersProfilesBaseService: UsersProfilesBaseService
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -25,6 +25,6 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     async validate(req: Request, payload: TokenPayloadDto): Promise<PayloadReturnDto> {
-        return await validate('access', req, payload, this.sessionsService, this.usersService, this.profilesService);
+        return await validate('access', req, payload, this.sessionsBaseService, this.usersBaseService, this.usersProfilesBaseService);
     }
 }

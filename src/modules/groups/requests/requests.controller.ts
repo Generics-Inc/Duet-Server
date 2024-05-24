@@ -1,18 +1,22 @@
 import {Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards} from '@nestjs/common';
 import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
+import {GroupRequestDto, GroupRequestSecureExtendDto} from "@modules/groupsBase/requestsBase/dto";
+import {GroupsRequestsBaseService} from "@modules/groupsBase/requestsBase/requestsBase.service";
 import {AccessTokenGuard, OnlyHaveGroupGuard} from "@modules/auth/guard";
 import {UserProfile} from "@modules/usersBase/decorator";
-import {GroupsRequestsBaseService} from "./requestsBase.service";
-import {GroupRequestDto, GroupRequestSecureExtendDto} from "./dto";
-import {GroupDto} from "../dto";
+import {GroupDto} from "@modules/groupsBase/dto";
+import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
 
 
 @ApiTags('Запросы вступления в группы')
 @ApiSecurity('AccessToken')
 @UseGuards(AccessTokenGuard)
 @Controller('groups/requests')
-export class GroupsRequestsBaseController {
-    constructor(private groupsRequestsBaseService: GroupsRequestsBaseService) {}
+export class GroupsRequestsController {
+    constructor(
+        private groupsRequestsService: GroupsRequestsService,
+        private groupsRequestsBaseService: GroupsRequestsBaseService
+    ) {}
 
     @ApiOperation({ summary: 'Вывести все запросы на присоединение к активной группе' })
     @ApiResponse({ type: GroupRequestSecureExtendDto, isArray: true})
@@ -43,7 +47,7 @@ export class GroupsRequestsBaseController {
     @Patch('cancel/:id')
     @UseGuards(OnlyHaveGroupGuard)
     cancelRequestToJoin(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.groupsRequestsBaseService.actionWithRequest(id, groupId ,0);
+        return this.groupsRequestsService.actionWithRequest(id, groupId ,0);
     }
 
     @ApiOperation({ summary: 'Принять запрос на присоединение к активной группе активного пользователя' })
@@ -52,13 +56,13 @@ export class GroupsRequestsBaseController {
     @Patch('accept/:id')
     @UseGuards(OnlyHaveGroupGuard)
     acceptRequestToJoin(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.groupsRequestsBaseService.actionWithRequest(id, groupId, 1);
+        return this.groupsRequestsService.actionWithRequest(id, groupId, 1);
     }
 
     @ApiOperation({ summary: 'Удалить запрос на присоединение к группе активного пользователя' })
     @ApiParam({ description: 'ID Запроса на присоединение', name: 'id', type: String })
     @Delete(':id')
     deleteRequestById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.groupsRequestsBaseService.deleteRequest(profileId, id);
+        return this.groupsRequestsBaseService.deleteRequestByIdAndProfileId(id, profileId);
     }
 }

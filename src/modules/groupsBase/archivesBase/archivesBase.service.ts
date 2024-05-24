@@ -9,28 +9,7 @@ export class GroupsArchivesBaseService {
 
     constructor(private prismaService: PrismaService) {}
 
-    async getAllArchives<E extends boolean = false>(extend?: E) {
-        return (await this.prismaService.groupArchive.findMany({
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
-    }
-
-    async getArchivesByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
-        return (await this.prismaService.groupArchive.findMany({
-            where: { profileId },
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
-    }
-
-    async getArchiveRecordById<E extends boolean = false>(id: number, extend?: E) {
-        return this.getArchiveRecord<E>({ id }, extend);
-    }
-
-    async getArchiveRecordByIdAndProfileId<E extends boolean = false>(id: number, profileId: number, extend?: E) {
-        return this.getArchiveRecord<E>({ id, profileId }, extend);
-    }
-
-    createArchiveRecord(profileId: number, groupId: number) {
+    createArchive(profileId: number, groupId: number) {
         return this.prismaService.groupArchive.create({
             data: {
                 profile: { connect: { id: profileId } },
@@ -39,19 +18,36 @@ export class GroupsArchivesBaseService {
         });
     }
 
-    deleteArchiveRecordById(id: number, profileId: number) {
-        return this.prismaService.groupArchive.delete({
-            where: {
-                id,
-                profileId
-            }
-        });
+    getArchiveRecordById<E extends boolean = false>(id: number, extend?: E) {
+        return this.getUniqueArchive<E>({ id }, extend);
+    }
+    getArchivesByProfileId<E extends boolean = false>(id: number, extend?: E) {
+        return this.getArchives<E>({ profileId: id }, extend);
+    }
+    getArchiveRecordByIdAndProfileId<E extends boolean = false>(id: number, profileId: number, extend?: E) {
+        return this.getArchive<E>({ id, profileId }, extend);
     }
 
-    private async getArchiveRecord<E extends boolean = false>(payload: Prisma.GroupArchiveWhereInput, extend?: E) {
+    deleteArchiveById(id: number, profileId: number) {
+        return this.prismaService.groupArchive.delete({ where: { id, profileId }});
+    }
+
+    private async getArchive<E extends boolean = false>(where?: Prisma.GroupArchiveWhereInput, extend?: E) {
         return (await this.prismaService.groupArchive.findFirst({
-            where: payload,
+            where,
             include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
         })) as E extends true ? GroupArchiveIncludes : GroupArchive;
+    }
+    private async getUniqueArchive<E extends boolean = false>(where?: Prisma.GroupArchiveWhereUniqueInput, extend?: E) {
+        return (await this.prismaService.groupArchive.findUnique({
+            where,
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupArchiveIncludes : GroupArchive;
+    }
+    private async getArchives<E extends boolean = false>(where?: Prisma.GroupArchiveWhereInput, extend?: E) {
+        return (await this.prismaService.groupArchive.findMany({
+            where,
+            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
+        })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
     }
 }

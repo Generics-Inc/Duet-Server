@@ -2,7 +2,7 @@ import * as Sharp from "sharp";
 import {PrismaService} from "@root/singles";
 import {AccessToEntity} from "@root/helpers";
 
-type FilesBucketName = 'profile' | 'group';
+export type FilesBucketName = 'profile' | 'group';
 
 export type FilesUploadConfig = {
     profileId: number;

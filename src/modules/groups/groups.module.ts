@@ -7,6 +7,8 @@ import {GroupsController} from "@modules/groups/groups.controller";
 import {GroupsService} from "@modules/groups/groups.service";
 import {GroupsArchivesController} from "@modules/groups/archives/archives.controller";
 import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
+import {GroupsRequestsController} from "@modules/groups/requests/requests.controller";
+import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
 
 
 @Module({
@@ -17,12 +19,20 @@ import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
     ],
     controllers: [
         GroupsController,
-        GroupsArchivesController
+        GroupsArchivesController,
+        GroupsRequestsController
     ],
     providers: [
         GroupsService,
         GroupsArchivesService,
+        GroupsRequestsService,
         PrismaService
+    ],
+    exports: [
+        GroupsBaseModule,
+        GroupsService,
+        GroupsArchivesService,
+        GroupsRequestsService
     ]
 })
 export class GroupsModule {
