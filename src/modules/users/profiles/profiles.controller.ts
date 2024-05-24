@@ -38,6 +38,6 @@ export class ProfilesController {
     @ApiResponse({ type: ProfileDto })
     @Get(':id')
     async getUserById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.utils.ifEmptyGivesError(await this.usersProfilesService.getProfileByIdHandler(profileId, id), UserNotFoundException);
+        return this.utils.ifEmptyGivesError(await this.usersProfilesService.getProfileById(profileId, id), UserNotFoundException);
     }
 }

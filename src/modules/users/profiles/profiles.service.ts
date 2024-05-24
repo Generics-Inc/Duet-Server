@@ -96,11 +96,10 @@ export class UsersProfilesService {
         };
     }
 
-    async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {
-        if (await AccessToEntity.accessToProfile(this.usersProfilesModelService, this.groupsModelService, reqProfileId, resProfileId))
+    async getProfileById(reqProfileId: number, resProfileId: number) {
+        if (await AccessToEntity.accessToProfile(this.usersProfilesModelService, this.groupsModelService, reqProfileId, resProfileId).then(r => !r.status))
             throw ProfileAccessDividedException;
 
         return this.usersProfilesModelService.getProfileById(resProfileId);
     }
-
 }
