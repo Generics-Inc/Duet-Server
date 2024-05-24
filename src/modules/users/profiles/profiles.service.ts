@@ -5,10 +5,10 @@ import {GroupIncludes} from "@root/types";
 import {PrismaService} from "@root/singles";
 import {AccessToEntity} from "@root/helpers";
 import {FileCreationException, ProfileAccessDividedException} from "@root/errors";
-import {GroupsArchivesBaseService} from "@modules/groupsBase/archivesBase/archivesBase.service";
-import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
-import {GroupsBaseService} from "@modules/groupsBase/groupsBase.service";
-import {UsersBaseService} from "@modules/usersBase/usersBase.service";
+import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
+import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
+import {GroupsModelService} from "@models/groups/groups.service";
+import {UsersModelService} from "@models/users/users.service";
 import {FilesService} from "@modules/files/files.service";
 import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
 
@@ -16,17 +16,17 @@ import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
 @Injectable()
 export class UsersProfilesService {
     constructor(
-        private groupsBaseService: GroupsBaseService,
-        private groupsArchivesBaseService: GroupsArchivesBaseService,
-        private usersBaseService: UsersBaseService,
-        private usersProfilesBaseService: UsersProfilesBaseService,
+        private groupsModelService: GroupsModelService,
+        private groupsArchivesModelService: GroupsArchivesModelService,
+        private usersModelService: UsersModelService,
+        private usersProfilesModelService: UsersProfilesModelService,
         private filesService: FilesService,
         private httpService: HttpService,
         private prismaService: PrismaService
     ) {}
 
     getBase() {
-        return this.usersProfilesBaseService;
+        return this.usersProfilesModelService;
     }
 
     async createUser(
@@ -56,15 +56,15 @@ export class UsersProfilesService {
                 })).link : undefined;
             } catch (e) {
                 console.error(e);
-                await this.usersBaseService.deleteUserById(user.id);
+                await this.usersModelService.deleteUserById(user.id);
                 throw FileCreationException;
             }
         } else {
             profileData.photo = undefined;
         }
 
-        await this.usersProfilesBaseService.updateProfile(user.id, { photo: profileData.photo });
-        return await this.usersBaseService.getUserById(user.id);
+        await this.usersProfilesModelService.updateProfile(user.id, { photo: profileData.photo });
+        return await this.usersModelService.getUserById(user.id);
     }
 
     async statusAboutProfile(profile: Profile): Promise<GroupStatusDto> {
@@ -82,8 +82,8 @@ export class UsersProfilesService {
         };
 
 
-        const group = profile.groupId ? await this.groupsBaseService.getGroupById(profile.groupId, true) : null;
-        const archive = await this.groupsArchivesBaseService.getArchivesByProfileId(profile.id);
+        const group = profile.groupId ? await this.groupsModelService.getGroupById(profile.groupId, true) : null;
+        const archive = await this.groupsArchivesModelService.getArchivesByProfileId(profile.id);
         const isMain = group ? group.mainProfileId === profile.id : false;
         const partnerId = group?.[isMain ? 'secondProfileId' : 'mainProfileId'] ?? null;
 
@@ -97,10 +97,10 @@ export class UsersProfilesService {
     }
 
     async getProfileByIdHandler(reqProfileId: number, resProfileId: number) {
-        if (await AccessToEntity.accessToProfile(this.usersProfilesBaseService, this.groupsBaseService, reqProfileId, resProfileId))
+        if (await AccessToEntity.accessToProfile(this.usersProfilesModelService, this.groupsModelService, reqProfileId, resProfileId))
             throw ProfileAccessDividedException;
 
-        return this.usersProfilesBaseService.getProfileById(resProfileId);
+        return this.usersProfilesModelService.getProfileById(resProfileId);
     }
 
 }

@@ -3,11 +3,11 @@ import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from
 import {Throttle} from "@nestjs/throttler";
 import {GroupNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
+import {GroupDto, GroupExtendDto} from "@models/groups/dto";
+import {GroupRequestDto} from "@models/groups/requests/dto";
 import {AccessTokenGuard, OnlyHaveGroupGuard, OnlyMainInGroupGuard, OnlyNotHaveGroupGuard} from "@modules/auth/guard";
 import {PostFile, UploadedPostFile, UploadedPostFileReturn} from "@modules/app/decorators";
-import {GroupRequestDto} from "@modules/groupsBase/requestsBase/dto";
-import {GroupDto, GroupExtendDto} from "@modules/groupsBase/dto";
-import {UserProfile} from "@modules/usersBase/decorator";
+import {UserProfile} from "@modules/users/decorator";
 import {GroupsService} from "./groups.service";
 import {CreateGroupDto} from "./dto";
 

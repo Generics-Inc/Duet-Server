@@ -1,7 +1,7 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {GroupRequestDto} from "@modules/groupsBase/requestsBase/dto";
-import {GroupArchiveDto} from "@modules/groupsBase/archivesBase/dto";
-import {GroupDto} from "@modules/groupsBase/dto";
+import {GroupArchiveDto} from "@models/groups/archives/dto";
+import {GroupRequestDto} from "@models/groups/requests/dto";
+import {GroupDto} from "@models/groups/dto";
 import {UserDto} from "../../dto";
 import {ProfileDto} from "./profile.dto";
 

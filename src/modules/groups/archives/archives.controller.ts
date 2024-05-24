@@ -1,11 +1,11 @@
 import {Controller, Delete, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, UseGuards} from '@nestjs/common';
 import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {utils} from "@root/helpers";
+import {GroupArchiveDto} from "@models/groups/archives/dto";
+import {GroupDto} from "@models/groups/dto";
 import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
 import {AccessTokenGuard, OnlyNotHaveGroupGuard} from "@modules/auth/guard";
-import {GroupArchiveDto} from "@modules/groupsBase/archivesBase/dto";
-import {UserProfile} from "@modules/usersBase/decorator";
-import {GroupDto} from "@modules/groupsBase/dto";
+import {UserProfile} from "@modules/users/decorator";
 
 @ApiTags('Корзина')
 @ApiSecurity('AccessToken')

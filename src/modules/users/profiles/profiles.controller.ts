@@ -3,12 +3,11 @@ import {Controller, Get, Param, ParseIntPipe, UseGuards} from '@nestjs/common';
 import {Profile} from "@prisma/client";
 import {UserNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
-import {ProfileDto} from "@modules/usersBase/profilesBase/dto";
-import {UserProfile} from "@modules/usersBase/decorator";
+import {ProfileDto} from "@models/users/profiles/dto";
 import {AccessTokenGuard} from "@modules/auth/guard";
+import {UserProfile} from "@modules/users/decorator";
 import {UsersProfilesService} from "./profiles.service";
 import {GroupStatusDto} from "./dto";
-import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
 
 
 @ApiTags('Профили')
@@ -18,23 +17,20 @@ import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profiles
 export class ProfilesController {
     private utils = utils();
 
-    constructor(
-        private profilesBaseService: UsersProfilesBaseService,
-        private profilesService: UsersProfilesService,
-    ) {}
+    constructor(private usersProfilesService: UsersProfilesService) {}
 
     @ApiOperation({ summary: 'Вывести профиль авторизированного пользователя' })
     @ApiResponse({ type: ProfileDto })
     @Get('me')
     getMyProfile(@UserProfile() profile: Profile) {
-        return this.profilesBaseService.getProfileById(profile.id);
+        return this.usersProfilesService.getBase().getProfileById(profile.id);
     }
 
     @ApiOperation({ summary: 'Вывести статус активного пользователя' })
     @ApiResponse({ type: GroupStatusDto })
     @Get('status')
     isThereGroup(@UserProfile() profile: Profile) {
-        return this.profilesService.statusAboutProfile(profile);
+        return this.usersProfilesService.statusAboutProfile(profile);
     }
 
     @ApiOperation({ summary: 'Вывести профиль по ID' })
@@ -42,6 +38,6 @@ export class ProfilesController {
     @ApiResponse({ type: ProfileDto })
     @Get(':id')
     async getUserById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.utils.ifEmptyGivesError(await this.profilesService.getProfileByIdHandler(profileId, id), UserNotFoundException);
+        return this.utils.ifEmptyGivesError(await this.usersProfilesService.getProfileByIdHandler(profileId, id), UserNotFoundException);
     }
 }

@@ -6,7 +6,7 @@ import {DeviceDto} from "./dto";
 import * as bcrypt from "bcryptjs";
 
 @Injectable()
-export class SessionsBaseService {
+export class SessionsModelService {
     private include: (keyof Prisma.SessionInclude)[] = ['user'];
 
     constructor(private prismaService: PrismaService) {}

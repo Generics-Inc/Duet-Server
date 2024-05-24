@@ -4,16 +4,11 @@ import { createHash } from "crypto";
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
 import {AccessToEntity, utils} from "@root/helpers";
-import {
-    BasketNotFoundException,
-    DirectoryAccessDividedException,
-    FileDeletingException,
-    FileNotFoundException
-} from "@root/errors";
-import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
+import {BasketNotFoundException, DirectoryAccessDividedException, FileDeletingException, FileNotFoundException } from "@root/errors";
+import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
+import {GroupsModelService} from "@models/groups/groups.service";
 import {FilesAccessConfig, FilesBucketName, FilesUploadConfig} from "./entities";
 import {UploadResponseDto} from "./dto";
-import {GroupsBaseService} from "@modules/groupsBase/groupsBase.service";
 
 
 @Injectable()
@@ -31,13 +26,13 @@ export class FilesService {
     });
 
     constructor(
-        private usersProfileBaseService: UsersProfilesBaseService,
-        private groupsBaseService: GroupsBaseService,
+        private usersProfileModelService: UsersProfilesModelService,
+        private groupsModelService: GroupsModelService,
         private configService: ConfigService
     ) {
         this.profileKeysToRights = {
-            'group': AccessToEntity.accessToGroup.bind(this, this.usersProfileBaseService),
-            'profile': AccessToEntity.accessToProfileWithRequests.bind(this, this.usersProfileBaseService, this.groupsBaseService)
+            'group': AccessToEntity.accessToGroup.bind(this, this.usersProfileModelService),
+            'profile': AccessToEntity.accessToProfileWithRequests.bind(this, this.usersProfileModelService, this.groupsModelService)
         };
     }
 

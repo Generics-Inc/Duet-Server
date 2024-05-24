@@ -1,11 +1,11 @@
 import {Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards} from '@nestjs/common';
 import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
-import {GroupRequestDto, GroupRequestSecureExtendDto} from "@modules/groupsBase/requestsBase/dto";
-import {GroupsRequestsBaseService} from "@modules/groupsBase/requestsBase/requestsBase.service";
+import {GroupRequestDto, GroupRequestSecureExtendDto} from "@models/groups/requests/dto";
+import {GroupsRequestsModelService} from "@models/groups/requests/requests.service";
+import {GroupDto} from "@models/groups/dto";
 import {AccessTokenGuard, OnlyHaveGroupGuard} from "@modules/auth/guard";
-import {UserProfile} from "@modules/usersBase/decorator";
-import {GroupDto} from "@modules/groupsBase/dto";
 import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
+import {UserProfile} from "@modules/users/decorator";
 
 
 @ApiTags('Запросы вступления в группы')
@@ -15,7 +15,7 @@ import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
 export class GroupsRequestsController {
     constructor(
         private groupsRequestsService: GroupsRequestsService,
-        private groupsRequestsBaseService: GroupsRequestsBaseService
+        private groupsRequestsModelService: GroupsRequestsModelService
     ) {}
 
     @ApiOperation({ summary: 'Вывести все запросы на присоединение к активной группе' })
@@ -23,7 +23,7 @@ export class GroupsRequestsController {
     @Get()
     @UseGuards(OnlyHaveGroupGuard)
     async getRequestsByGroupId(@UserProfile('groupId') groupId?: number) {
-        return this.groupsRequestsBaseService.getRequestsByGroupId(groupId, true)
+        return this.groupsRequestsModelService.getRequestsByGroupId(groupId, true)
             .then(requests => requests.map(request => {
                 const { profile, group, ...cleanRequest } = request;
                 return {
@@ -39,7 +39,7 @@ export class GroupsRequestsController {
     @ApiResponse({ type: GroupRequestDto, isArray: true})
     @Get('me')
     getMyRequests(@UserProfile('id') profileId: number) {
-        return this.groupsRequestsBaseService.getRequestsByProfileId(profileId);
+        return this.groupsRequestsModelService.getRequestsByProfileId(profileId);
     }
 
     @ApiOperation({ summary: 'Отклонить запрос на присоединение к активной группе активного пользователя' })
@@ -63,6 +63,6 @@ export class GroupsRequestsController {
     @ApiParam({ description: 'ID Запроса на присоединение', name: 'id', type: String })
     @Delete(':id')
     deleteRequestById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.groupsRequestsBaseService.deleteRequestByIdAndProfileId(id, profileId);
+        return this.groupsRequestsModelService.deleteRequestByIdAndProfileId(id, profileId);
     }
 }

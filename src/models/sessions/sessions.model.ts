@@ -1,15 +1,15 @@
 import {Module} from '@nestjs/common';
 import {PrismaService} from "@root/singles";
-import {SessionsBaseService} from "./sessionsBase.service";
+import {SessionsModelService} from "./sessions.service";
 
 @Module({
     providers: [
-        SessionsBaseService,
+        SessionsModelService,
         PrismaService
     ],
     exports: [
-        SessionsBaseService
+        SessionsModelService
     ]
 })
-export class SessionsBaseModule {
+export class SessionsModel {
 }

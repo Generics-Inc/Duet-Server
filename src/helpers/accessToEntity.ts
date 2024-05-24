@@ -1,6 +1,6 @@
+import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
+import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupIncludes} from "../types";
-import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
-import {GroupsBaseService} from "@modules/groupsBase/groupsBase.service";
 
 export type AccessCheckReturn = Promise<{
     status: boolean,
@@ -9,13 +9,13 @@ export type AccessCheckReturn = Promise<{
 }>;
 
 export async function accessToGroup(
-    usersProfilesBaseService: UsersProfilesBaseService,
+    usersProfilesModelService: UsersProfilesModelService,
     reqProfileId: number,
     groupId?: number
 ): AccessCheckReturn {
     if (!groupId) return { status: false };
 
-    const profile = await usersProfilesBaseService.getProfileById(reqProfileId, true);
+    const profile = await usersProfilesModelService.getProfileById(reqProfileId, true);
     const isGroupInArchive = !!profile.groupsArchives.find(record => record.groupId === groupId);
     const isGroupActive = profile.groupId === groupId;
 
@@ -29,15 +29,15 @@ export async function accessToGroup(
 }
 
 export async function accessToProfile(
-    usersProfilesBaseService: UsersProfilesBaseService,
-    groupsBaseService: GroupsBaseService,
+    usersProfilesModelService: UsersProfilesModelService,
+    groupsModelService: GroupsModelService,
     reqProfileId: number,
     profileId?: number
 ): AccessCheckReturn {
     if (!profileId) return { status: false };
 
-    const requester = await usersProfilesBaseService.getProfileById(reqProfileId);
-    const requesterGroup = requester.groupId ? await groupsBaseService.getGroupById(requester.groupId, true) : null;
+    const requester = await usersProfilesModelService.getProfileById(reqProfileId);
+    const requesterGroup = requester.groupId ? await groupsModelService.getGroupById(requester.groupId, true) : null;
 
     const isCurrentProfile = reqProfileId === profileId;
     const isProfileInGroup = requesterGroup && [requesterGroup.mainProfileId, requesterGroup.secondProfileId].includes(profileId);
@@ -58,12 +58,12 @@ export async function accessToProfile(
 }
 
 export async function accessToProfileWithRequests(
-    usersProfilesBaseService: UsersProfilesBaseService,
-    groupsBaseService: GroupsBaseService,
+    usersProfilesModelService: UsersProfilesModelService,
+    groupsModelService: GroupsModelService,
     reqProfileId: number,
     profileId?: number
 ): AccessCheckReturn {
-    const baseAccess = await accessToProfile(usersProfilesBaseService, groupsBaseService, reqProfileId, profileId);
+    const baseAccess = await accessToProfile(usersProfilesModelService, groupsModelService, reqProfileId, profileId);
 
     if (baseAccess.status) {
         return baseAccess;

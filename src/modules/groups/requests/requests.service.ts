@@ -5,27 +5,27 @@ import {
     GroupRequestNotFoundException,
     UserAlreadyInGroupConflictException
 } from "@root/errors";
-import {GroupsRequestsBaseService} from "@modules/groupsBase/requestsBase/requestsBase.service";
-import {GroupsBaseService} from "@modules/groupsBase/groupsBase.service";
 import {PrismaService} from "@root/singles";
+import {GroupsRequestsModelService} from "@models/groups/requests/requests.service";
+import {GroupsModelService} from "@models/groups/groups.service";
 
 @Injectable()
 export class GroupsRequestsService {
     private utils = utils();
 
     constructor(
-        private groupsBaseService: GroupsBaseService,
-        private groupsRequestsBaseService: GroupsRequestsBaseService,
+        private groupsModelService: GroupsModelService,
+        private groupsRequestsModelService: GroupsRequestsModelService,
         private prismaService: PrismaService
     ) {}
 
     getBase() {
-        return this.groupsRequestsBaseService;
+        return this.groupsRequestsModelService;
     }
 
     async isRequestExist(profileId: number, groupId: number) {
         try {
-            this.utils.ifEmptyGivesError(await this.groupsRequestsBaseService.getRequestByProfileAndGroupId(profileId, groupId));
+            this.utils.ifEmptyGivesError(await this.groupsRequestsModelService.getRequestByProfileAndGroupId(profileId, groupId));
             return true;
         } catch (_) {
             return false;
@@ -33,17 +33,17 @@ export class GroupsRequestsService {
     }
 
     async actionWithRequest(actionId: number, groupId: number, action: 1 | 0) {
-        const request = this.utils.ifEmptyGivesError(await this.groupsRequestsBaseService.getRequestByIdAndGroupId(actionId, groupId, true), GroupRequestNotFoundException);
+        const request = this.utils.ifEmptyGivesError(await this.groupsRequestsModelService.getRequestByIdAndGroupId(actionId, groupId, true), GroupRequestNotFoundException);
         if (request.profile.groupId) throw UserAlreadyInGroupConflictException;
         else if (request.group.secondProfileId) throw GroupIsFullConflictException;
 
         switch (action) {
             case 0:
-                return this.groupsRequestsBaseService.deleteRequestById(actionId);
+                return this.groupsRequestsModelService.deleteRequestById(actionId);
             case 1:
-                const deleteGroupRequests = this.groupsRequestsBaseService.deleteRequestsByGroupId(request.groupId);
-                const deleteProfileRequests = this.groupsRequestsBaseService.deleteRequestsByProfileId(request.profileId);
-                const updateGroup = this.groupsBaseService.updateGroup(request.groupId, {
+                const deleteGroupRequests = this.groupsRequestsModelService.deleteRequestsByGroupId(request.groupId);
+                const deleteProfileRequests = this.groupsRequestsModelService.deleteRequestsByProfileId(request.profileId);
+                const updateGroup = this.groupsModelService.updateGroup(request.groupId, {
                     inviteCode: null,
                     secondProfile: { connect: { id: request.profileId } }
                 })

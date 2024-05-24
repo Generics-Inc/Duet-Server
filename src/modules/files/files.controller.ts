@@ -1,6 +1,6 @@
 import {ApiOperation, ApiParam, ApiProduces, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Get, Res, Param, UseGuards, Controller, HttpStatus, StreamableFile} from '@nestjs/common';
-import {UserProfile} from "@modules/usersBase/decorator";
+import {UserProfile} from "@modules/users/decorator";
 import {AccessTokenGuard} from "@modules/auth/guard";
 import {FilesService} from "./files.service";
 import {DownloadDto} from "./dto";

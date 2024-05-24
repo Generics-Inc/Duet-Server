@@ -28,7 +28,9 @@ import {AppService} from "./app.service";
         GroupsModule,
         UsersModule
     ],
-    controllers: [AppController],
+    controllers: [
+        AppController
+    ],
     providers: [
         AppService,
         PrismaService,

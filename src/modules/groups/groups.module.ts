@@ -1,20 +1,20 @@
 import {Module} from '@nestjs/common';
 import {PrismaService} from "@root/singles";
-import {FilesModule} from "@modules/files/files.module";
-import {UsersBaseModule} from "@modules/usersBase/usersBase.module";
-import {GroupsBaseModule} from "@modules/groupsBase/groupsBase.module";
+import {GroupsModel} from "@models/groups/groups.model";
+import {UsersModel} from "@models/users/users.model";
+import {GroupsArchivesController} from "@modules/groups/archives/archives.controller";
+import {GroupsRequestsController} from "@modules/groups/requests/requests.controller";
+import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
+import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
 import {GroupsController} from "@modules/groups/groups.controller";
 import {GroupsService} from "@modules/groups/groups.service";
-import {GroupsArchivesController} from "@modules/groups/archives/archives.controller";
-import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
-import {GroupsRequestsController} from "@modules/groups/requests/requests.controller";
-import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
+import {FilesModule} from "@modules/files/files.module";
 
 
 @Module({
     imports: [
-        GroupsBaseModule,
-        UsersBaseModule,
+        GroupsModel,
+        UsersModel,
         FilesModule
     ],
     controllers: [
@@ -29,7 +29,7 @@ import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
         PrismaService
     ],
     exports: [
-        GroupsBaseModule,
+        GroupsModel,
         GroupsService,
         GroupsArchivesService,
         GroupsRequestsService

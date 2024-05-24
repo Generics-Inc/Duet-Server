@@ -3,19 +3,20 @@ import {PrismaService} from "@root/singles";
 import {utils} from "@root/helpers";
 import {
     DirectoryAccessDividedException,
-    FileCreationException, GroupIsFullConflictException,
-    GroupNotFoundException, GroupRequestConflictException,
+    GroupRequestConflictException,
+    GroupIsFullConflictException,
+    FileCreationException,
+    GroupNotFoundException,
     UserNotFoundException
 } from "@root/errors";
-import {GroupsArchivesBaseService} from "@modules/groupsBase/archivesBase/archivesBase.service";
-import {GroupsRequestsBaseService} from "@modules/groupsBase/requestsBase/requestsBase.service";
-import {UsersProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
+import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
+import {GroupsRequestsModelService} from "@models/groups/requests/requests.service";
+import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
+import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
-import {GroupsBaseService} from "@modules/groupsBase/groupsBase.service";
 import {UploadedPostFileReturn} from "@modules/app/decorators";
 import {FilesService} from "@modules/files/files.service";
 import {CreateGroupDto} from "./dto";
-
 
 @Injectable()
 export class GroupsService {
@@ -23,16 +24,16 @@ export class GroupsService {
 
     constructor(
         private groupsRequestsService: GroupsRequestsService,
-        private groupsBaseService: GroupsBaseService,
-        private groupsArchivesBaseService: GroupsArchivesBaseService,
-        private groupsRequestsBaseService: GroupsRequestsBaseService,
-        private usersProfilesBaseService: UsersProfilesBaseService,
+        private groupsModelService: GroupsModelService,
+        private groupsArchivesModelService: GroupsArchivesModelService,
+        private groupsRequestsModelService: GroupsRequestsModelService,
+        private usersProfilesModelService: UsersProfilesModelService,
         private filesService: FilesService,
         private prismaService: PrismaService
     ) {}
 
     getBase() {
-        return this.groupsBaseService;
+        return this.groupsModelService;
     }
 
     async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>) {
@@ -40,7 +41,7 @@ export class GroupsService {
         const body = form.body;
         let file = undefined;
 
-        const group = await this.groupsBaseService.createGroup(profileId, body, inviteCode);
+        const group = await this.groupsModelService.createGroup(profileId, body, inviteCode);
 
         try {
             file = form.file ? await this.filesService.upload({
@@ -51,24 +52,24 @@ export class GroupsService {
                 file: form.file.buffer
             }) : undefined;
         } catch (e) {
-            await this.groupsBaseService.deleteGroupById(group.id);
+            await this.groupsModelService.deleteGroupById(group.id);
             throw FileCreationException;
         }
 
         if (!file) return group;
 
-        const requestsToJoinDelete = this.groupsRequestsBaseService.deleteRequestsByProfileId(profileId);
-        const groupUpdate = this.groupsBaseService.updateGroup(group.id, { photo: file.link });
+        const requestsToJoinDelete = this.groupsRequestsModelService.deleteRequestsByProfileId(profileId);
+        const groupUpdate = this.groupsModelService.updateGroup(group.id, { photo: file.link });
 
         return await this.prismaService.$transaction([requestsToJoinDelete, groupUpdate])
             .then(r => r[1]);
     }
 
     async getGroupByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
-        const profile = this.utils.ifEmptyGivesError(await this.usersProfilesBaseService.getProfileById(profileId, true), UserNotFoundException);
+        const profile = this.utils.ifEmptyGivesError(await this.usersProfilesModelService.getProfileById(profileId, true), UserNotFoundException);
         if (!profile.groupId) return null;
 
-        return await this.groupsBaseService.getGroupById<E>(profile.groupId, extend);
+        return await this.groupsModelService.getGroupById<E>(profile.groupId, extend);
     }
 
     async leaveFromGroup(profileId: number) {
@@ -78,8 +79,8 @@ export class GroupsService {
         const isMainUser = profileId === group.mainProfile?.id;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
 
-        const createGroupArchive = this.groupsArchivesBaseService.createArchive(profileId, group.id);
-        const updateGroup = this.groupsBaseService.updateGroup(group.id, {
+        const createGroupArchive = this.groupsArchivesModelService.createArchive(profileId, group.id);
+        const updateGroup = this.groupsModelService.updateGroup(group.id, {
             ...(!isLastUser && isMainUser ? {
                 mainProfile: { connect: { id: group.secondProfileId }},
                 secondProfile: { disconnect: true }
@@ -90,28 +91,28 @@ export class GroupsService {
     }
 
     async sendRequestToGroup(profileId: number, inviteCode: string) {
-        const group = this.utils.ifEmptyGivesError(await this.groupsBaseService.getGroupByInviteCode(inviteCode), GroupNotFoundException);
+        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupByInviteCode(inviteCode), GroupNotFoundException);
 
         if (await this.groupsRequestsService.isRequestExist(profileId, group.id)) throw GroupRequestConflictException;
         else if (group.secondProfileId !== null) throw GroupIsFullConflictException;
 
-        return this.groupsRequestsBaseService.createRequest(profileId, group.id, inviteCode);
+        return this.groupsRequestsModelService.createRequest(profileId, group.id, inviteCode);
     }
 
     async updateInviteCode(groupId: number) {
-        const group = this.utils.ifEmptyGivesError(await this.groupsBaseService.getGroupById(groupId, true));
+        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupById(groupId, true));
 
         if (group.secondProfileId || group.groupArchives.length) throw GroupIsFullConflictException;
 
-        return this.groupsBaseService.updateGroup(groupId, { inviteCode: this.utils.createRandomString() });
+        return this.groupsModelService.updateGroup(groupId, { inviteCode: this.utils.createRandomString() });
     }
 
     async kickSecondPartnerFromGroup(groupId: number) {
-        const group = this.utils.ifEmptyGivesError(await this.groupsBaseService.getGroupById(groupId, true));
+        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupById(groupId, true));
 
         if (!group.secondProfileId) throw UserNotFoundException;
 
-        return this.groupsBaseService.updateGroup(groupId, {
+        return this.groupsModelService.updateGroup(groupId, {
             secondProfile: { disconnect: true }
         });
     }
@@ -120,6 +121,6 @@ export class GroupsService {
         if ((await this.filesService.deleteFolder(profileId, 'group', groupId.toString())) === 3)
             throw DirectoryAccessDividedException;
 
-        return this.groupsBaseService.deleteGroupById(groupId);
+        return this.groupsModelService.deleteGroupById(groupId);
     }
 }

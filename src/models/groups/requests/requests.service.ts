@@ -4,7 +4,7 @@ import {PrismaService} from "@root/singles";
 import {GroupRequestIncludes} from "@root/types";
 
 @Injectable()
-export class GroupsRequestsBaseService {
+export class GroupsRequestsModelService {
     private include: (keyof Prisma.GroupRequestInclude)[] = ['group', 'profile'];
 
     constructor(private prismaService: PrismaService) {}

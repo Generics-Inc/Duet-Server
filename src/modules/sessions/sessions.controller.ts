@@ -1,8 +1,8 @@
 import {Body, Controller, Delete, Get, Param, ParseIntPipe, UseGuards} from '@nestjs/common';
 import {ApiBody, ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Session} from "@prisma/client";
-import {UserData, UserSession} from "@modules/usersBase/decorator";
-import {SessionDto} from "@modules/sessionsBase/dto";
+import {SessionDto} from "@models/sessions/dto";
+import {UserData, UserSession} from "@modules/users/decorator";
 import {AccessTokenGuard} from "@modules/auth/guard";
 import {SessionCloseDto} from "./dto";
 import {SessionsService} from "./sessions.service";

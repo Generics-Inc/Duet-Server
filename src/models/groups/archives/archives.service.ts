@@ -4,7 +4,7 @@ import {PrismaService} from "@root/singles";
 import {GroupArchiveIncludes} from "@root/types";
 
 @Injectable()
-export class GroupsArchivesBaseService {
+export class GroupsArchivesModelService {
     private include: (keyof Prisma.GroupArchiveInclude)[] = ['profile', 'group'];
 
     constructor(private prismaService: PrismaService) {}

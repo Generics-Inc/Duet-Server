@@ -5,7 +5,7 @@ import {UserIncludes} from "@root/types"
 
 
 @Injectable()
-export class UsersBaseService {
+export class UsersModelService {
     private include: (keyof Prisma.UserInclude)[] = ['profile', 'sessions'];
 
     constructor(private prismaService: PrismaService) {}

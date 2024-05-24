@@ -1,21 +1,25 @@
 import {Module} from '@nestjs/common';
 import {PrismaService} from "@root/singles";
-import {GroupsBaseModule} from "@modules/groupsBase/groupsBase.module";
-import {UsersBaseModule} from "@modules/usersBase/usersBase.module";
+import {UsersModel} from "@models/users/users.model";
+import {GroupsModel} from "@models/groups/groups.model";
 import {FilesService} from "./files.service";
 import {FilesController} from "./files.controller";
 
 @Module({
     imports: [
-        UsersBaseModule,
-        GroupsBaseModule
+        UsersModel,
+        GroupsModel
     ],
     providers: [
         FilesService,
         PrismaService
     ],
-    controllers: [FilesController],
-    exports: [FilesService]
+    controllers: [
+        FilesController
+    ],
+    exports: [
+        FilesService
+    ]
 })
 export class FilesModule {
 }

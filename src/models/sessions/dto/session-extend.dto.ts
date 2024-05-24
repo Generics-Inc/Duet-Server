@@ -1,5 +1,5 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {UserDto} from "@modules/usersBase/dto";
+import {UserDto} from "@models/users/dto";
 import {SessionDto} from "./session.dto";
 
 export class SessionExtendDto extends SessionDto {

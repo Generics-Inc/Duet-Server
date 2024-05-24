@@ -1,7 +1,7 @@
 import {IsNotEmpty, IsObject, IsString, MinLength, ValidateNested} from "class-validator";
 import {Type} from "class-transformer";
 import {ApiProperty} from "@nestjs/swagger";
-import {DeviceDto} from "@modules/sessionsBase/dto";
+import {DeviceDto} from "@models/sessions/dto";
 
 export class UserLoginDto {
     @ApiProperty({ description: 'Имя пользователя', type: String })

@@ -1,12 +1,12 @@
 import {Module} from '@nestjs/common';
 import {PrismaService} from "@root/singles";
-import {SessionsBaseModule} from "@modules/sessionsBase/sessionsBase.module";
+import {SessionsModel} from "@models/sessions/sessions.model";
 import {SessionsService} from "./sessions.service";
 import {SessionsController} from "./sessions.controller";
 
 @Module({
     imports: [
-        SessionsBaseModule
+        SessionsModel
     ],
     controllers: [
         SessionsController
@@ -16,7 +16,7 @@ import {SessionsController} from "./sessions.controller";
         PrismaService
     ],
     exports: [
-        SessionsBaseModule,
+        SessionsModel,
         SessionsService,
         PrismaService
     ]

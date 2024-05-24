@@ -1,8 +1,8 @@
 import {Module} from '@nestjs/common';
 import {HttpModule} from "@nestjs/axios";
 import {PrismaService} from "@root/singles";
-import {GroupsBaseModule} from "@modules/groupsBase/groupsBase.module";
-import {UsersBaseModule} from "@modules/usersBase/usersBase.module";
+import {UsersModel} from "@models/users/users.model";
+import {GroupsModel} from "@models/groups/groups.model";
 import {FilesModule} from "@modules/files/files.module";
 import {ProfilesController} from "./profiles/profiles.controller";
 import {UsersProfilesService} from "./profiles/profiles.service";
@@ -10,8 +10,8 @@ import {UsersProfilesService} from "./profiles/profiles.service";
 
 @Module({
     imports: [
-        GroupsBaseModule,
-        UsersBaseModule,
+        GroupsModel,
+        UsersModel,
         FilesModule,
         HttpModule
     ],
@@ -23,7 +23,7 @@ import {UsersProfilesService} from "./profiles/profiles.service";
         PrismaService
     ],
     exports: [
-        UsersBaseModule,
+        UsersModel,
         UsersProfilesService
     ]
 })

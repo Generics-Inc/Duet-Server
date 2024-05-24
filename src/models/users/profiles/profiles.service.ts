@@ -5,7 +5,7 @@ import {ProfileIncludes} from "@root/types";
 
 
 @Injectable()
-export class UsersProfilesBaseService {
+export class UsersProfilesModelService {
     private includeWithDelete: (keyof Prisma.ProfileInclude)[] = ['mainGroup', 'secondGroup'];
     private include: (keyof Prisma.ProfileInclude)[] = ['user', 'groupsArchives', 'groupsRequests', 'mainGroup', 'secondGroup'];
 

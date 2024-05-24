@@ -5,7 +5,7 @@ import {GroupIncludes} from "@root/types";
 import {CreateGroupDto} from "@modules/groups/dto";
 
 @Injectable()
-export class GroupsBaseService {
+export class GroupsModelService {
     private include: (keyof Prisma.GroupInclude)[] = ['groupArchives', 'groupRequests', 'mainProfile', 'secondProfile'];
 
     constructor(

@@ -12,8 +12,8 @@ import {
     VKGetUserException,
     VKSilentTokenException
 } from "@root/errors";
+import {UsersModelService} from "@models/users/users.service";
 import {UsersProfilesService} from "@modules/users/profiles/profiles.service";
-import {UsersBaseService} from "@modules/usersBase/usersBase.service";
 import {SessionsService} from "@modules/sessions/sessions.service";
 import {SignInDto, TokensDto, VkSignInDto} from "./dto";
 import {VkAccessInterface, VkUserInterface} from "./interfaces";
@@ -24,15 +24,15 @@ export class AuthService {
     private utils = utils();
 
     constructor(
-        private usersService: UsersBaseService,
-        private profilesService: UsersProfilesService,
+        private usersModelService: UsersModelService,
+        private usersProfilesService: UsersProfilesService,
         private sessionsService: SessionsService,
         private configService: ConfigService,
         private httpService: HttpService
     ) {}
 
     async signIn(data: SignInDto): Promise<TokensDto> {
-        const user = this.utils.ifEmptyGivesError(await this.usersService.getUserByUsername(data.user.username), UserNotFoundException);
+        const user = this.utils.ifEmptyGivesError(await this.usersModelService.getUserByUsername(data.user.username), UserNotFoundException);
 
         if (await bcrypt.compare(data.user.password, user.password)) {
             return await this.sessionsService.createSession(user, data.device).then(r => r.tokens);
@@ -49,10 +49,10 @@ export class AuthService {
             access_token: vkToken
         }, VKGetUserException);
 
-        let user = await this.usersService.getUserByUsername('ID' + vkUser.id);
-        if (!user && vkUser.screen_name) user = await this.usersService.getUserByUsername(vkUser.screen_name);
+        let user = await this.usersModelService.getUserByUsername('ID' + vkUser.id);
+        if (!user && vkUser.screen_name) user = await this.usersModelService.getUserByUsername(vkUser.screen_name);
         if (!user) {
-            user = await this.profilesService.createUser(
+            user = await this.usersProfilesService.createUser(
                 {
                     username: vkUser.screen_name ?? 'ID' + vkUser.id,
                     role: 'USER'

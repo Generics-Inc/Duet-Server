@@ -1,61 +1,61 @@
 import * as bcrypt from "bcryptjs";
+import {ConfigService} from "@nestjs/config";
 import {Injectable} from '@nestjs/common';
 import {JwtService} from "@nestjs/jwt";
-import {ConfigService} from "@nestjs/config";
 import {Session, User} from "@prisma/client";
 import {SessionNotFoundException} from "@root/errors";
-import {utils} from "@root/helpers";
 import {PrismaService} from "@root/singles";
-import {DeviceDto} from "@modules/sessionsBase/dto";
+import {utils} from "@root/helpers";
+import {SessionsModelService} from "@models/sessions/sessions.service";
+import {DeviceDto} from "@models/sessions/dto";
 import {TokensDto} from "@modules/auth/dto";
-import {SessionsBaseService} from "@modules/sessionsBase/sessionsBase.service";
 
 @Injectable()
 export class SessionsService {
     private utils = utils();
 
     constructor(
-        private sessionsBaseService: SessionsBaseService,
+        private sessionsModelService: SessionsModelService,
         private prismaService: PrismaService,
         private jwtService: JwtService,
         private configService: ConfigService
     ) {}
 
     getBase() {
-        return this.sessionsBaseService;
+        return this.sessionsModelService;
     }
 
     async createSession(user: User, deviceMeta: DeviceDto) {
-        let session = await this.sessionsBaseService.getSessionByIdAndUUID(user.id, deviceMeta.uuid);
+        let session = await this.sessionsModelService.getSessionByIdAndUUID(user.id, deviceMeta.uuid);
 
-        if (!session) session = await this.sessionsBaseService.createSession(user.id, deviceMeta);
+        if (!session) session = await this.sessionsModelService.createSession(user.id, deviceMeta);
 
         return await this.updateSessionById(session.id);
     }
 
     async updateSessionById(id: number) {
-        const session = this.utils.ifEmptyGivesError(await this.sessionsBaseService.getSessionById(id), SessionNotFoundException);
+        const session = this.utils.ifEmptyGivesError(await this.sessionsModelService.getSessionById(id), SessionNotFoundException);
         const tokens = await this.createTokens(session);
 
         return {
-            session: await this.sessionsBaseService.updateSession(session.id, {
-                accessToken: this.hashData(this.sessionsBaseService.getTokenSignature(tokens.accessToken)),
-                refreshToken: this.hashData(this.sessionsBaseService.getTokenSignature(tokens.refreshToken)),
+            session: await this.sessionsModelService.updateSession(session.id, {
+                accessToken: this.hashData(this.sessionsModelService.getTokenSignature(tokens.accessToken)),
+                refreshToken: this.hashData(this.sessionsModelService.getTokenSignature(tokens.refreshToken)),
             }),
             tokens
         };
     }
 
     async getCleanedSessionByUserId(userId: number, currentSession: Session) {
-        return this.cleanSessionsData(await this.sessionsBaseService.getSessionsByUserId(userId), currentSession);
+        return this.cleanSessionsData(await this.sessionsModelService.getSessionsByUserId(userId), currentSession);
     }
 
     async closeSession(id: number, userId: number) {
-        this.utils.ifEmptyGivesError(await this.sessionsBaseService.getSessionByIdAndUserId(id, userId), SessionNotFoundException);
-        await this.sessionsBaseService.deleteSessionsByListIdAndUserId([id], userId);
+        this.utils.ifEmptyGivesError(await this.sessionsModelService.getSessionByIdAndUserId(id, userId), SessionNotFoundException);
+        await this.sessionsModelService.deleteSessionsByListIdAndUserId([id], userId);
     }
     async closeSessions(ids: number[], userId: number) {
-        await this.sessionsBaseService.deleteSessionsByListIdAndUserId(ids, userId);
+        await this.sessionsModelService.deleteSessionsByListIdAndUserId(ids, userId);
     }
 
     private hashData(data: string): string {
