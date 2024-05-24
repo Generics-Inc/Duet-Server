@@ -13,11 +13,14 @@ jobs:
         run: |
           cd ~/devops/
           git submodule update --reference server --remote
-      - name: Build and up container
+      - name: TEST
         run: |
-          cd ~/devops/
-          ./build.sh rebuild server
-      - name: Clean old images
-        run: |
-          cd ~/devops/
-          ./build.sh clean
+          pwd
+#      - name: Build and up container
+#        run: |
+#          cd ~/devops/
+#          ./build.sh rebuild server
+#      - name: Clean old images
+#        run: |
+#          cd ~/devops/
+#          ./build.sh clean
