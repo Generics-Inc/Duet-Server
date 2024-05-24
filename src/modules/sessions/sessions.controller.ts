@@ -3,7 +3,7 @@ import {ApiBody, ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/
 import {Session} from "@prisma/client";
 import {utils} from "@root/helpers";
 import {SessionNotFoundException} from "@root/errors";
-import {UserData, UserSession} from "@modules/users/decorator";
+import {UserData, UserSession} from "@modules/usersBase/decorator";
 import {AccessTokenGuard} from "@modules/auth/guard";
 import {SessionCloseDto, SessionDto} from "./dto";
 import {SessionsService} from "./sessions.service";

@@ -8,17 +8,17 @@ import {
     GroupRequestNotFoundException,
     UserAlreadyInGroupConflictException
 } from "@root/errors";
-import {GroupsService} from "../groups.service";
+import {GroupsBaseService} from "../groupsBase.service";
 
 @Injectable()
-export class GroupsRequestsService {
+export class GroupsRequestsBaseService {
     private include: (keyof Prisma.GroupRequestInclude)[] = ['group', 'profile'];
     private utils = utils();
 
     constructor(
-        private prismaService: PrismaService,
-        @Inject(forwardRef(() => GroupsService))
-        private groupsService: GroupsService
+        @Inject(forwardRef(() => GroupsBaseService))
+        private groupsBaseService: GroupsBaseService,
+        private prismaService: PrismaService
     ) {}
 
     async isRequestExist(profileId: number, groupId: number) {
@@ -39,7 +39,6 @@ export class GroupsRequestsService {
             }
         });
     }
-
 
     getRequestById<E extends boolean = false>(id: number, extend?: E) {
         return this.getRequestWhere<E>({ id }, extend);
@@ -72,7 +71,7 @@ export class GroupsRequestsService {
             case 1:
                 const deleteGroupRequests = this.deleteRequestsByGroupId(request.groupId);
                 const deleteProfileRequests = this.deleteRequestsByProfileId(request.profileId);
-                const updateGroup = this.groupsService.update(request.groupId, {
+                const updateGroup = this.groupsBaseService.update(request.groupId, {
                     inviteCode: null,
                     secondProfile: { connect: { id: request.profileId } }
                 })

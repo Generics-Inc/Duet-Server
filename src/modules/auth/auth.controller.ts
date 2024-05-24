@@ -1,7 +1,7 @@
 import {Body, Controller, HttpCode, HttpStatus, Post, UseGuards} from '@nestjs/common';
 import {ApiBody, ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Session} from "@prisma/client";
-import {UserSession} from "@modules/users/decorator";
+import {UserSession} from "@modules/usersBase/decorator";
 import {AuthService} from "./auth.service";
 import {RefreshDto, SignInDto, TokensDto, VkSignInDto} from "./dto";
 import {AccessTokenGuard, RefreshTokenGuard} from "./guard";

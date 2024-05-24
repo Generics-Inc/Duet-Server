@@ -2,7 +2,7 @@ import {Controller, Get, UseGuards} from "@nestjs/common";
 import {ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Role} from "@prisma/client";
 import {HaveRoleAccessGuard} from "@modules/auth/guard";
-import {Roles} from "@modules/users/decorator";
+import {Roles} from "@modules/usersBase/decorator";
 import {PingDto, SecretDto} from "./dto";
 import {AppService} from "./app.service";
 

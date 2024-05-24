@@ -1,11 +1,11 @@
-import {Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, UseGuards} from '@nestjs/common';
+import {Controller, Delete, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, UseGuards} from '@nestjs/common';
 import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
-import {AccessTokenGuard, OnlyNotHaveGroupGuard} from "@modules/auth/guard";
-import {UserProfile} from "@modules/users/decorator";
 import {utils} from "@root/helpers";
-import {GroupDto} from "../dto";
-import {GroupsArchivesService} from "./archives.service";
-import {GroupArchiveDto, GroupArchiveExtendDto} from "./dto";
+import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
+import {AccessTokenGuard, OnlyNotHaveGroupGuard} from "@modules/auth/guard";
+import {GroupArchiveDto} from "@modules/groupsBase/archivesBase/dto";
+import {UserProfile} from "@modules/usersBase/decorator";
+import {GroupDto} from "@modules/groupsBase/dto";
 
 @ApiTags('Корзина')
 @ApiSecurity('AccessToken')
@@ -15,20 +15,6 @@ export class GroupsArchivesController {
     private utils = utils();
 
     constructor(private groupsArchivesService: GroupsArchivesService) {}
-
-    @ApiOperation({ summary: 'Вывести группы из корзины авторизированного пользователя' })
-    @ApiResponse({ type: GroupArchiveDto, isArray: true })
-    @Get('me')
-    getMyArchives(@UserProfile('id') profileId: number) {
-        return this.groupsArchivesService.getArchivesByProfileId(profileId);
-    }
-
-    @ApiOperation({ summary: 'Вывести группы из корзины авторизированного пользователя в расширенном виде' })
-    @ApiResponse({ type: GroupArchiveExtendDto, isArray: true })
-    @Get('me/full')
-    getMyFullArchives(@UserProfile('id') profileId: number) {
-        return this.groupsArchivesService.getArchivesByProfileId(profileId, true);
-    }
 
     @ApiOperation({ summary: 'Восстановить группу из корзины' })
     @ApiParam({ description: 'ID записи в корзине', name: 'id', type: Number })

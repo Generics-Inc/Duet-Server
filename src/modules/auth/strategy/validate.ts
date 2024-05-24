@@ -1,18 +1,18 @@
 import {Request} from "express";
 import {AuthorizedSessionNotFoundException} from "@root/errors";
+import {ProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
+import {UsersBaseService} from "@modules/usersBase/usersBase.service";
 import {SessionsService} from "@modules/sessions/sessions.service";
-import {UsersService} from "@modules/users/users.service";
-import {ProfilesService} from "@modules/users/profiles/profiles.service";
 import {PayloadReturnDto, TokenPayloadDto} from "./dto";
 
-export default async function (
+export default async (
     type: 'access' | 'refresh',
     req: Request,
     tokenPayload: TokenPayloadDto,
     sessionsService: SessionsService,
-    usersService: UsersService,
-    profilesService: ProfilesService
-): Promise<PayloadReturnDto> {
+    usersService: UsersBaseService,
+    profilesService: ProfilesBaseService
+): Promise<PayloadReturnDto> => {
     const token = req.get('Authorization').replace('Bearer', '').trim();
 
     if (!Number.isInteger(tokenPayload.sessionId) || !Number.isInteger(tokenPayload.userId)) throw AuthorizedSessionNotFoundException;

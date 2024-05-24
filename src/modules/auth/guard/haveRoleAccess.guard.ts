@@ -2,7 +2,7 @@ import {ExecutionContext, Injectable} from "@nestjs/common";
 import {Role} from "@prisma/client";
 import {Reflector} from "@nestjs/core";
 import {RoleAccessDividedException} from "@root/errors";
-import {ROLES_KEY} from "@modules/users/decorator";
+import {ROLES_KEY} from "@modules/usersBase/decorator";
 import {PayloadReturnDto} from "../strategy/dto";
 import {AccessTokenGuard} from "./accessToken.guard";
 

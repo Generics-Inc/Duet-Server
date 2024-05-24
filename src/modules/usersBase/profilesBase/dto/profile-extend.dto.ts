@@ -1,9 +1,9 @@
 import {ApiProperty} from "@nestjs/swagger";
+import {GroupRequestDto} from "@modules/groupsBase/requestsBase/dto";
+import {GroupArchiveDto} from "@modules/groupsBase/archivesBase/dto";
+import {GroupDto} from "@modules/groupsBase/dto";
 import {UserDto} from "../../dto";
 import {ProfileDto} from "./profile.dto";
-import {GroupRequestDto} from "@modules/groups/requests/dto";
-import {GroupArchiveDto} from "@modules/groups/archives/dto";
-import {GroupDto} from "@modules/groups/dto";
 
 export class ProfileExtendDto extends ProfileDto {
     @ApiProperty({ description: 'Группы в корзине', type: GroupArchiveDto, isArray: true })

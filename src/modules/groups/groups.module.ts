@@ -1,34 +1,29 @@
-import {forwardRef, Module} from '@nestjs/common';
+import {Module} from '@nestjs/common';
 import {PrismaService} from "@root/singles";
 import {FilesModule} from "@modules/files/files.module";
-import {UsersModule} from "@modules/users/users.module";
-import {GroupsRequestsController} from "./requests/requests.controller";
-import {GroupsArchivesController} from "./archives/archives.controller";
-import {GroupsController} from "./groups.controller";
-import {GroupsService} from "./groups.service";
-import {GroupsArchivesService} from "./archives/archives.service";
-import {GroupsRequestsService} from "./requests/requests.service";
+import {UsersBaseModule} from "@modules/usersBase/usersBase.module";
+import {GroupsBaseModule} from "@modules/groupsBase/groupsBase.module";
+import {GroupsController} from "@modules/groups/groups.controller";
+import {GroupsService} from "@modules/groups/groups.service";
+import {GroupsArchivesController} from "@modules/groups/archives/archives.controller";
+import {GroupsArchivesService} from "@modules/groups/archives/archives.service";
+
 
 @Module({
     imports: [
-        forwardRef(() => UsersModule),
-        forwardRef(() => FilesModule)
+        GroupsBaseModule,
+        UsersBaseModule,
+        FilesModule
     ],
     controllers: [
         GroupsController,
-        GroupsArchivesController,
-        GroupsRequestsController
+        GroupsArchivesController
     ],
     providers: [
         GroupsService,
         GroupsArchivesService,
-        GroupsRequestsService,
         PrismaService
-    ],
-    exports: [
-        GroupsService,
-        GroupsArchivesService,
-        GroupsRequestsService
     ]
 })
-export class GroupsModule {}
+export class GroupsModule {
+}

@@ -5,8 +5,6 @@ import { HttpService } from "@nestjs/axios";
 import {Session} from "@prisma/client";
 import {ExceptionGenerator} from "@root/errors";
 import {utils} from "@root/helpers";
-import {UsersService} from "@modules/users/users.service";
-import {SessionsService} from "@modules/sessions/sessions.service";
 import {
     IncorrectPasswordException,
     SessionIsNotValidException,
@@ -14,6 +12,9 @@ import {
     VKGetUserException,
     VKSilentTokenException
 } from "@root/errors";
+import {UsersBaseService} from "@modules/usersBase/usersBase.service";
+import {SessionsService} from "@modules/sessions/sessions.service";
+import {ProfilesService} from "@modules/profiles/profiles.service";
 import {SignInDto, TokensDto, VkSignInDto} from "./dto";
 import {VkAccessInterface, VkUserInterface} from "./interfaces";
 
@@ -23,10 +24,11 @@ export class AuthService {
     private utils = utils();
 
     constructor(
+        private usersService: UsersBaseService,
+        private profilesService: ProfilesService,
+        private sessionsService: SessionsService,
         private configService: ConfigService,
-        private usersService: UsersService,
-        private httpService: HttpService,
-        private sessionsService: SessionsService
+        private httpService: HttpService
     ) {}
 
     async signIn(data: SignInDto): Promise<TokensDto> {
@@ -50,7 +52,7 @@ export class AuthService {
         let user = await this.usersService.getUniqueUser({ username: 'ID' + vkUser.id });
         if (!user && vkUser.screen_name) user = await this.usersService.getUniqueUser({ username: vkUser.screen_name });
         if (!user) {
-            user = await this.usersService.createUser(
+            user = await this.profilesService.createUser(
                 {
                     username: vkUser.screen_name ?? 'ID' + vkUser.id,
                     role: 'USER'

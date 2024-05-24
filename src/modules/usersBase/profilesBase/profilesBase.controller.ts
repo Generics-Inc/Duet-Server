@@ -1,28 +1,22 @@
 import {ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Controller, Get, Param, ParseIntPipe, UseGuards} from '@nestjs/common';
+import {UserNotFoundException} from "@root/errors";
 import {Profile} from "@prisma/client";
 import {utils} from "@root/helpers";
-import {UserNotFoundException} from "@root/errors";
-import {AccessTokenGuard} from "@modules//auth/guard";
+import {ProfilesBaseService} from "@modules/usersBase/profilesBase/profilesBase.service";
+import {AccessTokenGuard} from "@modules/auth/guard";
 import {UserProfile} from "../decorator";
-import {GroupStatusDto, ProfileDto} from "./dto";
-import {ProfilesService} from "./profiles.service";
+import {ProfileDto} from "./dto";
+
 
 @ApiTags('Профили')
 @ApiSecurity('AccessToken')
 @UseGuards(AccessTokenGuard)
 @Controller('profiles')
-export class ProfilesController {
+export class ProfilesBaseController {
     private utils = utils();
 
-    constructor(private profilesService: ProfilesService) {}
-
-    @ApiOperation({ summary: 'Вывести статус активного пользователя' })
-    @ApiResponse({ type: GroupStatusDto })
-    @Get('status')
-    isThereGroup(@UserProfile() profile: Profile) {
-        return this.profilesService.statusAboutProfile(profile);
-    }
+    constructor(private profilesService: ProfilesBaseService) {}
 
     @ApiOperation({ summary: 'Вывести профиль авторизированного пользователя' })
     @ApiResponse({ type: ProfileDto })
