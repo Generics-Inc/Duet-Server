@@ -1,9 +1,11 @@
-import {NestFactory} from '@nestjs/core';
-import {AppModule} from './app/app.module';
+require('module-alias/register');
+
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {ValidationPipe} from "@nestjs/common";
-import useLog from "./composables/useLog";
-import {GuardianFilter} from "./errors/GuardianFilter";
+import {NestFactory} from '@nestjs/core';
+import {AppModule} from "@modules/app/app.module";
+import {GuardianFilter} from "./errors";
+import {logger} from "./helpers";
 
 async function bootstrap() {
     const PORT = +process.env.API_PORT || 8000;
@@ -56,7 +58,7 @@ async function bootstrap() {
     // const socketsDocument = AsyncApiModule.createDocument(app, socketsConfig);
     //await AsyncApiModule.setup('/api/swaggerEvents', app, socketsDocument);
 
-    await app.listen(PORT, () => useLog(`Сервер запущен. Порт: ${PORT}`));
+    await app.listen(PORT, () => logger(`Сервер запущен. Порт: ${PORT}`));
 }
 
 bootstrap().then();

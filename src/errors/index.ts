@@ -1,5 +1,8 @@
 import {ExceptionGenerator} from "./ExceptionGenerator";
 
+export * from './ExceptionGenerator';
+export * from './GuardianFilter';
+
 // 401 - Unauthorized
 export const AuthorizedUserNotFoundException = new ExceptionGenerator(401, 1, 'Авторизированный пользователь не найден');
 export const AuthorizedSessionNotFoundException = new ExceptionGenerator(401, 2, 'Авторизированная сессия не найдена. Возможно она истекла или была закрыта');
