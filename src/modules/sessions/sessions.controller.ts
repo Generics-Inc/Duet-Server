@@ -18,14 +18,14 @@ export class SessionsController {
     @ApiResponse({ type: SessionDto, isArray: true })
     @Get()
     async getMySessions(@UserData('id') userId: number, @UserSession() currentSession: Session) {
-        return this.sessionsService.getCleanedSessionByUserId(userId, currentSession);
+        return this.sessionsService.getCleanedSessionsByUserId(userId, currentSession);
     }
 
     @ApiOperation({ summary: 'Вывести сессии авторизированного пользователя' })
     @ApiResponse({ type: SessionDto, isArray: true })
     @Get('me')
     getMe(@UserSession() currentSession: Session) {
-        return this.sessionsService.cleanSessionData(currentSession, currentSession);
+        return this.sessionsService.getCleanedSessionById(currentSession.id, currentSession);
     }
 
     @ApiOperation({ summary: 'Закрыть сессию по ID' })
