@@ -1,5 +1,6 @@
 require('module-alias/register');
 
+import * as CookieParser from 'cookie-parser';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {ValidationPipe} from "@nestjs/common";
 import {NestFactory} from '@nestjs/core';
@@ -13,6 +14,7 @@ async function bootstrap() {
 
     app.setGlobalPrefix('api');
     app.useGlobalFilters(new GuardianFilter());
+    app.use(CookieParser());
     app.useGlobalPipes(new ValidationPipe({
         transform: true,
         whitelist: true

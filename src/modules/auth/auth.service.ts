@@ -17,6 +17,8 @@ import {UsersProfilesService} from "@modules/users/profiles/profiles.service";
 import {SessionsService} from "@modules/sessions/sessions.service";
 import {SignInDto, TokensDto, VkSignInDto} from "./dto";
 import {VkAccessInterface, VkUserInterface} from "./interfaces";
+import {Response} from "express";
+import {md5} from "@nestjs/throttler/dist/hash";
 
 
 @Injectable()
@@ -31,16 +33,18 @@ export class AuthService {
         private httpService: HttpService
     ) {}
 
-    async signIn(data: SignInDto, ip: string): Promise<TokensDto> {
+    async signIn(res: Response, data: SignInDto, ip: string): Promise<TokensDto> {
         const user = this.utils.ifEmptyGivesError(await this.usersModelService.getUserByUsername(data.user.username), UserNotFoundException);
 
         if (await bcrypt.compare(data.user.password, user.password)) {
-            return await this.sessionsService.createSession(user, ip, data.device).then(r => r.tokens);
+            const { tokens, session } = await this.sessionsService.createSession(user, ip, data.device);
+            res.cookie('passHash', md5(`${session.id}:${session.ip}`));
+            return tokens;
         } else {
             throw IncorrectPasswordException;
         }
     }
-    async vkSignIn(payload: VkSignInDto, ip: string): Promise<TokensDto> {
+    async vkSignIn(res: Response, payload: VkSignInDto, ip: string): Promise<TokensDto> {
         const vkToken = payload.vk.uuid ? await this.vkRequest<VkAccessInterface>('auth.exchangeSilentAuthToken', {
             access_token: this.configService.get<string>('VK_ACCESS_TOKEN', ''),
             ...payload
@@ -69,8 +73,11 @@ export class AuthService {
             );
         }
 
-        return await this.sessionsService.createSession(user, ip, payload.device).then(r => r.tokens);
+        const { tokens, session } = await this.sessionsService.createSession(user, ip, payload.device);
+        res.cookie('passHash', md5(`${session.id}:${session.ip}`));
+        return tokens;
     }
+
     async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
         this.utils.ifEmptyGivesError(this.sessionsService.getBase().isTokenAlive(session, accessToken), SessionIsNotValidException);
 

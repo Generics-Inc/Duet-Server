@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {Prisma, Session} from "@prisma/client";
 import {PrismaService} from "@root/singles";
 import {SessionIncludes} from "@root/types";
-import {DeviceDto} from "./dto";
+import {DeviceDto, LocationDto} from "./dto";
 import * as bcrypt from "bcryptjs";
 
 @Injectable()
@@ -20,12 +20,14 @@ export class SessionsModelService {
         return resultStatus;
     }
 
-    createSession(userId: number, ip: string, device: DeviceDto, location?: any) {
+    createSession(userId: number, ip: string, device: DeviceDto, location?: LocationDto) {
         return this.prismaService.session.create({
             data: {
                 user: { connect: { id: userId } },
                 ip: ip,
-                device: device as unknown as Prisma.JsonValue,
+                deviceUUID: device.uuid,
+                deviceName: device.name,
+                deviceOS: device.os,
                 location: location as unknown as Prisma.JsonValue
             }
         });
@@ -44,8 +46,8 @@ export class SessionsModelService {
     getSessionByIdAndUserId<E extends boolean = false>(id: number, userId: number, extend?: E) {
         return this.getUniqueSession<E>({ id, userId }, extend);
     }
-    getSessionByIdAndUUID<E extends boolean = false>(id: number, uuid: string, extend?: E) {
-        return this.getSession<E>({ id, device: { path: ['uuid'], equals: uuid } }, extend);
+    getSessionByUserIdAndUUID<E extends boolean = false>(userId: number, uuid: string, extend?: E) {
+        return this.getSession<E>({ userId, deviceUUID: uuid }, extend);
     }
 
     getSessionsByUserId<E extends boolean = false>(userId: number, extend?: E) {

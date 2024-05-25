@@ -25,7 +25,7 @@ export class SessionsController {
     @ApiResponse({ type: SessionDto, isArray: true })
     @Get('me')
     getMe(@UserSession() currentSession: Session) {
-        return this.sessionsService.getCleanedSessionByUserId(currentSession.userId, currentSession);
+        return this.sessionsService.getCleanedSessionById(currentSession.id, currentSession);
     }
 
     @ApiOperation({ summary: 'Закрыть сессию по ID' })

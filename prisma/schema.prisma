@@ -25,10 +25,12 @@ model User {
 }
 
 model Session {
-  id     Int    @id @default(autoincrement())
-  userId Int
-  ip     String
-  device Json
+  id         Int    @id @default(autoincrement())
+  userId     Int
+  ip         String
+  deviceUUID String
+  deviceName String
+  deviceOS   String
 
   current  Boolean @default(false)
   location Json?
