@@ -28,7 +28,6 @@ export class SessionsService {
     }
 
     async createSession(user: User, ip: string, device: DeviceDto) {
-        ip = '37.122.0.202'
         let session = await this.sessionsModelService.getSessionByUserIdAndUUID(user.id, device.uuid);
 
         const location = (session?.ip === ip ? session.location : await this.getLocationByIP(ip)) as LocationDto;
