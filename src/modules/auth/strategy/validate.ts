@@ -22,7 +22,7 @@ export default async (
     const session = await sessionsModelService.getSessionById(tokenPayload.sessionId, true)
     const user = await usersModelService.getUserById(tokenPayload.userId, true);
     const profile = await usersProfilesModelService.getProfileById(tokenPayload.userId, true);
-    const cookiePassHash = md5(`${session.id}:${session.ip}`);
+    const cookiePassHash = session ? md5(`${session.id}:${session.ip}`) : undefined;
 
     if (
         !session ||
