@@ -1,3 +1,4 @@
+import {RealIP} from "nestjs-real-ip";
 import {Controller, Get, UseGuards} from "@nestjs/common";
 import {ApiOperation, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {Role} from "@prisma/client";
@@ -10,6 +11,13 @@ import {AppService} from "./app.service";
 @Controller()
 export class AppController {
     constructor(private appService: AppService) {}
+
+    @Get('ip')
+    test(@RealIP() ip: string) {
+        return {
+            ip
+        }
+    }
 
     @ApiOperation({ summary: 'Проверка работы сервера' })
     @ApiResponse({ status: 200, type: PingDto })

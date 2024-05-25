@@ -31,16 +31,16 @@ export class AuthService {
         private httpService: HttpService
     ) {}
 
-    async signIn(data: SignInDto): Promise<TokensDto> {
+    async signIn(data: SignInDto, ip: string): Promise<TokensDto> {
         const user = this.utils.ifEmptyGivesError(await this.usersModelService.getUserByUsername(data.user.username), UserNotFoundException);
 
         if (await bcrypt.compare(data.user.password, user.password)) {
-            return await this.sessionsService.createSession(user, data.device).then(r => r.tokens);
+            return await this.sessionsService.createSession(user, ip, data.device).then(r => r.tokens);
         } else {
             throw IncorrectPasswordException;
         }
     }
-    async vkSignIn(payload: VkSignInDto): Promise<TokensDto> {
+    async vkSignIn(payload: VkSignInDto, ip: string): Promise<TokensDto> {
         const vkToken = payload.vk.uuid ? await this.vkRequest<VkAccessInterface>('auth.exchangeSilentAuthToken', {
             access_token: this.configService.get<string>('VK_ACCESS_TOKEN', ''),
             ...payload
@@ -69,7 +69,7 @@ export class AuthService {
             );
         }
 
-        return await this.sessionsService.createSession(user, payload.device).then(r => r.tokens);
+        return await this.sessionsService.createSession(user, ip, payload.device).then(r => r.tokens);
     }
     async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
         this.utils.ifEmptyGivesError(this.sessionsService.getBase().isTokenAlive(session, accessToken), SessionIsNotValidException);

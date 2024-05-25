@@ -25,10 +25,11 @@ export class SessionsService {
         return this.sessionsModelService;
     }
 
-    async createSession(user: User, deviceMeta: DeviceDto) {
-        let session = await this.sessionsModelService.getSessionByIdAndUUID(user.id, deviceMeta.uuid);
+    async createSession(user: User, ip: string, device: DeviceDto) {
+        let session = await this.sessionsModelService.getSessionByIdAndUUID(user.id, device.uuid);
 
-        if (!session) session = await this.sessionsModelService.createSession(user.id, deviceMeta);
+        console.log(session)
+        if (!session) session = await this.sessionsModelService.createSession(user.id, ip, device);
 
         return await this.updateSessionById(session.id);
     }
@@ -48,6 +49,9 @@ export class SessionsService {
 
     async getCleanedSessionByUserId(userId: number, currentSession: Session) {
         return this.cleanSessionsData(await this.sessionsModelService.getSessionsByUserId(userId), currentSession);
+    }
+    async getCleanedSessionsByUserId(userId: number, currentSession: Session) {
+        return this.cleanSessionData(await this.sessionsModelService.getSessionById(userId), currentSession);
     }
 
     async closeSession(id: number, userId: number) {

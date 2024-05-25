@@ -20,13 +20,13 @@ export class SessionsModelService {
         return resultStatus;
     }
 
-    createSession(userId: number, deviceMeta: DeviceDto) {
+    createSession(userId: number, ip: string, device: DeviceDto, location?: any) {
         return this.prismaService.session.create({
             data: {
                 user: { connect: { id: userId } },
-                deviceUUID: deviceMeta.uuid,
-                deviceName: deviceMeta.name,
-                deviceOS: deviceMeta.os,
+                ip: ip,
+                device: device as unknown as Prisma.JsonValue,
+                location: location as unknown as Prisma.JsonValue
             }
         });
     }
@@ -45,7 +45,7 @@ export class SessionsModelService {
         return this.getUniqueSession<E>({ id, userId }, extend);
     }
     getSessionByIdAndUUID<E extends boolean = false>(id: number, uuid: string, extend?: E) {
-        return this.getSession<E>({ id, deviceUUID: uuid }, extend);
+        return this.getSession<E>({ id, device: { path: ['uuid'], equals: uuid } }, extend);
     }
 
     getSessionsByUserId<E extends boolean = false>(userId: number, extend?: E) {
