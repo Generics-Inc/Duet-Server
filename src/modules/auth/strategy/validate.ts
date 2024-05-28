@@ -26,7 +26,7 @@ export default async (
 
     if (
         !session ||
-        passHash !== cookiePassHash ||
+        //passHash !== cookiePassHash ||
         !sessionsModelService.isTokenAlive(session, type === 'access' && token, type === 'refresh' && token) ||
         !user
     ) throw AuthorizedSessionNotFoundException;
