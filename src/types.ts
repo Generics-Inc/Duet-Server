@@ -16,3 +16,7 @@ export type GroupIncludes = PrismaIncludes<Prisma.$GroupPayload>;
 export type GroupArchiveIncludes = PrismaIncludes<Prisma.$GroupArchivePayload>;
 export type GroupRequestIncludes = PrismaIncludes<Prisma.$GroupRequestPayload>;
 export type SessionIncludes = PrismaIncludes<Prisma.$SessionPayload>;
+export type MovieIncludes = PrismaIncludes<Prisma.$MoviePayload>;
+export type MovieSeasonIncludes = PrismaIncludes<Prisma.$MovieSeasonPayload>;
+export type MovieSeriaIncludes = PrismaIncludes<Prisma.$MovieSeriaPayload>;
+export type MovieTagIncludes = PrismaIncludes<Prisma.$MovieTagPayload>;

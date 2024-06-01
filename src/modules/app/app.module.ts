@@ -6,6 +6,7 @@ import {ScheduleModule} from "@nestjs/schedule";
 import {PrismaService} from "@root/singles";
 import {SessionsModule} from "@modules/sessions/sessions.module";
 import {GroupsModule} from "@modules/groups/groups.module";
+import {MoviesModule} from "@modules/movies/movies.module";
 import {UsersModule} from "@modules/users/users.module";
 import {FilesModule} from "@modules/files/files.module";
 import {AuthModule} from "@modules/auth/auth.module";
@@ -26,7 +27,8 @@ import {AppService} from "./app.service";
         FilesModule,
         SessionsModule,
         GroupsModule,
-        UsersModule
+        UsersModule,
+        MoviesModule
     ],
     controllers: [
         AppController
