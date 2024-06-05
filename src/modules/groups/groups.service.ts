@@ -1,5 +1,4 @@
 import {Injectable} from '@nestjs/common';
-import {PrismaService} from "@root/singles";
 import {utils} from "@root/helpers";
 import {
     DirectoryAccessDividedException,
@@ -15,6 +14,7 @@ import {GroupsArchivesModelService} from "@models/groups/archives/archives.servi
 import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
 import {UploadedPostFileReturn} from "@modules/app/decorators";
+import {PrismaService} from "@modules/prisma/prisma.service";
 import {FilesService} from "@modules/files/files.service";
 import {CreateGroupDto} from "./dto";
 
@@ -39,12 +39,12 @@ export class GroupsService {
     async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>) {
         const inviteCode = this.utils.createRandomString();
         const body = form.body;
-        let file = undefined;
+        let fileLink = undefined;
 
         const group = await this.groupsModelService.createGroup(profileId, body, inviteCode);
 
         try {
-            file = form.file ? await this.filesService.upload({
+            fileLink = form.file ? await this.filesService.upload({
                 profileId,
                 bucketName: 'group',
                 fileName: 'main',
@@ -56,10 +56,10 @@ export class GroupsService {
             throw FileCreationException;
         }
 
-        if (!file) return group;
+        if (!fileLink) return group;
 
         const requestsToJoinDelete = this.groupsRequestsModelService.deleteRequestsByProfileId(profileId);
-        const groupUpdate = this.groupsModelService.updateGroup(group.id, { photo: file.link });
+        const groupUpdate = this.groupsModelService.updateGroup(group.id, { photo: fileLink });
 
         return await this.prismaService.$transaction([requestsToJoinDelete, groupUpdate])
             .then(r => r[1]);

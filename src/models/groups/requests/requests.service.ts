@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {GroupRequest, Prisma} from "@prisma/client";
-import {PrismaService} from "@root/singles";
 import {GroupRequestIncludes} from "@root/types";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 @Injectable()
 export class GroupsRequestsModelService {

@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import {PrismaService} from "@root/singles";
 import {MovieSeason, Prisma} from "@prisma/client";
 import {MovieSeasonIncludes} from "@root/types";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 
 @Injectable()
 export class MoviesSeasonsModelService {
     private include: (keyof Prisma.MovieSeasonInclude)[] = ['movie', 'series'];
 
-    constructor(private prismaService: PrismaService) {
+    constructor(private prismaService: PrismaService) {}
+
+    getSeasonsByGroupId<E extends boolean = false>(groupId: number) {
+        return this.getSeasons<E>({ movie: { groupId } });
     }
 
     private async getSeason<E extends boolean = false>(where?: Prisma.MovieSeasonWhereInput, extend?: E) {

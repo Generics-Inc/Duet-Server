@@ -2,14 +2,14 @@ require('module-alias/register');
 
 import * as CookieParser from 'cookie-parser';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
-import {ValidationPipe} from "@nestjs/common";
+import {Logger, ValidationPipe} from "@nestjs/common";
 import {NestFactory} from '@nestjs/core';
 import {AppModule} from "@modules/app/app.module";
 import {GuardianFilter} from "./errors";
-import {logger} from "./helpers";
 
 async function bootstrap() {
     const PORT = +process.env.API_PORT || 8000;
+    const logger = new Logger('App');
     const app = await NestFactory.create(AppModule, {cors: true});
 
     app.setGlobalPrefix('api');
@@ -60,7 +60,7 @@ async function bootstrap() {
     // const socketsDocument = AsyncApiModule.createDocument(app, socketsConfig);
     //await AsyncApiModule.setup('/api/swaggerEvents', app, socketsDocument);
 
-    await app.listen(PORT, () => logger(`Сервер запущен. Порт: ${PORT}`));
+    await app.listen(PORT, () => logger.log(`Сервер запущен по адресу http://localhost:${PORT}`));
 }
 
 bootstrap().then();

@@ -2,6 +2,9 @@ import { Prisma } from '@prisma/client';
 import * as runtime from '@prisma/client/runtime/library';
 import $Result = runtime.Types.Result
 
+type TupleToUnion<T extends any[]> = T[number];
+export type OmitMultiple<T, K extends (keyof T)[]> = Omit<T, TupleToUnion<K>>;
+
 type PrismaTableType = {
     objects: { [name: string]: any };
     scalars: { [name: string]: any };
@@ -16,7 +19,9 @@ export type GroupIncludes = PrismaIncludes<Prisma.$GroupPayload>;
 export type GroupArchiveIncludes = PrismaIncludes<Prisma.$GroupArchivePayload>;
 export type GroupRequestIncludes = PrismaIncludes<Prisma.$GroupRequestPayload>;
 export type SessionIncludes = PrismaIncludes<Prisma.$SessionPayload>;
-export type MovieIncludes = PrismaIncludes<Prisma.$MoviePayload>;
+export type MovieIncludes = PrismaIncludes<Prisma.$MoviePayload> & { seasons: MovieSeasonIncludes[] };
 export type MovieSeasonIncludes = PrismaIncludes<Prisma.$MovieSeasonPayload>;
 export type MovieSeriaIncludes = PrismaIncludes<Prisma.$MovieSeriaPayload>;
 export type MovieTagIncludes = PrismaIncludes<Prisma.$MovieTagPayload>;
+
+const test = {} as MovieIncludes;

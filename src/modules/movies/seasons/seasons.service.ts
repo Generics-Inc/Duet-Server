@@ -4,4 +4,8 @@ import {MoviesSeasonsModelService} from "@models/movies/seasons/seasons.service"
 @Injectable()
 export class MoviesSeasonsService {
     constructor(private modelService: MoviesSeasonsModelService) {}
+
+    getModel() {
+        return this.modelService;
+    }
 }

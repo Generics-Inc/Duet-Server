@@ -1,7 +1,7 @@
 import {Prisma, Profile, User} from "@prisma/client";
 import {Injectable} from '@nestjs/common';
-import {PrismaService} from "@root/singles";
 import {UserIncludes} from "@root/types"
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 
 @Injectable()

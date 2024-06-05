@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import {PrismaService} from "@root/singles";
 import {MovieTag, Prisma} from "@prisma/client";
 import {MovieTagIncludes} from "@root/types";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 @Injectable()
 export class MoviesTagsModelService {
     private include: (keyof Prisma.MovieTagInclude)[] = ['movies', 'group', 'profile'];
 
     constructor(private prismaService: PrismaService) {}
+
+    getTagsByGroupId<E extends boolean = false>(groupId: number) {
+        return this.getTags<E>({ groupId });
+    }
 
     private async getTag<E extends boolean = false>(where?: Prisma.MovieTagWhereInput, extend?: E) {
         return (await this.prismaService.movieTag.findFirst({

@@ -5,9 +5,9 @@ import {
     GroupRequestNotFoundException,
     UserAlreadyInGroupConflictException
 } from "@root/errors";
-import {PrismaService} from "@root/singles";
 import {GroupsRequestsModelService} from "@models/groups/requests/requests.service";
 import {GroupsModelService} from "@models/groups/groups.service";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 @Injectable()
 export class GroupsRequestsService {

@@ -2,13 +2,13 @@ import {GroupArchive, Prisma, Profile, User} from "@prisma/client";
 import {Injectable} from '@nestjs/common';
 import {HttpService} from "@nestjs/axios";
 import {GroupIncludes} from "@root/types";
-import {PrismaService} from "@root/singles";
 import {AccessToEntity} from "@root/helpers";
 import {FileCreationException, ProfileAccessDividedException} from "@root/errors";
 import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
 import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
 import {GroupsModelService} from "@models/groups/groups.service";
 import {UsersModelService} from "@models/users/users.service";
+import {PrismaService} from "@modules/prisma/prisma.service";
 import {FilesService} from "@modules/files/files.service";
 import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
 
@@ -53,7 +53,7 @@ export class UsersProfilesService {
                     fileName: 'main',
                     fileDir: user.id.toFixed(),
                     file: uploadedPhoto
-                })).link : undefined;
+                })) : undefined;
             } catch (e) {
                 console.error(e);
                 await this.usersModelService.deleteUserById(user.id);

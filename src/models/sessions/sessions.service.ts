@@ -1,9 +1,9 @@
+import * as bcrypt from "bcryptjs";
 import {Injectable} from '@nestjs/common';
 import {Prisma, Session} from "@prisma/client";
-import {PrismaService} from "@root/singles";
 import {SessionIncludes} from "@root/types";
+import {PrismaService} from "@modules/prisma/prisma.service";
 import {DeviceDto, LocationDto} from "./dto";
-import * as bcrypt from "bcryptjs";
 
 @Injectable()
 export class SessionsModelService {

@@ -1,11 +1,11 @@
 import {Injectable} from '@nestjs/common';
 import {GroupArchiveNotFoundException, GroupNotFoundException} from "@root/errors";
-import {PrismaService} from "@root/singles";
 import {utils} from "@root/helpers";
 import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
 import {GroupsRequestsModelService} from "@models/groups/requests/requests.service";
 import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupsService} from "@modules/groups/groups.service";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 @Injectable()
 export class GroupsArchivesService {
