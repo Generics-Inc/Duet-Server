@@ -5,10 +5,10 @@ import {Injectable} from '@nestjs/common';
 import {JwtService} from "@nestjs/jwt";
 import {Prisma, Session, User} from "@prisma/client";
 import {SessionNotFoundException} from "@root/errors";
-import {PrismaService} from "@root/singles";
 import {utils} from "@root/helpers";
 import {SessionsModelService} from "@models/sessions/sessions.service";
 import {DeviceDto, LocationDto} from "@models/sessions/dto";
+import {PrismaService} from "@modules/prisma/prisma.service";
 import {TokensDto} from "@modules/auth/dto";
 
 @Injectable()

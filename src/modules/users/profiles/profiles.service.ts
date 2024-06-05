@@ -2,15 +2,15 @@ import {GroupArchive, Prisma, Profile, User} from "@prisma/client";
 import {Injectable} from '@nestjs/common';
 import {HttpService} from "@nestjs/axios";
 import {GroupIncludes} from "@root/types";
-import {PrismaService} from "@root/singles";
 import {AccessToEntity} from "@root/helpers";
 import {FileCreationException, ProfileAccessDividedException} from "@root/errors";
 import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
 import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
 import {GroupsModelService} from "@models/groups/groups.service";
 import {UsersModelService} from "@models/users/users.service";
+import {PrismaService} from "@modules/prisma/prisma.service";
 import {FilesService} from "@modules/files/files.service";
-import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf} from "./dto";
+import {GroupStatusDto, GroupStatusPartner, GroupStatusSelf, ProfileIdDto} from "./dto";
 
 
 @Injectable()
@@ -53,7 +53,7 @@ export class UsersProfilesService {
                     fileName: 'main',
                     fileDir: user.id.toFixed(),
                     file: uploadedPhoto
-                })).link : undefined;
+                })) : undefined;
             } catch (e) {
                 console.error(e);
                 await this.usersModelService.deleteUserById(user.id);
@@ -85,21 +85,31 @@ export class UsersProfilesService {
         const group = profile.groupId ? await this.groupsModelService.getGroupById(profile.groupId, true) : null;
         const archive = await this.groupsArchivesModelService.getArchivesByProfileId(profile.id);
         const isMain = group ? group.mainProfileId === profile.id : false;
-        const partnerId = group?.[isMain ? 'secondProfileId' : 'mainProfileId'] ?? null;
+        const partnerId = group?.[isMain ? 'secondProfileId' : 'mainProfileId'] ??  null;
 
         return {
             selfId: profile.id,
-            partnerId: partnerId,
+            partnerId: partnerId ?? group?.groupArchives[0]?.profileId,
             selfStatus: getSelfStatusKey(archive, group),
             partnerStatus: getPartnerStatusKey(partnerId, group),
             isMainInGroup: isMain
         };
     }
 
-    async getProfileById(reqProfileId: number, resProfileId: number) {
+    async getProfileById(reqProfileId: number, resProfileId: number): Promise<ProfileIdDto> {
         if (await AccessToEntity.accessToProfile(this.usersProfilesModelService, this.groupsModelService, reqProfileId, resProfileId).then(r => !r.status))
             throw ProfileAccessDividedException;
 
-        return this.usersProfilesModelService.getProfileById(resProfileId);
+        const profile = await this.usersProfilesModelService.getProfileById(resProfileId);
+        const groupStatus = await this.statusAboutProfile(profile);
+        const group = profile.groupId ? await this.groupsModelService.getGroupById(profile.groupId) : null;
+        const partner = groupStatus.partnerId ? await this.usersProfilesModelService.getProfileById(groupStatus.partnerId) : null;
+
+        return {
+            ...profile,
+            group,
+            partner,
+            groupStatus
+        };
     }
 }

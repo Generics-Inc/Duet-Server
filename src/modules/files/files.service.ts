@@ -8,7 +8,7 @@ import {BasketNotFoundException, DirectoryAccessDividedException, FileDeletingEx
 import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
 import {GroupsModelService} from "@models/groups/groups.service";
 import {FilesAccessConfig, FilesBucketName, FilesUploadConfig} from "./entities";
-import {UploadResponseDto} from "./dto";
+import {MoviesModelService} from "@models/movies/movies.service";
 
 
 @Injectable()
@@ -28,15 +28,17 @@ export class FilesService {
     constructor(
         private usersProfileModelService: UsersProfilesModelService,
         private groupsModelService: GroupsModelService,
+        private moviesModelService: MoviesModelService,
         private configService: ConfigService
     ) {
         this.profileKeysToRights = {
             'group': AccessToEntity.accessToGroup.bind(this, this.usersProfileModelService),
-            'profile': AccessToEntity.accessToProfileWithRequests.bind(this, this.usersProfileModelService, this.groupsModelService)
+            'profile': AccessToEntity.accessToProfileWithRequests.bind(this, this.usersProfileModelService, this.groupsModelService),
+            'movie': AccessToEntity.accessToMovie.bind(this, this.usersProfileModelService, this.moviesModelService)
         };
     }
 
-    async upload(config: FilesUploadConfig): Promise<UploadResponseDto> {
+    async upload(config: FilesUploadConfig): Promise<string> {
         const _config: Required<FilesUploadConfig> = {
             fileName: createHash("sha256").update(config.file).digest("hex"),
             sharpBuilder: (file) => file,
@@ -55,9 +57,7 @@ export class FilesService {
             Body: await _config.sharpBuilder(Sharp(_config.file)).png().toBuffer()
         }));
 
-        return {
-            link: `/files/download/${_config.bucketName}/${buildFileName}`
-        };
+        return `files/download/${_config.bucketName}/${buildFileName}`;
     }
 
     async download(profileId: number, bucketName: FilesBucketName, fileName: string) {
@@ -117,7 +117,6 @@ export class FilesService {
                 throw DirectoryAccessDividedException;
         }
     }
-
     async deleteFolderOrThrow(profileId: number, bucketName: FilesBucketName, fileName: string) {
         switch (await this.deleteFolder(profileId, bucketName, fileName)) {
             case 0:
@@ -133,13 +132,13 @@ export class FilesService {
 
     private async isHaveAccessToDirectory(profileId: number, bucketName: FilesBucketName, path: string): Promise<boolean> {
         if (!Object.keys(this.profileKeysToRights).includes(bucketName)) throw BasketNotFoundException;
+        if (profileId === -1) return true;
 
         const directoryId = Number.parseInt(path.split('/')[0] ?? '-1');
 
         let r = await this.profileKeysToRights[bucketName].bind(this, profileId, directoryId)();
         return r.status;
     }
-
     private async isFolderExist(bucketName: FilesBucketName, folderPath: string): Promise<boolean> {
         try {
             return !!await this.s3Client.listObjectsV2({
@@ -150,7 +149,6 @@ export class FilesService {
             return false;
         }
     }
-
     private async isFileExist(bucketName: FilesBucketName, fileName: string): Promise<boolean> {
         try {
             await this.s3Client.headObject({
@@ -162,7 +160,6 @@ export class FilesService {
             return false;
         }
     }
-
     private async isBucketExist(bucketName: FilesBucketName): Promise<boolean> {
         try {
             await this.s3Client.headBucket({ Bucket: bucketName });

@@ -1,8 +1,8 @@
 import * as Sharp from "sharp";
-import {PrismaService} from "@root/singles";
 import {AccessToEntity} from "@root/helpers";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
-export type FilesBucketName = 'profile' | 'group';
+export type FilesBucketName = 'profile' | 'group' | 'movie';
 
 export type FilesUploadConfig = {
     profileId: number;

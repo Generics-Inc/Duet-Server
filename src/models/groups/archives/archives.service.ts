@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {GroupArchive, Prisma} from "@prisma/client";
-import {PrismaService} from "@root/singles";
 import {GroupArchiveIncludes} from "@root/types";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 @Injectable()
 export class GroupsArchivesModelService {

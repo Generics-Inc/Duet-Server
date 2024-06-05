@@ -1,12 +1,9 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {GenderDto} from "./gender.dto";
+import {Gender} from "@prisma/client";
 
 export class ProfileDto {
     @ApiProperty({ description: 'ID профиля', type: Number })
     id: number;
-
-    @ApiProperty({ description: 'ID пользователя', type: Number })
-    userId: number;
 
     @ApiProperty({ description: 'Прозвище', type: String })
     username: string;
@@ -26,8 +23,8 @@ export class ProfileDto {
     @ApiProperty({ description: 'ID VK', type: Number, required: false, default: 284470002 })
     vkId?: number;
 
-    @ApiProperty({ description: 'Гендер', enum: GenderDto, required: false })
-    gender?: GenderDto;
+    @ApiProperty({ description: 'Гендер', enum: Gender, required: false })
+    gender?: Gender;
 
     @ApiProperty({ description: 'Статус (о себе)', type: String, required: false, default: 'Казак с плеч' })
     status?: string;

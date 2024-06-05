@@ -1,16 +1,14 @@
 import {Injectable} from '@nestjs/common';
 import {Prisma, Group} from "@prisma/client";
-import {PrismaService} from "@root/singles";
 import {GroupIncludes} from "@root/types";
 import {CreateGroupDto} from "@modules/groups/dto";
+import {PrismaService} from "@modules/prisma/prisma.service";
 
 @Injectable()
 export class GroupsModelService {
     private include: (keyof Prisma.GroupInclude)[] = ['groupArchives', 'groupRequests', 'mainProfile', 'secondProfile'];
 
-    constructor(
-        private prismaService: PrismaService
-    ) {}
+    constructor(private prismaService: PrismaService) {}
 
     createGroup(profileId: number, data: CreateGroupDto, inviteCode?: string) {
         return this.prismaService.group.create({

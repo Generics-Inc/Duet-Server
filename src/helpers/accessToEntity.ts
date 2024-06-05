@@ -1,6 +1,7 @@
 import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
 import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupIncludes} from "../types";
+import {MoviesModelService} from "@models/movies/movies.service";
 
 export type AccessCheckReturn = Promise<{
     status: boolean,
@@ -80,4 +81,25 @@ export async function accessToProfileWithRequests(
             }
         };
     }
+}
+
+export async function accessToMovie(
+    usersProfilesModelService: UsersProfilesModelService,
+    moviesModelService: MoviesModelService,
+    reqProfileId: number,
+    movieId?: number
+): AccessCheckReturn {
+    if (!movieId) return { status: false };
+
+    const profile = await usersProfilesModelService.getProfileById(reqProfileId, true);
+    const movie = await moviesModelService.getMovieById(movieId);
+
+    const isProfileInMovieGroup = movie.groupId === profile.groupId;
+
+    return {
+        status: isProfileInMovieGroup,
+        stages: {
+            isProfileInMovieGroup
+        }
+    };
 }

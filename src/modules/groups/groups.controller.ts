@@ -1,6 +1,5 @@
 import {Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} from '@nestjs/common';
 import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
-import {Throttle} from "@nestjs/throttler";
 import {GroupNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
 import {GroupDto, GroupExtendDto} from "@models/groups/dto";
@@ -35,7 +34,6 @@ export class GroupsController {
         return this.utils.ifEmptyGivesError(await this.groupsService.getGroupByProfileId(profileId, true), GroupNotFoundException);
     }
 
-    @Throttle({ default: { ttl: 10000, limit: 1 }})
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
     @ApiBody({ type: CreateGroupDto })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
@@ -50,7 +48,6 @@ export class GroupsController {
         return this.groupsService.createGroup(profileId, form);
     }
 
-    @Throttle({ default: { ttl: 10000, limit: 1 }})
     @ApiOperation({ summary: 'Сгенерировать новый inviteCode активной группы' })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
     @HttpCode(HttpStatus.CREATED)
@@ -60,7 +57,6 @@ export class GroupsController {
         return this.groupsService.updateInviteCode(groupId);
     }
 
-    @Throttle({ default: { ttl: 10000, limit: 1 }})
     @ApiOperation({ summary: 'Отправить запрос на присоединение по коду приглашения' })
     @ApiParam({ description: 'Код приглашения', name: 'inviteCode', type: String })
     @ApiResponse({ status: HttpStatus.CREATED, type: GroupRequestDto })
@@ -71,7 +67,7 @@ export class GroupsController {
         return this.groupsService.sendRequestToGroup(profileId, inviteCode);
     }
 
-    @ApiOperation({ summary: 'Выгнать приглашенного партнёра из группы' })
+    @ApiOperation({ summary: 'Выгнать приглашенного партнёра из группы и из архива' })
     @ApiResponse({ status: HttpStatus.OK })
     @HttpCode(HttpStatus.OK)
     @Delete('kickPartner')

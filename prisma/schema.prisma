@@ -133,9 +133,9 @@ model Movie {
 
   rating      Int     @default(0)
   isWatched   Boolean @default(false)
+  photo       String? @default("loading")
   profileId   Int?
   description String?
-  photo       String?
 
   createdAt DateTime @default(now())
 
@@ -186,6 +186,7 @@ model MovieTag {
   group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   profile Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
+  @@unique([groupId, name])
   @@map("MoviesTags")
 }
 
@@ -198,7 +199,7 @@ model Photo {
 enum MovieType {
   FILM
   SERIAL
-  ANUME
+  ANIME
   CARTOON
 }
 

@@ -1,5 +1,4 @@
 import {Module} from '@nestjs/common';
-import {PrismaService} from "@root/singles";
 import {GroupsModel} from "@models/groups/groups.model";
 import {UsersModel} from "@models/users/users.model";
 import {GroupsArchivesController} from "@modules/groups/archives/archives.controller";
@@ -25,8 +24,7 @@ import {FilesModule} from "@modules/files/files.module";
     providers: [
         GroupsService,
         GroupsArchivesService,
-        GroupsRequestsService,
-        PrismaService
+        GroupsRequestsService
     ],
     exports: [
         GroupsModel,

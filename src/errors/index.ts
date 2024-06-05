@@ -16,6 +16,7 @@ export const VKGetUserException = new ExceptionGenerator(403, 3, 'Ошибка �
 export const IncorrectIDFormatException = new ExceptionGenerator(403, 4, 'Неверный формат ID');
 export const FileCreationException = new ExceptionGenerator(403, 5, 'Ошибка создания файла');
 export const FileDeletingException = new ExceptionGenerator(403, 6, 'Ошибка удаления файла');
+export const SearcherException = new ExceptionGenerator(403, 7, 'Ошибка поиска информации XML');
 
 // 404 - Not found
 export const DeviceIsNotFoundException = new ExceptionGenerator(404, 0, 'Устройство сессии не найдено');
@@ -28,6 +29,7 @@ export const GroupRequestNotFoundException = new ExceptionGenerator(404, 6, 'З�
 export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Файл не найден');
 export const FolderNotFoundException = new ExceptionGenerator(404, 8, 'Папка не найдена');
 export const BasketNotFoundException = new ExceptionGenerator(404, 9, 'Контейнер не найден');
+export const MovieNotFoundException = new ExceptionGenerator(404, 10, 'Фильм не найден');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');
@@ -43,6 +45,7 @@ export const AccessWithoutGroupDividedException = new ExceptionGenerator(423, 2,
 export const ProfileAccessDividedException = new ExceptionGenerator(423, 3, 'Доступ заблокирован! Вы не можете получить доступ к профилю чужого пользователя');
 export const AccessWithoutMainRightsInGroupDividedException = new ExceptionGenerator(423, 4, 'Доступ заблокирован! Требуется активная группа и права на главного в группе');
 export const DirectoryAccessDividedException = new ExceptionGenerator(423, 5, 'Доступ заблокирован! Вы не имеете доступа к этой директории');
+export const AccessWithIncompleteDividedException = new ExceptionGenerator(423, 6, 'Доступ заблокирован! Группа должна содержать партнёра');
 
 // 520 - Unknown
 export const UnknownErrorException = new ExceptionGenerator(520, 0, 'Неизвестная ошибка');
