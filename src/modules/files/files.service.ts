@@ -8,8 +8,6 @@ import {BasketNotFoundException, DirectoryAccessDividedException, FileDeletingEx
 import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
 import {GroupsModelService} from "@models/groups/groups.service";
 import {FilesAccessConfig, FilesBucketName, FilesUploadConfig} from "./entities";
-import {PrismaService} from "@modules/prisma/prisma.service";
-import {accessToMovie} from "@root/helpers/accessToEntity";
 import {MoviesModelService} from "@models/movies/movies.service";
 
 
@@ -59,7 +57,7 @@ export class FilesService {
             Body: await _config.sharpBuilder(Sharp(_config.file)).png().toBuffer()
         }));
 
-        return `/files/download/${_config.bucketName}/${buildFileName}`;
+        return `files/download/${_config.bucketName}/${buildFileName}`;
     }
 
     async download(profileId: number, bucketName: FilesBucketName, fileName: string) {

@@ -110,10 +110,11 @@ export class GroupsService {
     async kickSecondPartnerFromGroup(groupId: number) {
         const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupById(groupId, true));
 
-        if (!group.secondProfileId) throw UserNotFoundException;
+        if (!group.secondProfileId && !group.groupArchives.length) throw UserNotFoundException;
 
         return this.groupsModelService.updateGroup(groupId, {
-            secondProfile: { disconnect: true }
+            secondProfile: { disconnect: true },
+            groupArchives: { deleteMany: {} }
         });
     }
 

@@ -60,7 +60,7 @@ async function bootstrap() {
     // const socketsDocument = AsyncApiModule.createDocument(app, socketsConfig);
     //await AsyncApiModule.setup('/api/swaggerEvents', app, socketsDocument);
 
-    await app.listen(PORT, () => logger.log(`Сервер запущен по адресу http://localhost:${PORT}`));
+    await app.listen(PORT, () => logger.log(`Server was started at http://localhost:${PORT}`));
 }
 
 bootstrap().then();
