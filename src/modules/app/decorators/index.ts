@@ -1,2 +1,2 @@
-export * from './post-file.decorator';
-export * from './uploaded-post-file.decorator';
+export * from './postFile.decorator';
+export * from './uploadedPostFile.decorator';

@@ -1,70 +1,81 @@
 import {Injectable} from '@nestjs/common';
-import {GroupRequest, Prisma} from "@prisma/client";
-import {GroupRequestIncludes} from "@root/types";
+import {Prisma, PrismaPromise} from "@prisma/client";
 import {PrismaService} from "@modules/prisma/prisma.service";
+import {GroupRequestDto, GroupRequestFullDto, GroupRequestModelDto} from "@models/groups/requests/dto";
+import {GroupRequestFullPConfig, GroupRequestModelPConfig, GroupRequestPConfig} from "@models/groups/requests/config";
+
 
 @Injectable()
 export class GroupsRequestsModelService {
-    private include: (keyof Prisma.GroupRequestInclude)[] = ['group', 'profile'];
+    private repo: Prisma.GroupRequestDelegate;
 
-    constructor(private prismaService: PrismaService) {}
+    constructor(prismaService: PrismaService) {
+        this.repo = prismaService.groupRequest;
+    }
 
-    createRequest(profileId: number, groupId: number, inviteCode: string) {
-        return this.prismaService.groupRequest.create({
+    createRequest(profileId: number, groupId: number, inviteCode: string): PrismaPromise<GroupRequestModelDto> {
+        return this.repo.create({
             data: {
                 inviteCode,
                 profile: { connect: { id: profileId }},
                 group: { connect: { id: groupId }}
-            }
+            },
+            select: GroupRequestModelPConfig
         });
     }
 
-    getRequestById<E extends boolean = false>(id: number, extend?: E) {
-        return this.getUniqueRequest<E>({ id }, extend);
+    getModelById(id: number): PrismaPromise<GroupRequestModelDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: GroupRequestModelPConfig
+        });
     }
-    getRequestByIdAndGroupId<E extends boolean = false>(id: number, groupId: number, extend?: E) {
-        return this.getRequest<E>({ id, groupId }, extend);
+    getByProfileAndGroupId(profileId: number, groupId: number): PrismaPromise<GroupRequestModelDto> {
+        return this.repo.findUnique({
+            where: { profileId_groupId: { profileId, groupId } },
+            select: GroupRequestModelPConfig
+        });
     }
-    getRequestByProfileAndGroupId<E extends boolean = false>(profileId: number, groupId: number, extend?: E) {
-        return this.getRequest<E>({ profileId, groupId }, extend);
-    }
-
-    getRequestsByGroupId<E extends boolean = false>(groupId: number, extend?: E) {
-        return this.getRequests<E>({ groupId }, extend);
-    }
-    getRequestsByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
-        return this.getRequests<E>({ profileId }, extend);
-    }
-
-    deleteRequestById(id: number) {
-        return this.prismaService.groupRequest.delete({ where: { id } });
-    }
-    deleteRequestsByProfileId(profileId: number) {
-        return this.prismaService.groupRequest.deleteMany({ where: { profileId } });
-    }
-    deleteRequestByIdAndProfileId(id: number, profileId: number) {
-        return this.prismaService.groupRequest.delete({ where: { id, profileId } });
-    }
-    deleteRequestsByGroupId(groupId: number) {
-        return this.prismaService.groupRequest.deleteMany({ where: { groupId } });
+    getFullByIdAndGroupId(id: number, groupId: number): PrismaPromise<GroupRequestFullDto> {
+        return this.repo.findUnique({
+            where: { id, groupId },
+            select: GroupRequestFullPConfig
+        });
     }
 
-    private async getRequest<E extends boolean = false>(where?: Prisma.GroupRequestWhereInput, extend?: E) {
-        return (await this.prismaService.groupRequest.findFirst({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupRequestIncludes : GroupRequest;
+    getManyByGroupId(groupId: number): PrismaPromise<GroupRequestDto[]> {
+        return this.repo.findMany({
+            where: { groupId },
+            select: GroupRequestPConfig
+        });
     }
-    private async getUniqueRequest<E extends boolean = false>(where?: Prisma.GroupRequestWhereUniqueInput, extend?: E) {
-        return (await this.prismaService.groupRequest.findUnique({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupRequestIncludes : GroupRequest;
+    getManyByProfileId(profileId: number): PrismaPromise<GroupRequestModelDto[]> {
+        return this.repo.findMany({
+            where: { profileId },
+            select: GroupRequestModelPConfig
+        });
     }
-    private async getRequests<E extends boolean = false>(where?: Prisma.GroupRequestWhereInput, extend?: E) {
-        return (await this.prismaService.groupRequest.findMany({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupRequestIncludes[] : GroupRequest[];
+
+    deleteById(id: number): PrismaPromise<GroupRequestModelDto> {
+        return this.repo.delete({
+            where: { id },
+            select: GroupRequestModelPConfig
+        });
+    }
+    deleteByIdAndProfileId(id: number, profileId: number): PrismaPromise<GroupRequestModelDto> {
+        return this.repo.delete({
+            where: { id, profileId },
+            select: GroupRequestModelPConfig
+        });
+    }
+    deleteManyByGroupId(groupId: number) {
+        return this.repo.deleteMany({
+            where: { groupId }
+        });
+    }
+    deleteManyByProfileId(profileId: number) {
+        return this.repo.deleteMany({
+            where: { profileId },
+        });
     }
 }

@@ -17,11 +17,12 @@ export default async (
     const token = req.get('Authorization').replace('Bearer', '').trim();
     const passHash = req.cookies.passHash;
 
-    if (!Number.isInteger(tokenPayload.sessionId) || !Number.isInteger(tokenPayload.userId)) throw AuthorizedSessionNotFoundException;
+    if (!Number.isInteger(tokenPayload.sessionId) || !Number.isInteger(tokenPayload.userId))
+        throw AuthorizedSessionNotFoundException;
 
-    const session = await sessionsModelService.getSessionById(tokenPayload.sessionId, true)
-    const user = await usersModelService.getUserById(tokenPayload.userId, true);
-    const profile = await usersProfilesModelService.getProfileById(tokenPayload.userId, true);
+    const session = await sessionsModelService.getModelById(tokenPayload.sessionId)
+    const user = await usersModelService.getModelById(tokenPayload.userId);
+    const profile = await usersProfilesModelService.getById(tokenPayload.userId);
     const cookiePassHash = session ? md5(`${session.id}:${session.ip}`) : undefined;
 
     if (
@@ -31,7 +32,7 @@ export default async (
         !user
     ) throw AuthorizedSessionNotFoundException;
 
-    await sessionsModelService.updateSession(session.id, { lastActivityAt: new Date() });
+    await sessionsModelService.updateModel(session.id, { lastActivityAt: new Date() });
 
     return {
         tokenPayload,

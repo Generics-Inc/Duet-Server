@@ -2,6 +2,7 @@ import {UsersProfilesModelService} from "@models/users/profiles/profiles.service
 import {GroupsModelService} from "@models/groups/groups.service";
 import {GroupIncludes} from "../types";
 import {MoviesModelService} from "@models/movies/movies.service";
+import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
 
 export type AccessCheckReturn = Promise<{
     status: boolean,
@@ -11,13 +12,14 @@ export type AccessCheckReturn = Promise<{
 
 export async function accessToGroup(
     usersProfilesModelService: UsersProfilesModelService,
+    groupsModelService: GroupsArchivesModelService,
     reqProfileId: number,
     groupId?: number
 ): AccessCheckReturn {
     if (!groupId) return { status: false };
 
-    const profile = await usersProfilesModelService.getProfileById(reqProfileId, true);
-    const isGroupInArchive = !!profile.groupsArchives.find(record => record.groupId === groupId);
+    const profile = await usersProfilesModelService.getById(reqProfileId);
+    const isGroupInArchive = !!groupsModelService.getFullByGroupIdAndProfileId(groupId, profile.id);
     const isGroupActive = profile.groupId === groupId;
 
     return {
@@ -37,8 +39,8 @@ export async function accessToProfile(
 ): AccessCheckReturn {
     if (!profileId) return { status: false };
 
-    const requester = await usersProfilesModelService.getProfileById(reqProfileId);
-    const requesterGroup = requester.groupId ? await groupsModelService.getGroupById(requester.groupId, true) : null;
+    const requester = await usersProfilesModelService.getById(reqProfileId);
+    const requesterGroup = requester.groupId ? await groupsModelService.getById(requester.groupId) : null;
 
     const isCurrentProfile = reqProfileId === profileId;
     const isProfileInGroup = requesterGroup && [requesterGroup.mainProfileId, requesterGroup.secondProfileId].includes(profileId);
@@ -91,7 +93,7 @@ export async function accessToMovie(
 ): AccessCheckReturn {
     if (!movieId) return { status: false };
 
-    const profile = await usersProfilesModelService.getProfileById(reqProfileId, true);
+    const profile = await usersProfilesModelService.getById(reqProfileId);
     const movie = await moviesModelService.getMovieById(movieId);
 
     const isProfileInMovieGroup = movie.groupId === profile.groupId;

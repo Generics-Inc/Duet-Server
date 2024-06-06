@@ -1,52 +1,43 @@
-import {Prisma, Profile, User} from "@prisma/client";
+import {Prisma, PrismaPromise} from "@prisma/client";
 import {Injectable} from '@nestjs/common';
-import {UserIncludes} from "@root/types"
 import {PrismaService} from "@modules/prisma/prisma.service";
+import {UserModelDto} from "@models/users/dto";
+import {UserModelPConfig} from "@models/users/config/userModel.config";
 
 
 @Injectable()
 export class UsersModelService {
-    private include: (keyof Prisma.UserInclude)[] = ['profile', 'sessions'];
+    private repo: Prisma.UserDelegate;
 
-    constructor(private prismaService: PrismaService) {}
+    constructor(prismaService: PrismaService) {
+        this.repo = prismaService.user;
+    }
 
-    updateUser(userId: number, data: Prisma.UserUpdateInput): Promise<User> {
-        return this.prismaService.user.update({
+    updateModel(userId: number, data: Prisma.UserUpdateInput): PrismaPromise<UserModelDto> {
+        return this.repo.update({
             where: { id: userId },
-            data
+            data,
+            select: UserModelPConfig
         });
     }
 
-    getUserById<E extends boolean = false>(id: number, extend?: E) {
-        return this.getUniqueUser<E>({ id }, extend);
+    getModelById(id: number): PrismaPromise<UserModelDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: UserModelPConfig
+        });
     }
-    getUserByUsername<E extends boolean = false>(username: string, extend?: E) {
-        return this.getUniqueUser<E>({ username }, extend);
+    getModelByUsername(username: string): PrismaPromise<UserModelDto> {
+        return this.repo.findUnique({
+            where: { username },
+            select: UserModelPConfig
+        });
     }
 
-    async deleteUserById(userId: number): Promise<Profile> {
-        return (await this.prismaService.user.delete({
+    deleteModelById(userId: number): PrismaPromise<UserModelDto> {
+        return this.repo.delete({
             where: { id: userId },
-            include: { profile: true }
-        }))?.profile;
-    }
-
-    private async getUser<E extends boolean = false>(where: Prisma.UserWhereInput, extend?: E) {
-        return (await this.prismaService.user.findFirst({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? UserIncludes : User;
-    }
-    private async getUniqueUser<E extends boolean = false>(where: Prisma.UserWhereUniqueInput, extend?: E) {
-        return (await this.prismaService.user.findUnique({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? UserIncludes : User;
-    }
-    private async getUsers<E extends boolean = false>(where: Prisma.UserWhereInput, extend?: E) {
-        return (await this.prismaService.user.findMany({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? UserIncludes[] : User[];
+            select: UserModelPConfig
+        });
     }
 }

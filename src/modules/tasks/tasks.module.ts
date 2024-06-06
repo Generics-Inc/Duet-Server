@@ -3,7 +3,7 @@ import {ScheduleModule} from "@nestjs/schedule";
 import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
 import {TasksService} from "@modules/tasks/tasks.service";
 import {ConfigModule, ConfigService} from "@nestjs/config";
-import {XmlParserQueue} from "@modules/tasks/queues/xml-parser.queue";
+import {XmlParserQueue} from "@modules/tasks/queues/xmlParser.queue";
 import {SearcherModule} from "@modules/searcher/searcher.module";
 import {MoviesModel} from "@models/movies/movies.model";
 import {FilesModule} from "@modules/files/files.module";

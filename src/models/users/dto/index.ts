@@ -1,2 +1,2 @@
-export * from './user.dto';
-export * from './role.dto';
+export * from './userModel.dto';
+export * from './userMinimal.dto';

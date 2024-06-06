@@ -9,6 +9,7 @@ import {UsersProfilesModelService} from "@models/users/profiles/profiles.service
 import {GroupsModelService} from "@models/groups/groups.service";
 import {FilesAccessConfig, FilesBucketName, FilesUploadConfig} from "./entities";
 import {MoviesModelService} from "@models/movies/movies.service";
+import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
 
 
 @Injectable()
@@ -28,11 +29,12 @@ export class FilesService {
     constructor(
         private usersProfileModelService: UsersProfilesModelService,
         private groupsModelService: GroupsModelService,
+        private groupsArchivesModelService: GroupsArchivesModelService,
         private moviesModelService: MoviesModelService,
         private configService: ConfigService
     ) {
         this.profileKeysToRights = {
-            'group': AccessToEntity.accessToGroup.bind(this, this.usersProfileModelService),
+            'group': AccessToEntity.accessToGroup.bind(this, this.usersProfileModelService, this.groupsArchivesModelService),
             'profile': AccessToEntity.accessToProfileWithRequests.bind(this, this.usersProfileModelService, this.groupsModelService),
             'movie': AccessToEntity.accessToMovie.bind(this, this.usersProfileModelService, this.moviesModelService)
         };

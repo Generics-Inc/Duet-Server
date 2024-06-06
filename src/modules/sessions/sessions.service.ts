@@ -1,84 +1,68 @@
 import * as bcrypt from "bcryptjs";
 import {ConfigService} from "@nestjs/config";
-import {HttpService} from "@nestjs/axios";
 import {Injectable} from '@nestjs/common';
 import {JwtService} from "@nestjs/jwt";
-import {Prisma, Session, User} from "@prisma/client";
 import {SessionNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
 import {SessionsModelService} from "@models/sessions/sessions.service";
-import {DeviceDto, LocationDto} from "@models/sessions/dto";
-import {PrismaService} from "@modules/prisma/prisma.service";
+import {DeviceDto, SessionMinimalDto, SessionModelDto} from "@models/sessions/dto";
 import {TokensDto} from "@modules/auth/dto";
+import {UserModelDto} from "@models/users/dto";
 
 @Injectable()
 export class SessionsService {
     private utils = utils();
 
     constructor(
-        private sessionsModelService: SessionsModelService,
-        private prismaService: PrismaService,
-        private httpService: HttpService,
+        private modelService: SessionsModelService,
         private jwtService: JwtService,
         private configService: ConfigService
     ) {}
 
-    getBase() {
-        return this.sessionsModelService;
+    getModel() {
+        return this.modelService;
     }
 
-    async createSession(user: User, ip: string, device: DeviceDto) {
-        let session = await this.sessionsModelService.getSessionByUserIdAndUUID(user.id, device.uuid);
+    async createSession(user: UserModelDto, ip: string, device: DeviceDto) {
+        let session = await this.modelService.getMinimalByUserIdAndDeviceUUID(user.id, device.uuid);
 
-        const location = (session?.ip === ip ? session.location : await this.getLocationByIP(ip)) as LocationDto;
-        if (!session) session = await this.sessionsModelService.createSession(user.id, ip, device, location);
+        if (!session) session = await this.modelService.createModel(user.id, ip, device);
 
-        return await this.updateSessionById(session.id, ip, location);
+        return await this.updateSessionById(session.id, ip);
     }
 
-    async updateSessionById(id: number, ip?: string, location?: LocationDto) {
-        const session = this.utils.ifEmptyGivesError(await this.sessionsModelService.getSessionById(id), SessionNotFoundException);
+    async updateSessionById(id: number, ip?: string) {
+        const session = this.utils.ifEmptyGivesError(await this.modelService.getMinimalById(id), SessionNotFoundException);
         const tokens = await this.createTokens(session);
 
         return {
-            session: await this.sessionsModelService.updateSession(session.id, {
-                ...(ip ? { ip, location: location as unknown as Prisma.JsonValue } : {}),
-                accessToken: this.hashData(this.sessionsModelService.getTokenSignature(tokens.accessToken)),
-                refreshToken: this.hashData(this.sessionsModelService.getTokenSignature(tokens.refreshToken)),
+            session: await this.modelService.updateModel(session.id, {
+                ip,
+                accessToken: this.hashData(this.modelService.getTokenSignature(tokens.accessToken)),
+                refreshToken: this.hashData(this.modelService.getTokenSignature(tokens.refreshToken)),
             }),
             tokens
         };
     }
 
-    async getCleanedSessionById(id: number, currentSession: Session) {
-        return this.cleanSessionData(await this.sessionsModelService.getSessionById(id), currentSession);
-    }
-    async getCleanedSessionsByUserId(userId: number, currentSession: Session) {
-        return this.cleanSessionsData(await this.sessionsModelService.getSessionsByUserId(userId), currentSession);
-    }
-
     async closeSession(id: number, userId: number) {
-        this.utils.ifEmptyGivesError(await this.sessionsModelService.getSessionByIdAndUserId(id, userId), SessionNotFoundException);
-        await this.sessionsModelService.deleteSessionsByListIdAndUserId([id], userId);
+        this.utils.ifEmptyGivesError(await this.modelService.getMinimalByIdAndUserId(id, userId), SessionNotFoundException);
+        await this.modelService.deleteManyMinimalByListIdAndUserId([id], userId);
     }
     async closeSessions(ids: number[], userId: number) {
-        await this.sessionsModelService.deleteSessionsByListIdAndUserId(ids, userId);
+        await this.modelService.deleteManyMinimalByListIdAndUserId(ids, userId);
     }
 
-    cleanSessionData(session: Session, currentSession: Session) {
-        delete session.accessToken;
-        delete session.refreshToken;
-        session.current = session.id === currentSession.id;
-        return session
+    async prepareSessionDataById(id: number, currentSession: SessionMinimalDto) {
+        const session = await this.modelService.getMinimalById(id);
+        return this.prepareSessionData(session, currentSession);
     }
-    cleanSessionsData(sessions: Session[], currentSession: Session) {
-        return sessions.map(session => this.cleanSessionData(session, currentSession));
+    async prepareSessionsDataByUserId(userId: number, currentSession: SessionMinimalDto) {
+        const sessions = await this.modelService.getManyMinimalByUserId(userId);
+        return sessions.map(session => this.prepareSessionData(session, currentSession));
     }
 
-    private hashData(data: string): string {
-        return bcrypt.hashSync(data, 10);
-    }
-    private async createTokens(session: Session): Promise<TokensDto> {
+    private async createTokens(session: SessionModelDto): Promise<TokensDto> {
         const payload = {
             userId: session.userId,
             sessionId: session.id
@@ -97,16 +81,11 @@ export class SessionsService {
 
         return { accessToken, refreshToken };
     }
-    private async getLocationByIP(ip: string) {
-        if(!/^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$/.test(ip))
-            return null;
-
-        try {
-            const location = await this.httpService.axiosRef.get<LocationDto>(`http://ip-api.com/json/${ip}?fields=45859839&lang=ru`);
-            if (location.data?.status !== 'success') return null;
-            return location.data;
-        } catch(_) {
-            return null;
-        }
+    private hashData(data: string): string {
+        return bcrypt.hashSync(data, 10);
+    }
+    private prepareSessionData(session: SessionMinimalDto, currentSession: SessionMinimalDto) {
+        session.current = session.id === currentSession.id;
+        return session;
     }
 }

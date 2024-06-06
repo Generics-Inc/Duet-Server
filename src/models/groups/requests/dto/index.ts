@@ -1,3 +1,3 @@
-export * from './group-request.dto';
-export * from './group-request-extend.dto';
-export * from './group-request-secure-extend.dto';
+export * from './groupRequest.dto';
+export * from './groupRequestFull.dto';
+export * from './groupRequestModel.dto';

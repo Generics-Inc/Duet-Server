@@ -1,53 +1,52 @@
 import {Injectable} from '@nestjs/common';
-import {GroupArchive, Prisma} from "@prisma/client";
-import {GroupArchiveIncludes} from "@root/types";
+import {Prisma, PrismaPromise} from "@prisma/client";
 import {PrismaService} from "@modules/prisma/prisma.service";
+import {GroupArchiveDto, GroupArchiveFullDto, GroupArchiveModelDto} from "./dto";
+import {GroupArchiveFullPConfig, GroupArchiveModelPConfig, GroupArchivePConfig} from "./config";
+
 
 @Injectable()
 export class GroupsArchivesModelService {
-    private include: (keyof Prisma.GroupArchiveInclude)[] = ['profile', 'group'];
+    private repo: Prisma.GroupArchiveDelegate;
 
-    constructor(private prismaService: PrismaService) {}
+    constructor(prismaService: PrismaService) {
+        this.repo = prismaService.groupArchive;
+    }
 
-    createArchive(profileId: number, groupId: number) {
-        return this.prismaService.groupArchive.create({
+    createModel(profileId: number, groupId: number): PrismaPromise<GroupArchiveModelDto> {
+        return this.repo.create({
             data: {
                 profile: { connect: { id: profileId } },
                 group: { connect: { id: groupId }}
-            }
+            },
+            select: GroupArchiveModelPConfig
         });
     }
 
-    getArchiveRecordById<E extends boolean = false>(id: number, extend?: E) {
-        return this.getUniqueArchive<E>({ id }, extend);
+    getFullByIdAndProfileId(id: number, profileId: number): PrismaPromise<GroupArchiveFullDto> {
+        return this.repo.findUnique({
+            where: {id, profileId},
+            select: GroupArchiveFullPConfig
+        });
     }
-    getArchivesByProfileId<E extends boolean = false>(id: number, extend?: E) {
-        return this.getArchives<E>({ profileId: id }, extend);
-    }
-    getArchiveRecordByIdAndProfileId<E extends boolean = false>(id: number, profileId: number, extend?: E) {
-        return this.getArchive<E>({ id, profileId }, extend);
+    getFullByGroupIdAndProfileId(groupId: number, profileId: number): PrismaPromise<GroupArchiveFullDto> {
+        return this.repo.findUnique({
+            where: {groupId_profileId: {groupId, profileId}},
+            select: GroupArchiveFullPConfig
+        });
     }
 
-    deleteArchiveById(id: number, profileId: number) {
-        return this.prismaService.groupArchive.delete({ where: { id, profileId }});
+    getManyByProfileId(profileId: number): PrismaPromise<GroupArchiveDto[]> {
+        return this.repo.findMany({
+            where: { profileId },
+            select: GroupArchivePConfig
+        });
     }
 
-    private async getArchive<E extends boolean = false>(where?: Prisma.GroupArchiveWhereInput, extend?: E) {
-        return (await this.prismaService.groupArchive.findFirst({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupArchiveIncludes : GroupArchive;
-    }
-    private async getUniqueArchive<E extends boolean = false>(where?: Prisma.GroupArchiveWhereUniqueInput, extend?: E) {
-        return (await this.prismaService.groupArchive.findUnique({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupArchiveIncludes : GroupArchive;
-    }
-    private async getArchives<E extends boolean = false>(where?: Prisma.GroupArchiveWhereInput, extend?: E) {
-        return (await this.prismaService.groupArchive.findMany({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupArchiveIncludes[] : GroupArchive[];
+    deleteModelById(id: number, profileId: number): PrismaPromise<GroupArchiveModelDto> {
+        return this.repo.delete({
+            where: { id, profileId },
+            select: GroupArchiveModelPConfig
+        });
     }
 }

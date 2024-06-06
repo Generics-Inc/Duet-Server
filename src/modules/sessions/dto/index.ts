@@ -1,1 +1,1 @@
-export * from './session-close.dto';
+export * from './sessionClose.dto';
