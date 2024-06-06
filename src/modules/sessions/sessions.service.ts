@@ -23,10 +23,10 @@ export class SessionsService {
         return this.modelService;
     }
 
-    async createSession(user: UserModelDto, ip: string, device: DeviceDto) {
+    async createSession(user: UserModelDto, accountId: number, ip: string, device: DeviceDto) {
         let session = await this.modelService.getMinimalByUserIdAndDeviceUUID(user.id, device.uuid);
 
-        if (!session) session = await this.modelService.createModel(user.id, ip, device);
+        if (!session) session = await this.modelService.createModel(user.id, accountId, ip, device);
 
         return await this.updateSessionById(session.id, ip);
     }
@@ -65,7 +65,8 @@ export class SessionsService {
     private async createTokens(session: SessionModelDto): Promise<TokensDto> {
         const payload = {
             userId: session.userId,
-            sessionId: session.id
+            sessionId: session.id,
+            accountId: session.accountId
         };
 
         const [accessToken, refreshToken] = await Promise.all([

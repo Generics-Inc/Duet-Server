@@ -13,23 +13,23 @@ import {ProfileDto} from "@models/users/profiles/dto";
 @ApiSecurity('AccessToken')
 @UseGuards(AccessTokenGuard)
 @Controller('profiles')
-export class ProfilesController {
+export class UsersProfilesController {
     private utils = utils();
 
-    constructor(private usersProfilesService: UsersProfilesService) {}
+    constructor(private selfService: UsersProfilesService) {}
 
     @ApiOperation({ summary: 'Вывести статус активного пользователя' })
     @ApiResponse({ type: GroupStatusDto })
     @Get('status')
     isThereGroup(@UserProfile() profile: ProfileDto) {
-        return this.usersProfilesService.statusAboutProfile(profile);
+        return this.selfService.statusAboutProfile(profile);
     }
 
     @ApiOperation({ summary: 'Вывести профиль авторизированного пользователя' })
     @ApiResponse({ type: ProfileIdDto })
     @Get('me')
     getMyProfile(@UserProfile('id') id: number) {
-        return this.usersProfilesService.getProfileById(id, id);
+        return this.selfService.getProfileById(id, id);
     }
 
     @ApiOperation({ summary: 'Вывести профиль по ID' })
@@ -37,6 +37,6 @@ export class ProfilesController {
     @ApiResponse({ type: ProfileIdDto })
     @Get(':id')
     async getUserById(@UserProfile('id') profileId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.utils.ifEmptyGivesError(await this.usersProfilesService.getProfileById(profileId, id), UserNotFoundException);
+        return this.utils.ifEmptyGivesError(await this.selfService.getProfileById(profileId, id), UserNotFoundException);
     }
 }

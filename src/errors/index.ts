@@ -6,7 +6,8 @@ export * from './GuardianFilter';
 // 401 - Unauthorized
 export const AuthorizedUserNotFoundException = new ExceptionGenerator(401, 1, 'Авторизированный пользователь не найден');
 export const AuthorizedSessionNotFoundException = new ExceptionGenerator(401, 2, 'Авторизированная сессия не найдена. Возможно она истекла или была закрыта');
-export const SessionIsNotValidException = new ExceptionGenerator(401, 3, 'Сессия не действительна. AccessToken уже был обновлён ранее');
+export const AuthorizedAccountNotFoundException = new ExceptionGenerator(401, 2, 'Не найден подключенный к профилю аккаунт');
+export const SessionIsNotValidException = new ExceptionGenerator(401, 4, 'Сессия не действительна. AccessToken уже был обновлён ранее');
 
 // 403 - Forbidden
 export const IncorrectPasswordException = new ExceptionGenerator(403, 0, 'Неверный пароль');
@@ -17,6 +18,7 @@ export const IncorrectIDFormatException = new ExceptionGenerator(403, 4, 'Нев
 export const FileCreationException = new ExceptionGenerator(403, 5, 'Ошибка создания файла');
 export const FileDeletingException = new ExceptionGenerator(403, 6, 'Ошибка удаления файла');
 export const SearcherException = new ExceptionGenerator(403, 7, 'Ошибка поиска информации XML');
+export const AccountCreateException = new ExceptionGenerator(403, 8, 'Ошибка создания аккаунта');
 
 // 404 - Not found
 export const DeviceIsNotFoundException = new ExceptionGenerator(404, 0, 'Устройство сессии не найдено');

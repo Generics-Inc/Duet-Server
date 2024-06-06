@@ -9,24 +9,40 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  username String  @unique
-  password String?
+  id       Int    @id @default(autoincrement())
+  username String @unique
+
   role     Role?   @default(USER)
+  password String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions Session[]
-  profile  Profile?
+  sessions         Session[]
+  connectedAccount ConnectedAccount[]
+  profile          Profile?
 
   @@unique([id, username])
   @@map("Users")
 }
 
+model ConnectedAccount {
+  id     Int         @id @default(autoincrement())
+  userId Int
+  UUID   String
+  type   AccountType
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@unique([userId, type])
+  @@map("ConnectedAccounts")
+}
+
 model Session {
   id         Int    @id @default(autoincrement())
   userId     Int
+  accountId  Int
   ip         String
   deviceUUID String
   deviceName String
@@ -39,7 +55,8 @@ model Session {
   createdAt      DateTime @default(now())
   lastActivityAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account ConnectedAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@unique([userId, deviceUUID])
   @@map("Sessions")
@@ -53,7 +70,6 @@ model Profile {
   birthday  String
   gender    Gender @default(NOT_SPECIFIED)
 
-  vkId        Int?
   description String?
   photo       String?
 
@@ -62,11 +78,11 @@ model Profile {
 
   groupsArchives GroupArchive[]
   groupsRequests GroupRequest[]
+  moviesTags     MovieTag[]
+  movies         Movie[]
   user           User           @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
   mainGroup      Group?         @relation("mainProfile")
   secondGroup    Group?         @relation("secondProfile")
-  MovieTag       MovieTag[]
-  Movie          Movie[]
 
   @@unique([id, username])
   @@map("Profiles")
@@ -196,6 +212,17 @@ model Photo {
   url   String
 }
 
+model SuperSecret {
+  id      Int    @id @default(autoincrement())
+  content String
+}
+
+enum AccountType {
+  EMAIL
+  VK
+  TG
+}
+
 enum MovieType {
   FILM
   SERIAL
@@ -213,9 +240,4 @@ enum Gender {
   FEMALE
   OTHER
   NOT_SPECIFIED
-}
-
-model SuperSecret {
-  id      Int    @id @default(autoincrement())
-  content String
 }

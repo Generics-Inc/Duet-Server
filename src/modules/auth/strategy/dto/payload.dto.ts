@@ -5,6 +5,7 @@ import {SessionModelDto} from "@models/sessions/dto";
 export class TokenPayloadDto {
   userId: number;
   sessionId: number;
+  accountId: number;
   iat: number;
   ext: number;
 }

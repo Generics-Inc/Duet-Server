@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from "@nestjs/config";
 import { HttpService } from "@nestjs/axios";
 import {Session} from "@prisma/client";
-import {ExceptionGenerator} from "@root/errors";
+import {AuthorizedAccountNotFoundException, ExceptionGenerator} from "@root/errors";
 import {utils} from "@root/helpers";
 import {
     IncorrectPasswordException,
@@ -12,13 +12,13 @@ import {
     VKGetUserException,
     VKSilentTokenException
 } from "@root/errors";
-import {UsersModelService} from "@models/users/users.service";
-import {UsersProfilesService} from "@modules/users/profiles/profiles.service";
 import {SessionsService} from "@modules/sessions/sessions.service";
 import {SignInDto, TokensDto, VkSignInDto} from "./dto";
 import {VkAccessInterface, VkUserInterface} from "./interfaces";
 import {Response} from "express";
 import {md5} from "@nestjs/throttler/dist/hash";
+import {UsersService} from "@modules/users/users.service";
+import {UsersAccountsService} from "@modules/users/accounts/accounts.service";
 
 
 @Injectable()
@@ -26,18 +26,19 @@ export class AuthService {
     private utils = utils();
 
     constructor(
-        private usersModelService: UsersModelService,
-        private usersProfilesService: UsersProfilesService,
+        private usersService: UsersService,
+        private usersAccountsService: UsersAccountsService,
         private sessionsService: SessionsService,
         private configService: ConfigService,
         private httpService: HttpService
     ) {}
 
     async signIn(res: Response, data: SignInDto, ip: string): Promise<TokensDto> {
-        const user = this.utils.ifEmptyGivesError(await this.usersModelService.getModelByUsername(data.user.username), UserNotFoundException);
+        const user = this.utils.ifEmptyGivesError(await this.usersService.getModel().getModelByUsername(data.user.username), UserNotFoundException);
+        const account = this.utils.ifEmptyGivesError(await this.usersAccountsService.getModel().getModalByUserIdAndType(user.id, 'EMAIL'), AuthorizedAccountNotFoundException)
 
         if (await bcrypt.compare(data.user.password, user.password)) {
-            const { tokens, session } = await this.sessionsService.createSession(user, ip, data.device);
+            const { tokens, session } = await this.sessionsService.createSession(user, account.id, ip, data.device);
             res.cookie('passHash', md5(`${session.id}:${session.ip}`));
             return tokens;
         } else {
@@ -53,27 +54,31 @@ export class AuthService {
             access_token: vkToken
         }, VKGetUserException);
 
-        let user = await this.usersModelService.getModelByUsername('ID' + vkUser.id);
-        if (!user && vkUser.screen_name) user = await this.usersModelService.getModelByUsername(vkUser.screen_name);
+        const screenName = 'ID' + vkUser.id;
+
+        let user = await this.usersService.getModel().getModelByUsername(screenName);
+        if (!user && vkUser.screen_name) user = await this.usersService.getModel().getModelByUsername(vkUser.screen_name);
         if (!user) {
-            user = await this.usersProfilesService.createUser(
+            user = await this.usersService.createModel(
                 {
-                    username: vkUser.screen_name ?? 'ID' + vkUser.id,
-                    role: 'USER'
-                },
-                {
-                    vkId: vkUser.id,
+                    username: vkUser.screen_name ?? screenName,
                     gender: vkUser.sex === 1 ? 'FEMALE' : vkUser.sex === 2 ? 'MALE' : 'NOT_SPECIFIED',
                     firstName: vkUser.first_name,
                     lastName: vkUser.last_name,
                     birthday: this.formatDateString(vkUser.bdate),
                     description: vkUser.status,
                     photo: vkUser.photo_200
+                },
+                {
+                    UUID: vkUser.id.toString(),
+                    type: 'VK'
                 }
             );
         }
 
-        const { tokens, session } = await this.sessionsService.createSession(user, ip, payload.device);
+        const account = this.utils.ifEmptyGivesError(await this.usersAccountsService.getModel().getModalByUserIdAndType(user.id, 'VK'), AuthorizedAccountNotFoundException)
+
+        const { tokens, session } = await this.sessionsService.createSession(user, account.id, ip, payload.device);
         res.cookie('passHash', md5(`${session.id}:${session.ip}`));
         return tokens;
     }

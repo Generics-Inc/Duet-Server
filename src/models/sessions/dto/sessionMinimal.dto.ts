@@ -8,6 +8,9 @@ export class SessionMinimalDto {
     @ApiProperty({ description: 'ID пользователя', type: Number })
     userId: number;
 
+    @ApiProperty({ description: 'ID аккаунт', type: Number })
+    accountId: number;
+
     @ApiProperty({ description: 'IP пользователя', type: String })
     ip: string;
 
