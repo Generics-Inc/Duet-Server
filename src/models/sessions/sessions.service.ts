@@ -1,17 +1,19 @@
 import * as bcrypt from "bcryptjs";
 import {Injectable} from '@nestjs/common';
-import {Prisma, Session} from "@prisma/client";
-import {SessionIncludes} from "@root/types";
+import {Prisma, PrismaPromise} from "@prisma/client";
 import {PrismaService} from "@modules/prisma/prisma.service";
-import {DeviceDto, LocationDto} from "./dto";
+import {DeviceDto, SessionMinimalDto, SessionModelDto} from "./dto";
+import {SessionMinimalPConfig, SessionModelPConfig} from "@models/sessions/config";
 
 @Injectable()
 export class SessionsModelService {
-    private include: (keyof Prisma.SessionInclude)[] = ['user'];
+    private repo: Prisma.SessionDelegate;
 
-    constructor(private prismaService: PrismaService) {}
+    constructor(prismaService: PrismaService) {
+        this.repo = prismaService.session;
+    }
 
-    isTokenAlive(session: Session, access?: string, refresh?: string): boolean {
+    isTokenAlive(session: SessionModelDto, access?: string, refresh?: string): boolean {
         let resultStatus = true;
 
         if (access && !bcrypt.compareSync(this.getTokenSignature(access), session.accessToken)) resultStatus = false;
@@ -20,67 +22,72 @@ export class SessionsModelService {
         return resultStatus;
     }
 
-    createSession(userId: number, ip: string, device: DeviceDto, location?: LocationDto) {
-        return this.prismaService.session.create({
+    createModel(userId: number, ip: string, device: DeviceDto): PrismaPromise<SessionModelDto> {
+        return this.repo.create({
             data: {
                 user: { connect: { id: userId } },
                 ip: ip,
                 deviceUUID: device.uuid,
                 deviceName: device.name,
-                deviceOS: device.os,
-                location: location as unknown as Prisma.JsonValue
-            }
+                deviceOS: device.os
+            },
+            select: SessionModelPConfig
         });
     }
 
-    updateSession(id: number, data: Prisma.SessionUpdateInput) {
-        return this.prismaService.session.update({
+    updateModel(id: number, data: Prisma.SessionUpdateInput): PrismaPromise<SessionModelDto> {
+        return this.repo.update({
             where: { id },
-            data
+            data,
+            select: SessionModelPConfig
         });
     }
 
-    getSessionById<E extends boolean = false>(id: number, extend?: E) {
-        return this.getUniqueSession<E>({ id }, extend);
+    getModelById(id: number): PrismaPromise<SessionModelDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: SessionModelPConfig
+        });
     }
-    getSessionByIdAndUserId<E extends boolean = false>(id: number, userId: number, extend?: E) {
-        return this.getUniqueSession<E>({ id, userId }, extend);
+    getMinimalByIdAndUserId(id: number, userId: number): PrismaPromise<SessionMinimalDto> {
+        return this.repo.findUnique({
+            where: { id, userId },
+            select: SessionMinimalPConfig
+        });
     }
-    getSessionByUserIdAndUUID<E extends boolean = false>(userId: number, uuid: string, extend?: E) {
-        return this.getSession<E>({ userId, deviceUUID: uuid }, extend);
+    getMinimalById(id: number): PrismaPromise<SessionMinimalDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: SessionMinimalPConfig
+        });
+    }
+    getMinimalByUserIdAndDeviceUUID(userId: number, deviceUUID: string): PrismaPromise<SessionMinimalDto> {
+        return this.repo.findUnique({
+            where: { userId_deviceUUID: { userId, deviceUUID } },
+            select: SessionMinimalPConfig
+        });
     }
 
-    getSessionsByUserId<E extends boolean = false>(userId: number, extend?: E) {
-        return this.getSessions<E>({ userId }, extend);
+    getManyMinimalByUserId(userId: number): PrismaPromise<SessionMinimalDto[]> {
+        return this.repo.findMany({
+            where: { userId },
+            select: SessionMinimalPConfig
+        });
     }
 
-    async deleteSessionById(id: number) {
-        await this.prismaService.session.delete({ where: { id } });
+    deleteMinimalById(id: number): PrismaPromise<SessionMinimalDto> {
+        return this.repo.delete({
+            where: { id },
+            select: SessionMinimalPConfig
+        });
     }
-    async deleteSessionsByListIdAndUserId(ids: number[], userId: number) {
-        await this.prismaService.session.deleteMany({ where: { id: { in: ids }, userId }});
+    deleteManyMinimalByListIdAndUserId(ids: number[], userId: number): PrismaPromise<Prisma.BatchPayload> {
+        return this.repo.deleteMany({
+            where: { id: { in: ids }, userId }
+        });
     }
 
     getTokenSignature(token: string): string {
         return token.split('.').pop();
-    }
-
-    private async getSession<E extends boolean = false>(where?: Prisma.SessionWhereInput, extend?: E) {
-        return (await this.prismaService.session.findFirst({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? SessionIncludes : Session;
-    }
-    private async getUniqueSession<E extends boolean = false>(where?: Prisma.SessionWhereUniqueInput, extend?: E) {
-        return (await this.prismaService.session.findUnique({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? SessionIncludes : Session;
-    }
-    private async getSessions<E extends boolean = false>(where?: Prisma.SessionWhereInput, extend?: E) {
-        return (await this.prismaService.session.findMany({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? SessionIncludes[] : Session[];
     }
 }

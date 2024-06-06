@@ -34,7 +34,7 @@ export class AuthService {
     ) {}
 
     async signIn(res: Response, data: SignInDto, ip: string): Promise<TokensDto> {
-        const user = this.utils.ifEmptyGivesError(await this.usersModelService.getUserByUsername(data.user.username), UserNotFoundException);
+        const user = this.utils.ifEmptyGivesError(await this.usersModelService.getModelByUsername(data.user.username), UserNotFoundException);
 
         if (await bcrypt.compare(data.user.password, user.password)) {
             const { tokens, session } = await this.sessionsService.createSession(user, ip, data.device);
@@ -53,8 +53,8 @@ export class AuthService {
             access_token: vkToken
         }, VKGetUserException);
 
-        let user = await this.usersModelService.getUserByUsername('ID' + vkUser.id);
-        if (!user && vkUser.screen_name) user = await this.usersModelService.getUserByUsername(vkUser.screen_name);
+        let user = await this.usersModelService.getModelByUsername('ID' + vkUser.id);
+        if (!user && vkUser.screen_name) user = await this.usersModelService.getModelByUsername(vkUser.screen_name);
         if (!user) {
             user = await this.usersProfilesService.createUser(
                 {
@@ -67,7 +67,7 @@ export class AuthService {
                     firstName: vkUser.first_name,
                     lastName: vkUser.last_name,
                     birthday: this.formatDateString(vkUser.bdate),
-                    status: vkUser.status,
+                    description: vkUser.status,
                     photo: vkUser.photo_200
                 }
             );
@@ -79,13 +79,13 @@ export class AuthService {
     }
 
     async refreshToken(session: Session, accessToken: string): Promise<TokensDto> {
-        this.utils.ifEmptyGivesError(this.sessionsService.getBase().isTokenAlive(session, accessToken), SessionIsNotValidException);
+        this.utils.ifEmptyGivesError(this.sessionsService.getModel().isTokenAlive(session, accessToken), SessionIsNotValidException);
 
         return await this.sessionsService.updateSessionById(session.id).then(res => res.tokens);
     }
     async logOut(sessionId: number): Promise<void> {
         try {
-            await this.sessionsService.getBase().deleteSessionById(sessionId);
+            await this.sessionsService.getModel().deleteMinimalById(sessionId);
         } catch (e) {
             throw e;
         }

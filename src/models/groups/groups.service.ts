@@ -1,59 +1,61 @@
 import {Injectable} from '@nestjs/common';
-import {Prisma, Group} from "@prisma/client";
-import {GroupIncludes} from "@root/types";
+import {Prisma, PrismaPromise} from "@prisma/client";
 import {CreateGroupDto} from "@modules/groups/dto";
 import {PrismaService} from "@modules/prisma/prisma.service";
+import {GroupDto, GroupModelDto} from "@models/groups/dto";
+import {GroupModelPConfig, GroupPConfig} from "@models/groups/config";
+
 
 @Injectable()
 export class GroupsModelService {
-    private include: (keyof Prisma.GroupInclude)[] = ['groupArchives', 'groupRequests', 'mainProfile', 'secondProfile'];
+    private repo: Prisma.GroupDelegate;
 
-    constructor(private prismaService: PrismaService) {}
+    constructor(prismaService: PrismaService) {
+        this.repo = prismaService.group;
+    }
 
-    createGroup(profileId: number, data: CreateGroupDto, inviteCode?: string) {
-        return this.prismaService.group.create({
+    createModelGroup(profileId: number, data: CreateGroupDto, inviteCode?: string): PrismaPromise<GroupModelDto> {
+        return this.repo.create({
             data: {
                 ...data,
                 mainProfile: { connect: { id: profileId }},
                 inviteCode
-            }
+            },
+            select: GroupModelPConfig
         })
     }
 
-    updateGroup(id: number, data: Prisma.GroupUpdateInput) {
-        return this.prismaService.group.update({
+    updateModelGroup(id: number, data: Prisma.GroupUpdateInput): PrismaPromise<GroupModelDto> {
+        return this.repo.update({
             where: { id },
-            data
+            data,
+            select: GroupModelPConfig
         });
     }
 
-    getGroupById<E extends boolean = false>(id: number, extend?: E) {
-        return this.getUniqueGroup<E>({ id }, extend);
+    getById(id: number): PrismaPromise<GroupDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: GroupPConfig
+        });
     }
-    getGroupByInviteCode<E extends boolean = false>(inviteCode: string, extend?: E) {
-        return this.getUniqueGroup<E>({ inviteCode }, extend);
+    getByInviteCode(inviteCode: string): PrismaPromise<GroupDto> {
+        return this.repo.findUnique({
+            where: { inviteCode },
+            select: GroupPConfig
+        });
+    }
+    getModelById(id: number): PrismaPromise<GroupModelDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: GroupModelPConfig
+        });
     }
 
-    deleteGroupById(id: number) {
-        return this.prismaService.group.delete({ where: { id }});
-    }
-
-    private async getGroup<E extends boolean = false>(where: Prisma.GroupWhereInput, extend?: E) {
-        return (await this.prismaService.group.findFirst({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupIncludes : Group;
-    }
-    private async getUniqueGroup<E extends boolean = false>(where: Prisma.GroupWhereUniqueInput, extend?: E) {
-        return (await this.prismaService.group.findUnique({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupIncludes : Group;
-    }
-    private async getGroups<E extends boolean = false>(where: Prisma.GroupWhereInput, extend?: E) {
-        return (await this.prismaService.group.findMany({
-            where,
-            include: this.include.reduce((a, c) => { a[c] = extend; return a; }, {})
-        })) as E extends true ? GroupIncludes[] : Group[];
+    deleteById(id: number): PrismaPromise<GroupDto> {
+        return this.repo.delete({
+            where: { id },
+            select: GroupPConfig
+        });
     }
 }

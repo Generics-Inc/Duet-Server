@@ -2,8 +2,8 @@ import {Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} 
 import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {GroupNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
-import {GroupDto, GroupExtendDto} from "@models/groups/dto";
-import {GroupRequestDto} from "@models/groups/requests/dto";
+import {GroupModelDto, GroupDto} from "@models/groups/dto";
+import {GroupRequestModelDto} from "@models/groups/requests/dto";
 import {AccessTokenGuard, OnlyHaveGroupGuard, OnlyMainInGroupGuard, OnlyNotHaveGroupGuard} from "@modules/auth/guard";
 import {PostFile, UploadedPostFile, UploadedPostFileReturn} from "@modules/app/decorators";
 import {UserProfile} from "@modules/users/decorator";
@@ -24,19 +24,12 @@ export class GroupsController {
     @ApiResponse({ type: GroupDto })
     @Get('me')
     async getMyGroup(@UserProfile('id') profileId: number) {
-        return this.utils.ifEmptyGivesError(await this.groupsService.getGroupByProfileId(profileId), GroupNotFoundException);
-    }
-
-    @ApiOperation({ summary: 'Вывести активную группу авторизированного пользователя в расширенном виде' })
-    @ApiResponse({ type: GroupExtendDto })
-    @Get('me/full')
-    async getMyFullGroup(@UserProfile('id') profileId: number) {
-        return this.utils.ifEmptyGivesError(await this.groupsService.getGroupByProfileId(profileId, true), GroupNotFoundException);
+        return this.utils.ifEmptyGivesError(await this.groupsService.getByProfileId(profileId), GroupNotFoundException);
     }
 
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })
     @ApiBody({ type: CreateGroupDto })
-    @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: GroupModelDto })
     @HttpCode(HttpStatus.CREATED)
     @PostFile()
     @UseGuards(OnlyNotHaveGroupGuard)
@@ -49,7 +42,7 @@ export class GroupsController {
     }
 
     @ApiOperation({ summary: 'Сгенерировать новый inviteCode активной группы' })
-    @ApiResponse({ status: HttpStatus.CREATED, type: GroupDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: GroupModelDto })
     @HttpCode(HttpStatus.CREATED)
     @Patch('generateInviteCode')
     @UseGuards(OnlyMainInGroupGuard)
@@ -59,7 +52,7 @@ export class GroupsController {
 
     @ApiOperation({ summary: 'Отправить запрос на присоединение по коду приглашения' })
     @ApiParam({ description: 'Код приглашения', name: 'inviteCode', type: String })
-    @ApiResponse({ status: HttpStatus.CREATED, type: GroupRequestDto })
+    @ApiResponse({ status: HttpStatus.CREATED, type: GroupRequestModelDto })
     @HttpCode(HttpStatus.CREATED)
     @Patch('join/:inviteCode')
     @UseGuards(OnlyNotHaveGroupGuard)
@@ -68,7 +61,7 @@ export class GroupsController {
     }
 
     @ApiOperation({ summary: 'Выгнать приглашенного партнёра из группы и из архива' })
-    @ApiResponse({ status: HttpStatus.OK })
+    @ApiResponse({ status: HttpStatus.OK, type: GroupModelDto })
     @HttpCode(HttpStatus.OK)
     @Delete('kickPartner')
     @UseGuards(OnlyMainInGroupGuard)

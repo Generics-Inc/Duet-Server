@@ -32,9 +32,7 @@ model Session {
   deviceName String
   deviceOS   String
 
-  current  Boolean @default(false)
-  location Json?
-
+  current      Boolean @default(false)
   accessToken  String?
   refreshToken String?
 
@@ -43,6 +41,7 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, deviceUUID])
   @@map("Sessions")
 }
 
@@ -54,10 +53,9 @@ model Profile {
   birthday  String
   gender    Gender @default(NOT_SPECIFIED)
 
-  groupId Int?
-  vkId    Int?
-  status  String?
-  photo   String?
+  vkId        Int?
+  description String?
+  photo       String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,6 +107,7 @@ model GroupRequest {
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
+  @@unique([profileId, groupId])
   @@map("GroupsRequests")
 }
 
@@ -122,6 +121,7 @@ model GroupArchive {
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
+  @@unique([groupId, profileId])
   @@map("GroupsArchives")
 }
 

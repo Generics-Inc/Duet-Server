@@ -1,33 +1,20 @@
 import {ApiProperty} from "@nestjs/swagger";
+import {GroupArchiveModelDto} from "@models/groups/archives/dto/groupArchiveModel.dto";
+import {GroupRequestModelDto} from "@models/groups/requests/dto/groupRequestModel.dto";
+import {ProfileMinimalDto} from "@models/users/profiles/dto/profileMinimal.dto";
+import {GroupModelDto} from "./groupModel.dto";
 
-export class GroupDto {
-    @ApiProperty({ description: 'ID', type: Number })
-    id: number;
 
-    @ApiProperty({ description: 'Наименование группы', type: String })
-    name: string;
+export class GroupDto extends GroupModelDto {
+    @ApiProperty({ description: 'Записи группы в корзине', type: GroupArchiveModelDto, isArray: true })
+    groupArchives: GroupArchiveModelDto[];
 
-    @ApiProperty({ description: 'Описание группы', type: String, required: false })
-    description?: string;
+    @ApiProperty({ description: 'Запросы на присоединение к группе', type: GroupRequestModelDto, isArray: true })
+    groupRequests: GroupRequestModelDto[];
 
-    @ApiProperty({ description: 'Главный пользователь', type: Number, required: false })
-    mainProfileId?: number;
+    @ApiProperty({ description: 'Партнёр-создатель', type: ProfileMinimalDto })
+    mainProfile: ProfileMinimalDto;
 
-    @ApiProperty({ description: 'Приглашенный пользователь', type: Number, required: false })
-    secondProfileId?: number;
-
-    @ApiProperty({ description: 'Ссылка на обложку', type: String, required: false })
-    photo?: string;
-
-    @ApiProperty({ description: 'Код приглашения', type: String, required: false })
-    inviteCode?: string;
-
-    @ApiProperty({ description: 'Дата начала отношений', type: Date })
-    relationStartedAt: Date;
-
-    @ApiProperty({ description: 'Дата создания группы', type: Date })
-    createdAt: Date;
-
-    @ApiProperty({ description: 'Дата последней активности группы', type: Date })
-    updatedAt: Date;
+    @ApiProperty({ description: 'Приглашенный партнёр', type: ProfileMinimalDto })
+    secondProfile: ProfileMinimalDto;
 }

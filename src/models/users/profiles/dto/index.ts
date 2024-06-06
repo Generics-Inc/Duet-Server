@@ -1,2 +1,3 @@
 export * from './profile.dto';
-export * from './profile-extend.dto';
+export * from './profileMinimal.dto';
+export * from './profileModel.dto';

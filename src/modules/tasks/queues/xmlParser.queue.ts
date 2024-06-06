@@ -1,7 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {AmqpConnection, RabbitSubscribe} from "@golevelup/nestjs-rabbitmq";
 import {SkipThrottle} from "@nestjs/throttler";
-import { utils } from "@root/helpers";
 import {XmlParserMessageDto} from "@modules/tasks/dto";
 import {SearcherService} from "@modules/searcher/searcher.service";
 import {MoviesModelService} from "@models/movies/movies.service";
@@ -12,7 +11,6 @@ import {Movie} from "@prisma/client";
 @SkipThrottle()
 export class XmlParserQueue {
     private everyNSeconds = 5;
-    private utils = utils();
 
     constructor(
         private rmqConnect: AmqpConnection,

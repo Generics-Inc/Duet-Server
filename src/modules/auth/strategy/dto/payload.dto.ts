@@ -1,4 +1,6 @@
-import {ProfileIncludes, SessionIncludes, UserIncludes} from "@root/types";
+import {UserModelDto} from "@models/users/dto";
+import {ProfileDto} from "@models/users/profiles/dto";
+import {SessionModelDto} from "@models/sessions/dto";
 
 export class TokenPayloadDto {
   userId: number;
@@ -9,8 +11,8 @@ export class TokenPayloadDto {
 
 export class PayloadReturnDto {
   tokenPayload: TokenPayloadDto;
-  session: SessionIncludes;
-  user: UserIncludes;
-  profile: ProfileIncludes;
+  session: SessionModelDto;
+  user: UserModelDto;
+  profile: ProfileDto;
   token: string;
 }

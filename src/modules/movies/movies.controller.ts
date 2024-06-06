@@ -6,8 +6,8 @@ import {MoviesService} from "@modules/movies/movies.service";
 import {UserProfile} from "@modules/users/decorator";
 import {CreateMovieDto} from "@modules/movies/dto";
 import {PostFile, UploadedPostFile, UploadedPostFileReturn} from "@modules/app/decorators";
-import {Profile} from "@prisma/client";
 import { utils } from '@root/helpers';
+import {ProfileDto} from "@models/users/profiles/dto";
 
 @ApiTags('Раздел "Кино"')
 @ApiSecurity('AccessToken')
@@ -42,7 +42,7 @@ export class MoviesController {
         fileSize: 5 * 1024 ** 2,
         fileType: '.(jpg|jpeg|png)',
         bodyType: CreateMovieDto
-    }) form: UploadedPostFileReturn<CreateMovieDto>, @UserProfile() profile: Profile) {
+    }) form: UploadedPostFileReturn<CreateMovieDto>, @UserProfile() profile: ProfileDto) {
         return this.selfService.createMovie(profile.id, profile.groupId, form);
     }
 

@@ -1,2 +1,3 @@
-export * from './group-archive.dto';
-export * from './group-archive-extend.dto';
+export * from './groupArchive.dto';
+export * from './groupArchiveFull.dto';
+export * from './groupArchiveModel.dto';

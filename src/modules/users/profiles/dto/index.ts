@@ -1,2 +1,2 @@
-export * from './group-status.dto';
-export * from './profile-id.dto';
+export * from './groupStatus.dto';
+export * from './profileId.dto';

@@ -1,6 +1,7 @@
 import {ApiProperty} from "@nestjs/swagger";
 
-export class GroupRequestDto {
+
+export class GroupRequestModelDto {
     @ApiProperty({ description: 'ID запроса', type: Number })
     id: number;
 

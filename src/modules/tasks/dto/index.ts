@@ -1,1 +1,1 @@
-export * from './xml-parser-message.dto';
+export * from './xmlParserMessage.dto';

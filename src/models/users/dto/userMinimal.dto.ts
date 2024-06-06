@@ -1,18 +1,16 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {RoleDto} from "./role.dto";
+import {Role} from "@prisma/client";
 
-export class UserDto {
+
+export class UserMinimalDto {
     @ApiProperty({ description: 'ID', type: Number })
     id: number;
 
     @ApiProperty({ description: 'Прозвище', type: String })
     username: string;
 
-    @ApiProperty({ description: 'Пароль (только для SU)', type: String, required: false })
-    password?: string;
-
-    @ApiProperty({ description: 'Роль', enum: RoleDto })
-    role: RoleDto;
+    @ApiProperty({ description: 'Роль', enum: Role })
+    role: Role;
 
     @ApiProperty({ description: 'Дата создания пользователя', type: Date })
     createdAt: Date;

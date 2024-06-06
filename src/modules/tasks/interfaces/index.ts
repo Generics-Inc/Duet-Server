@@ -1,1 +1,1 @@
-export * from './error-connect.interface';
+export * from './errorConnect.interface';

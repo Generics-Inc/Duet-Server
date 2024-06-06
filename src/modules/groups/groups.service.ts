@@ -23,8 +23,8 @@ export class GroupsService {
     private utils = utils();
 
     constructor(
+        private modelService: GroupsModelService,
         private groupsRequestsService: GroupsRequestsService,
-        private groupsModelService: GroupsModelService,
         private groupsArchivesModelService: GroupsArchivesModelService,
         private groupsRequestsModelService: GroupsRequestsModelService,
         private usersProfilesModelService: UsersProfilesModelService,
@@ -32,8 +32,8 @@ export class GroupsService {
         private prismaService: PrismaService
     ) {}
 
-    getBase() {
-        return this.groupsModelService;
+    getModel() {
+        return this.modelService;
     }
 
     async createGroup(profileId: number, form: UploadedPostFileReturn<CreateGroupDto>) {
@@ -41,7 +41,7 @@ export class GroupsService {
         const body = form.body;
         let fileLink = undefined;
 
-        const group = await this.groupsModelService.createGroup(profileId, body, inviteCode);
+        const group = await this.modelService.createModelGroup(profileId, body, inviteCode);
 
         try {
             fileLink = form.file ? await this.filesService.upload({
@@ -52,35 +52,35 @@ export class GroupsService {
                 file: form.file.buffer
             }) : undefined;
         } catch (e) {
-            await this.groupsModelService.deleteGroupById(group.id);
+            await this.modelService.deleteById(group.id);
             throw FileCreationException;
         }
 
         if (!fileLink) return group;
 
-        const requestsToJoinDelete = this.groupsRequestsModelService.deleteRequestsByProfileId(profileId);
-        const groupUpdate = this.groupsModelService.updateGroup(group.id, { photo: fileLink });
+        const requestsToJoinDelete = this.groupsRequestsModelService.deleteManyByProfileId(profileId);
+        const groupUpdate = this.modelService.updateModelGroup(group.id, { photo: fileLink });
 
         return await this.prismaService.$transaction([requestsToJoinDelete, groupUpdate])
             .then(r => r[1]);
     }
 
-    async getGroupByProfileId<E extends boolean = false>(profileId: number, extend?: E) {
-        const profile = this.utils.ifEmptyGivesError(await this.usersProfilesModelService.getProfileById(profileId, true), UserNotFoundException);
+    async getByProfileId(profileId: number) {
+        const profile = this.utils.ifEmptyGivesError(await this.usersProfilesModelService.getById(profileId), UserNotFoundException);
         if (!profile.groupId) return null;
 
-        return await this.groupsModelService.getGroupById<E>(profile.groupId, extend);
+        return this.modelService.getById(profile.groupId);
     }
 
     async leaveFromGroup(profileId: number) {
-        const group = this.utils.ifEmptyGivesError(await this.getGroupByProfileId(profileId, true), GroupNotFoundException);
+        const group = this.utils.ifEmptyGivesError(await this.getByProfileId(profileId), GroupNotFoundException);
 
         const isLastUser = group.secondProfileId === null;
-        const isMainUser = profileId === group.mainProfile?.id;
+        const isMainUser = profileId === group.mainProfileId;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
 
-        const createGroupArchive = this.groupsArchivesModelService.createArchive(profileId, group.id);
-        const updateGroup = this.groupsModelService.updateGroup(group.id, {
+        const createGroupArchive = this.groupsArchivesModelService.createModel(profileId, group.id);
+        const updateGroup = this.modelService.updateModelGroup(group.id, {
             ...(!isLastUser && isMainUser ? {
                 mainProfile: { connect: { id: group.secondProfileId }},
                 secondProfile: { disconnect: true }
@@ -91,7 +91,7 @@ export class GroupsService {
     }
 
     async sendRequestToGroup(profileId: number, inviteCode: string) {
-        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupByInviteCode(inviteCode), GroupNotFoundException);
+        const group = this.utils.ifEmptyGivesError(await this.modelService.getByInviteCode(inviteCode), GroupNotFoundException);
 
         if (await this.groupsRequestsService.isRequestExist(profileId, group.id)) throw GroupRequestConflictException;
         else if (group.secondProfileId !== null) throw GroupIsFullConflictException;
@@ -100,19 +100,19 @@ export class GroupsService {
     }
 
     async updateInviteCode(groupId: number) {
-        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupById(groupId, true));
+        const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId));
 
         if (group.secondProfileId || group.groupArchives.length) throw GroupIsFullConflictException;
 
-        return this.groupsModelService.updateGroup(groupId, { inviteCode: this.utils.createRandomString() });
+        return this.modelService.updateModelGroup(groupId, { inviteCode: this.utils.createRandomString() });
     }
 
     async kickSecondPartnerFromGroup(groupId: number) {
-        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getGroupById(groupId, true));
+        const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId));
 
         if (!group.secondProfileId && !group.groupArchives.length) throw UserNotFoundException;
 
-        return this.groupsModelService.updateGroup(groupId, {
+        return this.modelService.updateModelGroup(groupId, {
             secondProfile: { disconnect: true },
             groupArchives: { deleteMany: {} }
         });
@@ -122,6 +122,6 @@ export class GroupsService {
         if ((await this.filesService.deleteFolder(profileId, 'group', groupId.toString())) === 3)
             throw DirectoryAccessDividedException;
 
-        return this.groupsModelService.deleteGroupById(groupId);
+        return this.modelService.deleteById(groupId);
     }
 }
