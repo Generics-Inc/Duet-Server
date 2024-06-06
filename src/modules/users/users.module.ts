@@ -3,27 +3,34 @@ import {HttpModule} from "@nestjs/axios";
 import {UsersModel} from "@models/users/users.model";
 import {GroupsModel} from "@models/groups/groups.model";
 import {FilesModule} from "@modules/files/files.module";
-import {ProfilesController} from "./profiles/profiles.controller";
+import {UsersProfilesController} from "./profiles/profiles.controller";
+import {UsersAccountsController} from "./accounts/accounts.controller";
 import {UsersProfilesService} from "./profiles/profiles.service";
+import {UsersAccountsService} from "./accounts/accounts.service";
+import { UsersService } from './users.service';
 
 
 @Module({
     imports: [
-        GroupsModel,
         UsersModel,
+        GroupsModel,
         FilesModule,
         HttpModule
     ],
     controllers: [
-        ProfilesController
+        UsersProfilesController,
+        UsersAccountsController
     ],
     providers: [
-        UsersProfilesService
+        UsersProfilesService,
+        UsersAccountsService,
+        UsersService
     ],
     exports: [
         UsersModel,
-        UsersProfilesService
+        UsersProfilesService,
+        UsersAccountsService,
+        UsersService
     ]
 })
-export class UsersModule {
-}
+export class UsersModule {}

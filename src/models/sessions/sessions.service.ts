@@ -22,10 +22,11 @@ export class SessionsModelService {
         return resultStatus;
     }
 
-    createModel(userId: number, ip: string, device: DeviceDto): PrismaPromise<SessionModelDto> {
+    createModel(userId: number, accountId: number, ip: string, device: DeviceDto): PrismaPromise<SessionModelDto> {
         return this.repo.create({
             data: {
                 user: { connect: { id: userId } },
+                account: { connect: { id: accountId } },
                 ip: ip,
                 deviceUUID: device.uuid,
                 deviceName: device.name,

@@ -26,6 +26,12 @@ async function main(): Promise<void> {
                         birthday: `01.01.${2000 + idModify}`
                     }
                 }
+            },
+            connectedAccount: {
+                create: {
+                    UUID: `admin${idModify}@admin.ru`,
+                    type: 'EMAIL'
+                }
             }
         };
 
