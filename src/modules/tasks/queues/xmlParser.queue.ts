@@ -6,10 +6,12 @@ import {SearcherService} from "@modules/searcher/searcher.service";
 import {MoviesModelService} from "@models/movies/movies.service";
 import {FilesService} from "@modules/files/files.service";
 import {Movie} from "@prisma/client";
+import { utils } from "@root/helpers";
 
 @Injectable()
 @SkipThrottle()
 export class XmlParserQueue {
+    private utils = utils();
     private everyNSeconds = 5;
 
     constructor(
@@ -56,7 +58,7 @@ export class XmlParserQueue {
             if (movie) await this.moviesModelService.updateMoviePhotoById(movie.id, 'error');
         }
 
-        await utils().syncWait(this.everyNSeconds * 1000 - (Date.now() - start));
+        await this.utils.syncWait(this.everyNSeconds * 1000 - (Date.now() - start));
     }
 
     private validateLoadPhoto(photos: Buffer[]) {
