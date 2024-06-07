@@ -141,6 +141,13 @@ model GroupArchive {
   @@map("GroupsArchives")
 }
 
+model HDRezkaMirror {
+  url    String              @unique
+  status HDRezkaMirrorStatus @default(WORKED)
+
+  createdAt DateTime @default(now())
+}
+
 model Movie {
   id      Int       @id @default(autoincrement())
   groupId Int
@@ -240,4 +247,10 @@ enum Gender {
   FEMALE
   OTHER
   NOT_SPECIFIED
+}
+
+enum HDRezkaMirrorStatus {
+  WORKED
+  UPDATING
+  OLDEN
 }

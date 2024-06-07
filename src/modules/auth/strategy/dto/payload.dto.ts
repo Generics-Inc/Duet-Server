@@ -1,6 +1,7 @@
 import {UserModelDto} from "@models/users/dto";
 import {ProfileDto} from "@models/users/profiles/dto";
 import {SessionModelDto} from "@models/sessions/dto";
+import {GroupModelDto} from "@models/groups/dto";
 
 export class TokenPayloadDto {
   userId: number;
@@ -16,4 +17,5 @@ export class PayloadReturnDto {
   user: UserModelDto;
   profile: ProfileDto;
   token: string;
+  group?: GroupModelDto;
 }

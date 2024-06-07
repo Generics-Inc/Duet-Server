@@ -67,12 +67,10 @@ export class UsersProfilesService {
         const profile = await this.modelService.getById(resProfileId);
         const accounts = await this.usersAccountsService.getModel().getManyModalByUserId(profile.id);
         const status = await this.statusAboutProfile(profile);
-        const group = profile.groupId ? await this.groupsModelService.getModelById(profile.groupId) : null;
         const partner = status.partnerId ? await this.modelService.getMinimalById(status.partnerId) : null;
 
         return {
             ...profile,
-            group,
             partner,
             status,
             accounts
