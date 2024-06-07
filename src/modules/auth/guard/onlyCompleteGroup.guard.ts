@@ -6,9 +6,10 @@ import {HaveRoleAccessGuard} from "./haveRoleAccess.guard";
 export class OnlyCompleteGroupGuard extends HaveRoleAccessGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isAccess = await super.canActivate(context);
-    const { group: { mainProfileId, secondProfileId }, ...profile } = this.data.profile;
+    const { group, ...profile } = this.data.profile;
 
-    if (!profile.groupId || !(mainProfileId === profile.id ? secondProfileId : mainProfileId)) throw AccessWithIncompleteDividedException;
+    if (!profile.groupId || !(group?.mainProfileId === profile.id ? group?.secondProfileId : group?.mainProfileId))
+      throw AccessWithIncompleteDividedException;
 
     return Boolean(isAccess);
   }
