@@ -15,7 +15,7 @@ import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars
         defaults: {
           from: `"Duet Verify" ${config.getOrThrow('EMAIL_USER')}`,
         },
-        preview: true,
+        preview: false,
         template: {
           dir: process.cwd() + '/src/modules/mails/templates/',
           adapter: new HandlebarsAdapter(),

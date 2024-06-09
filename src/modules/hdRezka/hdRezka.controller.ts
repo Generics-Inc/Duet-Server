@@ -15,4 +15,9 @@ export class HdRezkaController {
     test2(@Query('name') name?: string) {
         return this.selfService.searchMovies(name ?? '');
     }
+
+    @Post('parse')
+    test3(@Query('url') url?: string) {
+        return this.selfService.getMovieData(url ?? '');
+    }
 }

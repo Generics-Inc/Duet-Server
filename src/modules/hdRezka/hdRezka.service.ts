@@ -3,16 +3,21 @@ import {ConfigService} from "@nestjs/config";
 import * as Imap from "imap";
 import {simpleParser} from "mailparser";
 import {PrismaService} from "@modules/prisma/prisma.service";
-import {HDRezkaMirror, HDRezkaMirrorStatus, Prisma} from '@prisma/client';
+import {HDRezkaMirror, HDRezkaMirrorStatus, MovieType, Prisma} from '@prisma/client';
 import {HttpService} from "@nestjs/axios";
 import {MailsService} from "@modules/mails/mails.service";
 import {Cron, CronExpression} from "@nestjs/schedule";
-import {hdrReqStatus, hdrSearchReq} from "@modules/hdRezka/dto";
+import {hdrSearchReq} from "@modules/hdRezka/dto";
 import * as Cheerio from "cheerio";
+import {ParseException, ProviderResourceFoundException} from "@root/errors";
+import {utils} from "@root/helpers";
+import {hdrReqStatusInterface} from "@modules/hdRezka/interfaces";
+
 
 @Injectable()
 export class HdRezkaService {
     private logger = new Logger('HdRezkaService');
+    private utils = utils();
     private repo: Prisma.HDRezkaMirrorDelegate;
     private imap = new Imap({
         user: this.configService.getOrThrow('EMAIL_USER'),
@@ -24,8 +29,8 @@ export class HdRezkaService {
     private mirror: HDRezkaMirror | null;
     private checkMailsListenerId: NodeJS.Timeout;
     private urls = {
-        check: '/engine/ajax/search.php',
-        search: (q: string) => `/engine/ajax/search.php?q=${q}`
+        check: 'engine/ajax/search.php',
+        search: (q: string) => `engine/ajax/search.php?q=${q}`
     };
 
     constructor(
@@ -57,7 +62,6 @@ export class HdRezkaService {
         });
     }
 
-
     async getLastMirrorFromMails(): Promise<string | null> {
         const { imap } = this;
 
@@ -84,38 +88,68 @@ export class HdRezkaService {
         });
     }
 
+    async getMovieData(movieLink: string) {
+        if (movieLink.split('/').length !== 3) throw ParseException;
+
+        try {
+            console.log(await this.httpGet(movieLink, 'all'))
+            const html = this.utils.ifEmptyGivesError(await this.httpGet(movieLink, 'all'), ParseException);
+            const $ = Cheerio.load(html);
+            this.utils.ifEmptyGivesError($('.b-info__message').text() !== 'Страница не найдена', ProviderResourceFoundException);
+            const $content = $('.b-container');
+
+            return $content.html();
+        } catch (e) {
+            console.error('Долбаёб, иди спи', e);
+            throw e;
+        }
+    }
 
     async searchMovies(text: string): Promise<hdrSearchReq> {
-        const body = (status: hdrReqStatus, values = []) => ({
+        const body = (status: hdrReqStatusInterface, values = []) => ({
             status,
             values
         });
-
-        if (!this.mirror) return body(hdrReqStatus.NO_MIRROR);
+        const parseMovieType = (t: string): MovieType => {
+            switch (t) {
+                case 'series':
+                    return 'SERIAL';
+                case 'cartoons':
+                    return 'CARTOON';
+                case 'animation':
+                    return 'ANIME';
+                default:
+                    return 'FILM';
+            }
+        }
 
         try {
             const html = await this.httpGet(this.urls.search(text));
             const $ = Cheerio.load(html);
             const listOfElements = $('.b-search__section_list');
 
-            if (!listOfElements.length) return body(hdrReqStatus.OK);
+            if (!listOfElements.length) return body(hdrReqStatusInterface.OK);
 
             const rawMovies = listOfElements.find('li');
             const movies = rawMovies.map((_, el) => {
                 const $el = $(el);
+                const rawLink = $el.find('a').attr('href').split('/').slice(3);
 
                 return {
                     name: $el.find('.enty').text(),
                     addName: $el.find('a').contents().filter((_, el) => el.nodeType === 3).text().trim(),
+                    url: rawLink.join('/'),
+                    type: parseMovieType(rawLink[0]),
                     rating: Number.parseFloat($el.find('.rating').text()) ?? null
                 };
             }).get();
 
-            return body(hdrReqStatus.OK, movies);
+            return body(hdrReqStatusInterface.OK, movies);
         } catch (e) {
             return body(e.message);
         }
     }
+
 
     @Cron(CronExpression.EVERY_10_MINUTES)
     async checkActualMirror() {
@@ -124,7 +158,7 @@ export class HdRezkaService {
         if (!this.mirror || this.mirror.status !== 'WORKED') {
             const url = await this.getLastMirrorFromMails();
 
-            if (!url || (this.mirror && url !== this.mirror?.url)) {
+            if (!url || (this.mirror && url === this.mirror?.url)) {
                 this.mailsService.sendHdRezkaMail();
             }
 
@@ -171,14 +205,16 @@ export class HdRezkaService {
         clearInterval(this.checkMailsListenerId);
         this.checkMailsListenerId = undefined;
     }
-    private async httpGet(url: string): Promise<string> {
-        if (!this.mirror) throw new Error(hdrReqStatus.NO_MIRROR);
+    private async httpGet(url: string, responseType: 'success' | 'all' = 'success'): Promise<string> {
+        if (!this.mirror) throw new Error(hdrReqStatusInterface.NO_MIRROR);
 
         try {
-            const { data: html } = await this.httpService.axiosRef.get(`http://${this.mirror.url}${url}`);
+            console.log(`http://${this.mirror.url}/${url}`)
+            const { data: html } = await this.httpService.axiosRef.get(`http://${this.mirror.url}/${url}`);
             return html;
         } catch (e) {
-            throw new Error(hdrReqStatus.ERROR);
+            if (responseType === 'all') return e.response?.data;
+            throw new Error(hdrReqStatusInterface.ERROR);
         }
     }
 }

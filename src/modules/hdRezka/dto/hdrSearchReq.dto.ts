@@ -1,16 +1,8 @@
-export enum hdrReqStatus {
-    OK = 'OK',
-    ERROR = 'ERROR',
-    NO_MIRROR = 'NO_MIRROR'
-}
+import {hdrSearchValueDto} from "./hdrSearchValue.dto";
+import {hdrReqStatusInterface} from "../interfaces";
+
 
 export type hdrSearchReq = {
-    status: hdrReqStatus;
-    values: hdrSearchValue[];
-}
-
-export type hdrSearchValue = {
-    name: string;
-    addName: string;
-    rating: number | null;
+    status: hdrReqStatusInterface;
+    values: hdrSearchValueDto[];
 }

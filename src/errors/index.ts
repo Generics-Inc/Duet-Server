@@ -19,6 +19,7 @@ export const FileCreationException = new ExceptionGenerator(403, 5, 'Ошибк�
 export const FileDeletingException = new ExceptionGenerator(403, 6, 'Ошибка удаления файла');
 export const SearcherException = new ExceptionGenerator(403, 7, 'Ошибка поиска информации XML');
 export const AccountCreateException = new ExceptionGenerator(403, 8, 'Ошибка создания аккаунта');
+export const ParseException = new ExceptionGenerator(403, 9, 'Ошибка парса');
 
 // 404 - Not found
 export const DeviceIsNotFoundException = new ExceptionGenerator(404, 0, 'Устройство сессии не найдено');
@@ -32,6 +33,7 @@ export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Файл н
 export const FolderNotFoundException = new ExceptionGenerator(404, 8, 'Папка не найдена');
 export const BasketNotFoundException = new ExceptionGenerator(404, 9, 'Контейнер не найден');
 export const MovieNotFoundException = new ExceptionGenerator(404, 10, 'Фильм не найден');
+export const ProviderResourceFoundException = new ExceptionGenerator(404, 11, 'Источник данных не найден у провайдера');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');
