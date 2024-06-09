@@ -1,6 +1,6 @@
 import {MovieType} from "@prisma/client";
 
-export type hdrSearchValueDto = {
+export type HdrSearchValueDto = {
     name: string;
     addName: string;
     url: string;

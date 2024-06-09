@@ -7,11 +7,11 @@ import {HDRezkaMirror, HDRezkaMirrorStatus, MovieType, Prisma} from '@prisma/cli
 import {HttpService} from "@nestjs/axios";
 import {MailsService} from "@modules/mails/mails.service";
 import {Cron, CronExpression} from "@nestjs/schedule";
-import {hdrSearchReq} from "@modules/hdRezka/dto";
+import {HdrMovieDto, HdrSearchReq} from "@modules/hdRezka/dto";
 import * as Cheerio from "cheerio";
 import {ParseException, ProviderResourceFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
-import {hdrReqStatusInterface} from "@modules/hdRezka/interfaces";
+import {HdrReqStatusInterface} from "@modules/hdRezka/interfaces";
 
 
 @Injectable()
@@ -88,47 +88,89 @@ export class HdRezkaService {
         });
     }
 
-    async getMovieData(movieLink: string) {
+    async getMovieData(movieLink: string): Promise<HdrMovieDto> {
+        const getText = (e: Cheerio.Cheerio<Cheerio.Element>, q?: string) => (q ? e.find(q) : e).text().trim();
+        const getAttr = (e: Cheerio.Cheerio<Cheerio.Element>, q: string, a: string) => e.find(q).attr(a)?.trim();
+        const getInfo = (e: Cheerio.Cheerio<Cheerio.Element>, q: string) => e.find(`tr td:first-child h2:contains("${q}")`).parents('tr').find('td:last-child');
+
         if (movieLink.split('/').length !== 3) throw ParseException;
 
         try {
-            console.log(await this.httpGet(movieLink, 'all'))
             const html = this.utils.ifEmptyGivesError(await this.httpGet(movieLink, 'all'), ParseException);
             const $ = Cheerio.load(html);
             this.utils.ifEmptyGivesError($('.b-info__message').text() !== 'Страница не найдена', ProviderResourceFoundException);
-            const $content = $('.b-container');
+            const $content = $('.b-content__main');
+            const $info = $content.find('.b-post__infotable');
+            const $parts = $content.find('.b-post__partcontent_item');
 
-            return $content.html();
+            return {
+                name: getText($content, '.b-post__title'),
+                originalName: getText($content, '.b-post__origtitle'),
+                slogan: getText(getInfo($info, 'Слоган')),
+                link: movieLink,
+                photo: getAttr($info, '.b-sidecover a', 'href'),
+                releaseDate: this.parseMovieDate(getText(getInfo($info, 'Дата выхода'))),
+                country: getText(getInfo($info, 'Страна')),
+                ageRating: parseInt(getText(getInfo($info, 'Возраст'), 'span').split('+')[0]),
+                time: parseInt(getText(getInfo($info, 'Время')).split('мин')[0]),
+                description: getText($content, '.b-post__description'),
+                type: this.parseMovieType(movieLink.split('/')[0]),
+
+                ratings: [
+                    ...getInfo($info, 'Рейтинги').find('.b-post__info_rates').map((_, el) => ({
+                        name: getText($(el), 'a'),
+                        countOfScopes: parseInt(getText($(el), 'i').replace(' ', '').match(/\d+/)[0]),
+                        scope: parseFloat(getText($(el), 'span.bold')),
+                    })).get(),
+                    {
+                        name: 'HDRezka',
+                        countOfScopes: parseInt(getText($content, '.b-post__rating .votes span')),
+                        scope: parseFloat(getText($content, '.b-post__rating:first-child span:nth-child(2)')),
+                    }
+                ],
+                genres: getInfo($info, 'Жанр').find('a').map((_, el) => getText($(el))).get(),
+                parts: $parts.length > 1 ? $parts.map((_, el) => {
+                    const link = this.parseMovieUrl(getAttr($(el), '.title a', 'href')) ?? movieLink;
+                    return {
+                        name: getText($(el), '.title'),
+                        current: link === movieLink,
+                        link: link,
+                        releaseYear: parseInt(getText($(el), '.year').split(' ')[0]),
+                        type: this.parseMovieType(link.split('/')[0]),
+                        rating: parseFloat(getText($(el), '.rating i'))
+                    };
+                }).get() : [],
+                seasons: $content.find('.b-post__schedule_block').map((_, el) => {
+                    const $series = $(el).find('tbody tr').filter((_, el) => $(el).find('.td-4').length > 0);
+                    return {
+                        number: parseInt(getText($(el), '.title').match(/\d+\sсезон(?:а)?/g)[0].split(' ')[0]),
+                        releaseDate: this.parseMovieDate(getText($series.last().find('.td-4'))),
+                        series: $series.map((i, el) => ({
+                            name: getText($(el), '.td-2 b'),
+                            number: $series.length - i,
+                            releaseDate: this.parseMovieDate(getText($(el).find('.td-4')))
+                        })).get()
+                    }
+                }).get()
+            } as unknown as HdrMovieDto;
         } catch (e) {
             console.error('Долбаёб, иди спи', e);
             throw e;
         }
     }
 
-    async searchMovies(text: string): Promise<hdrSearchReq> {
-        const body = (status: hdrReqStatusInterface, values = []) => ({
+    async searchMovies(text: string): Promise<HdrSearchReq> {
+        const body = (status: HdrReqStatusInterface, values = []) => ({
             status,
             values
         });
-        const parseMovieType = (t: string): MovieType => {
-            switch (t) {
-                case 'series':
-                    return 'SERIAL';
-                case 'cartoons':
-                    return 'CARTOON';
-                case 'animation':
-                    return 'ANIME';
-                default:
-                    return 'FILM';
-            }
-        }
 
         try {
             const html = await this.httpGet(this.urls.search(text));
             const $ = Cheerio.load(html);
             const listOfElements = $('.b-search__section_list');
 
-            if (!listOfElements.length) return body(hdrReqStatusInterface.OK);
+            if (!listOfElements.length) return body(HdrReqStatusInterface.OK);
 
             const rawMovies = listOfElements.find('li');
             const movies = rawMovies.map((_, el) => {
@@ -139,12 +181,12 @@ export class HdRezkaService {
                     name: $el.find('.enty').text(),
                     addName: $el.find('a').contents().filter((_, el) => el.nodeType === 3).text().trim(),
                     url: rawLink.join('/'),
-                    type: parseMovieType(rawLink[0]),
+                    type: this.parseMovieType(rawLink[0]),
                     rating: Number.parseFloat($el.find('.rating').text()) ?? null
                 };
             }).get();
 
-            return body(hdrReqStatusInterface.OK, movies);
+            return body(HdrReqStatusInterface.OK, movies);
         } catch (e) {
             return body(e.message);
         }
@@ -171,6 +213,7 @@ export class HdRezkaService {
                     this.logger.log('The new mirror has been successfully registered');
                     this.mirror = await this.create(url);
                     this.stopInterval();
+                    this.checkActualMirror();
                 }
             }, this.sizeOfInterval);
         }
@@ -187,6 +230,29 @@ export class HdRezkaService {
         }
     }
 
+
+    private parseMovieUrl(url: string) {
+        const urlParts = (url ?? '').split('/');
+        if (urlParts.length < 3) return undefined;
+        return urlParts.slice(3).join('/');
+    };
+    private parseMovieDate(date: string) {
+        const dateParts = date.split(' ');
+        const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        return new Date(+dateParts[2], months.findIndex(month => dateParts[1] === month), +dateParts[0] + 1, 0, 0, 0);
+    };
+    private parseMovieType(t: string): MovieType {
+        switch (t) {
+            case 'series':
+                return 'SERIAL';
+            case 'cartoons':
+                return 'CARTOON';
+            case 'animation':
+                return 'ANIME';
+            default:
+                return 'FILM';
+        }
+    }
 
     private createListeners() {
         this.imap.once('ready', () => {
@@ -206,15 +272,14 @@ export class HdRezkaService {
         this.checkMailsListenerId = undefined;
     }
     private async httpGet(url: string, responseType: 'success' | 'all' = 'success'): Promise<string> {
-        if (!this.mirror) throw new Error(hdrReqStatusInterface.NO_MIRROR);
+        if (!this.mirror) throw new Error(HdrReqStatusInterface.NO_MIRROR);
 
         try {
-            console.log(`http://${this.mirror.url}/${url}`)
             const { data: html } = await this.httpService.axiosRef.get(`http://${this.mirror.url}/${url}`);
             return html;
         } catch (e) {
             if (responseType === 'all') return e.response?.data;
-            throw new Error(hdrReqStatusInterface.ERROR);
+            throw new Error(HdrReqStatusInterface.ERROR);
         }
     }
 }

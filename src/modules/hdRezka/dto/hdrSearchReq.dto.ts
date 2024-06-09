@@ -1,8 +1,8 @@
-import {hdrSearchValueDto} from "./hdrSearchValue.dto";
-import {hdrReqStatusInterface} from "../interfaces";
+import {HdrSearchValueDto} from "./hdrSearchValue.dto";
+import {HdrReqStatusInterface} from "../interfaces";
 
 
-export type hdrSearchReq = {
-    status: hdrReqStatusInterface;
-    values: hdrSearchValueDto[];
+export type HdrSearchReq = {
+    status: HdrReqStatusInterface;
+    values: HdrSearchValueDto[];
 }
