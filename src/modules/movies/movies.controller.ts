@@ -9,7 +9,7 @@ import {PostFile, UploadedPostFile, UploadedPostFileReturn} from "@modules/app/d
 import { utils } from '@root/helpers';
 import {ProfileDto} from "@models/users/profiles/dto";
 
-@ApiTags('Раздел "Кино"')
+@ApiTags('Раздел "Кинотека"')
 @ApiSecurity('AccessToken')
 @UseGuards(OnlyCompleteGroupGuard)
 @Controller('movies')
@@ -20,22 +20,19 @@ export class MoviesController {
         private selfService: MoviesService
     ) {}
 
+    @ApiOperation({ summary: 'Вывести всю кинотеку группы' })
     @Get()
-    getAllFromActiveGroup(@UserProfile('groupId') groupId: number) {
+    getAllByGroupId(@UserProfile('groupId') groupId: number) {
         return this.selfService.getModel().getMoviesByGroupId(groupId)
     }
 
+    @ApiOperation({ summary: 'Вывести запись из кинотеки по ID' })
     @Get(':id')
     async getById(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.utils.ifEmptyGivesError(await this.selfService.getModel().getMovieByIdAndGroupId(id, groupId), MovieNotFoundException);
-    }
-
-    @Get(':id/full')
-    async getFullById(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
         return this.utils.ifEmptyGivesError(await this.selfService.getModel().getMovieByIdAndGroupId(id, groupId, true), MovieNotFoundException);
     }
 
-    @ApiOperation({ })
+    @ApiOperation({ summary: 'Создать группу (возможно использование ИИ)' })
     @ApiBody({ type: CreateMovieDto })
     @PostFile()
     createMovie(@UploadedPostFile({
@@ -43,14 +40,14 @@ export class MoviesController {
         fileType: '.(jpg|jpeg|png)',
         bodyType: CreateMovieDto
     }) form: UploadedPostFileReturn<CreateMovieDto>, @UserProfile() profile: ProfileDto) {
-        return this.selfService.createMovie(profile.id, profile.groupId, form);
+        //return this.selfService.createMovie(profile.id, profile.groupId, form);
     }
 
+
+    @ApiOperation({ summary: 'Удалить запись из кинотеки' })
     @Delete(':id')
     async deleteMovie(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
         this.utils.ifEmptyGivesError(await this.selfService.getModel().getMovieByIdAndGroupId(id, groupId), MovieNotFoundException);
         return this.selfService.getModel().deleteMovieByIdAndGroupId(id, groupId);
     }
 }
-
-//https://yandex.com/images-xml?folderid=&apikey=&fyandex=0&text='обложка фильма Мстители'

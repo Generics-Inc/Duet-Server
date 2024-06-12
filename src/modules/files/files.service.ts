@@ -47,8 +47,7 @@ export class FilesService {
             ...config
         };
 
-        if (!await this.isHaveAccessToDirectory(_config.profileId, _config.bucketName, _config.fileDir))
-            throw DirectoryAccessDividedException;
+        if (!await this.isHaveAccessToDirectory(_config.profileId, _config.bucketName, _config.fileDir)) throw DirectoryAccessDividedException;
         await this.nextOrCreateBucket(_config.bucketName);
 
         const buildFileName = `${this.utils.trimStr(config.fileDir, '/')}/${_config.fileName}.png`;

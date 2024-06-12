@@ -27,8 +27,8 @@ import {AppService} from "./app.service";
             }
         ]),
         PrismaModule,
-        HdRezkaModule,
-        MailsModule,
+        //HdRezkaModule,
+        //MailsModule,
         TasksModule,
         AuthModule,
         FilesModule,

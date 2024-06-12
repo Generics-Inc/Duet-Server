@@ -78,8 +78,9 @@ export class GroupsService {
         const isLastUser = group.secondProfileId === null;
         const isMainUser = profileId === group.mainProfileId;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
+        const modifyKeyPartner = !isMainUser ? 'mainProfile' : 'secondProfile';
 
-        const createGroupArchive = this.groupsArchivesModelService.createModel(profileId, group.id);
+        const createGroupArchive = this.groupsArchivesModelService.createModel(profileId, group.id, group[modifyKeyPartner]?.id);
         const updateGroup = this.modelService.updateModelGroup(group.id, {
             ...(!isLastUser && isMainUser ? {
                 mainProfile: { connect: { id: group.secondProfileId }},

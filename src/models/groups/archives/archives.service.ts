@@ -13,10 +13,11 @@ export class GroupsArchivesModelService {
         this.repo = prismaService.groupArchive;
     }
 
-    createModel(profileId: number, groupId: number): PrismaPromise<GroupArchiveModelDto> {
+    createModel(profileId: number, groupId: number, partnerId?: number): PrismaPromise<GroupArchiveModelDto> {
         return this.repo.create({
             data: {
                 profile: { connect: { id: profileId } },
+                ...(partnerId ? { partner: { connect: { id: partnerId } } } : {}),
                 group: { connect: { id: groupId }}
             },
             select: GroupArchiveModelPConfig

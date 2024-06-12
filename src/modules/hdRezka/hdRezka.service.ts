@@ -43,7 +43,7 @@ export class HdRezkaService {
         this.createListeners();
     }
 
-    async create(url: string) {
+    async createMirror(url: string) {
         const lastMirror = await this.getLastMirror();
         if (lastMirror) await this.updateStatusByUrl(lastMirror.url, 'OLDEN');
         return this.repo.create({data: {url}});
@@ -211,7 +211,7 @@ export class HdRezkaService {
 
                 if (url && (!this.mirror || this.mirror.url !== url)) {
                     this.logger.log('The new mirror has been successfully registered');
-                    this.mirror = await this.create(url);
+                    this.mirror = await this.createMirror(url);
                     this.stopInterval();
                     this.checkActualMirror();
                 }

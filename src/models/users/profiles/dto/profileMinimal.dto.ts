@@ -18,7 +18,7 @@ export class ProfileMinimalDto {
     @ApiProperty({ description: 'Гендер', enum: Gender, required: false })
     gender: Gender;
 
-    @ApiProperty({ description: 'Описание профиля', type: String, required: false, default: 'Казак с плеч' })
+    @ApiProperty({ description: 'Описание профиля', type: String, required: false, default: 'Конец близок' })
     description?: string;
 
     @ApiProperty({ description: 'Ссылка на фото профиля', type: String, required: false })

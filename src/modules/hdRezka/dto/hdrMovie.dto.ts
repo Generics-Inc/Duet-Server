@@ -3,19 +3,20 @@ import {HdrMovieRatingDto, HdrMoviePartDto, HdrMovieSeasonDto} from "../dto";
 
 export class HdrMovieDto {
     name: string;
-    originalName: string;
-    slogan: string;
     link: string;
     photo: string;
+    description: string;
     releaseDate: Date;
     country: string;
     ageRating: number;
     time: number;
-    description: string;
-    type: MovieType;
 
-    ratings: HdrMovieRatingDto[];
+    type: MovieType;
+    originalName?: string;
+    slogan?: string;
+
     genres: string[];
+    ratings: HdrMovieRatingDto[];
     parts: HdrMoviePartDto[];
     seasons: HdrMovieSeasonDto[];
 
