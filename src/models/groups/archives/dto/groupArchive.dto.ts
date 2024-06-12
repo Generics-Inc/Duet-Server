@@ -8,6 +8,9 @@ export class GroupArchiveDto extends GroupArchiveModelDto {
     @ApiProperty({ description: 'Пользователь записи', type: ProfileMinimalDto })
     profile: ProfileMinimalDto;
 
+    @ApiProperty({ description: 'Партнёр пользователя в группе', type: ProfileMinimalDto })
+    partner: ProfileMinimalDto;
+
     @ApiProperty({ description: 'Архивированная группа', type: GroupMinimalDto })
     group: GroupMinimalDto;
 }

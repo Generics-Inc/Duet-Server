@@ -24,6 +24,10 @@ export class GroupsArchivesService {
         return this.groupsArchivesModelService;
     }
 
+    async getFullByProfileId() {
+
+    }
+
     async revertGroupFromArchive(profileId: number, recordId: number) {
         const { group, groupId, id } = this.utils.ifEmptyGivesError(await this.groupsArchivesModelService.getFullByIdAndProfileId(recordId, profileId), GroupArchiveNotFoundException);
 

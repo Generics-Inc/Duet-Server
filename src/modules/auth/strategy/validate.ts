@@ -5,6 +5,7 @@ import {SessionsModelService} from "@models/sessions/sessions.service";
 import {UsersModelService} from "@models/users/users.service";
 import {PayloadReturnDto, TokenPayloadDto} from "./dto";
 import {md5} from "@nestjs/throttler/dist/hash";
+import {GroupsModelService} from "@models/groups/groups.service";
 
 export default async (
     type: 'access' | 'refresh',
@@ -12,6 +13,7 @@ export default async (
     tokenPayload: TokenPayloadDto,
     sessionsModelService: SessionsModelService,
     usersModelService: UsersModelService,
+    groupsModelService: GroupsModelService,
     usersProfilesModelService: UsersProfilesModelService
 ): Promise<PayloadReturnDto> => {
     const token = req.get('Authorization').replace('Bearer', '').trim();
@@ -23,6 +25,7 @@ export default async (
     const session = await sessionsModelService.getModelById(tokenPayload.sessionId)
     const user = await usersModelService.getModelById(tokenPayload.userId);
     const profile = await usersProfilesModelService.getById(tokenPayload.userId);
+    const group = profile?.groupId ? await groupsModelService.getModelById(profile.groupId) : null;
     const cookiePassHash = session ? md5(`${session.id}:${session.ip}`) : undefined;
 
     if (
@@ -39,6 +42,7 @@ export default async (
         session,
         profile,
         user,
-        token
+        token,
+        group
     };
 }

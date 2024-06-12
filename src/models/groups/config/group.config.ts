@@ -1,7 +1,7 @@
 import {Prisma} from "@prisma/client";
-import {GroupArchiveModelPConfig} from "@models/groups/archives/config";
-import {GroupRequestModelPConfig} from "@models/groups/requests/config";
-import {ProfileMinimalPConfig} from "@models/users/profiles/config";
+import {GroupArchiveModelPConfig} from "@models/groups/archives/config/groupArchiveModel.config";
+import {GroupRequestModelPConfig} from "@models/groups/requests/config/groupRequestModel.config";
+import {ProfileMinimalPConfig} from "@models/users/profiles/config/profileMinimal.config";
 import {GroupModelPConfig} from "./groupModel.config";
 
 

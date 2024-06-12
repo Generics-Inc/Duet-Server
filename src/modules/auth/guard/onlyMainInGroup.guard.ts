@@ -6,9 +6,7 @@ import {HaveRoleAccessGuard} from "./haveRoleAccess.guard";
 export class OnlyMainInGroupGuard extends HaveRoleAccessGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isAccess = await super.canActivate(context);
-    const isMainInGroup = this.data.profile ?
-        this.data.profile.group?.mainProfileId === this.data.profile.id :
-        false;
+    const isMainInGroup = this.data.group ? this.data.group.mainProfileId === this.data.profile.id : false;
 
     if (!isMainInGroup) throw AccessWithoutMainRightsInGroupDividedException;
 

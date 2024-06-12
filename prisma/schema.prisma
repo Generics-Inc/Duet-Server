@@ -76,13 +76,15 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  groupsArchives GroupArchive[]
-  groupsRequests GroupRequest[]
-  moviesTags     MovieTag[]
-  movies         Movie[]
-  user           User           @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
-  mainGroup      Group?         @relation("mainProfile")
-  secondGroup    Group?         @relation("secondProfile")
+  groupsArchives        GroupArchive[] @relation(name: "profile")
+  anotherGroupsArchives GroupArchive[] @relation(name: "partner")
+  groupsRequests        GroupRequest[]
+  moviesRatings         MovieRating[]
+  moviesTags            MovieTag[]
+  movies                Movie[]
+  user                  User           @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
+  mainGroup             Group?         @relation("mainProfile")
+  secondGroup           Group?         @relation("secondProfile")
 
   @@unique([id, username])
   @@map("Profiles")
@@ -132,29 +134,50 @@ model GroupArchive {
   groupId   Int
   profileId Int
 
+  partnerId Int?
+
   createdAt DateTime @default(now())
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile Profile @relation(name: "profile", fields: [profileId], references: [id], onDelete: Cascade)
   group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  partner Profile? @relation(name: "partner", fields: [partnerId], references: [id], onDelete: SetNull)
 
   @@unique([groupId, profileId])
   @@map("GroupsArchives")
 }
 
-model Movie {
-  id      Int       @id @default(autoincrement())
-  groupId Int
-  name    String
-  type    MovieType
-
-  rating      Int     @default(0)
-  isWatched   Boolean @default(false)
-  photo       String? @default("loading")
-  profileId   Int?
-  description String?
+model HDRezkaMirror {
+  url    String              @unique
+  status HDRezkaMirrorStatus @default(WORKED)
 
   createdAt DateTime @default(now())
+}
 
+model Movie {
+  id          Int       @id @default(autoincrement())
+  groupId     Int
+  ageRating   Int
+  time        Int
+  name        String
+  link        String
+  photo       String
+  country     String
+  releaseDate DateTime
+  type        MovieType
+
+  profileId    Int?
+  originalName String?
+  slogan       String?
+  description  String?
+  isWatched    Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  genres  String[]
+  ratings MovieRating[]
+  parts   MoviePart[]
   seasons MovieSeason[]
   tags    MovieTag[]    @relation("movieTags")
   group   Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -163,12 +186,44 @@ model Movie {
   @@map("Movies")
 }
 
-model MovieSeason {
-  id        Int     @id @default(autoincrement())
-  movieId   Int
-  isWatched Boolean @default(false)
+model MovieRating {
+  id            Int @id @default(autoincrement())
+  movieId       Int
+  countOfScopes Int
+  scope         Int
 
-  name String?
+  profileId    Int?
+  providerName String?
+
+  movie   Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("MoviesRatings")
+}
+
+model MoviePart {
+  id          Int       @id @default(autoincrement())
+  movieId     Int
+  releaseYear Int
+  name        String
+  link        String
+  type        MovieType
+
+  rating  Int?
+  current Boolean @default(false)
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("MoviesParts")
+}
+
+model MovieSeason {
+  id          Int      @id @default(autoincrement())
+  movieId     Int
+  number      Int
+  releaseDate DateTime
+
+  isWatched Boolean @default(false)
 
   series MovieSeria[]
   movie  Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
@@ -177,11 +232,12 @@ model MovieSeason {
 }
 
 model MovieSeria {
-  id        Int     @id @default(autoincrement())
-  seasonId  Int
-  isWatched Boolean @default(false)
+  id       Int    @id @default(autoincrement())
+  seasonId Int
+  number   Int
+  name     String
 
-  name String?
+  isWatched Boolean @default(false)
 
   season MovieSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
@@ -240,4 +296,10 @@ enum Gender {
   FEMALE
   OTHER
   NOT_SPECIFIED
+}
+
+enum HDRezkaMirrorStatus {
+  WORKED
+  UPDATING
+  OLDEN
 }
