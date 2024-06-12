@@ -1,6 +1,6 @@
 {
   "name": "duet-server",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "DUET project server, applications for couples",
   "private": true,
   "license": "MIT",
