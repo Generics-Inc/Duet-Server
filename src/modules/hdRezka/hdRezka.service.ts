@@ -9,7 +9,7 @@ import {MailsService} from "@modules/mails/mails.service";
 import {Cron, CronExpression} from "@nestjs/schedule";
 import {HdrMovieDto, HdrSearchReq} from "@modules/hdRezka/dto";
 import * as Cheerio from "cheerio";
-import {ParseException, ProviderResourceFoundException} from "@root/errors";
+import {ParseException, ProviderResourceNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
 import {HdrReqStatusInterface} from "@modules/hdRezka/interfaces";
 
@@ -98,8 +98,8 @@ export class HdRezkaService {
         try {
             const html = this.utils.ifEmptyGivesError(await this.httpGet(movieLink, 'all'), ParseException);
             const $ = Cheerio.load(html);
-            this.utils.ifEmptyGivesError($('.b-info__message').text() !== 'Страница не найдена', ProviderResourceFoundException);
             const $content = $('.b-content__main');
+            this.utils.ifEmptyGivesError($content.length, ProviderResourceNotFoundException);
             const $info = $content.find('.b-post__infotable');
             const $parts = $content.find('.b-post__partcontent_item');
 
@@ -118,12 +118,12 @@ export class HdRezkaService {
 
                 ratings: [
                     ...getInfo($info, 'Рейтинги').find('.b-post__info_rates').map((_, el) => ({
-                        name: getText($(el), 'a'),
+                        providerName: getText($(el), 'a'),
                         countOfScopes: parseInt(getText($(el), 'i').replace(' ', '').match(/\d+/)[0]),
                         scope: parseFloat(getText($(el), 'span.bold')),
                     })).get(),
                     {
-                        name: 'HDRezka',
+                        providerName: 'HDRezka',
                         countOfScopes: parseInt(getText($content, '.b-post__rating .votes span')),
                         scope: parseFloat(getText($content, '.b-post__rating:first-child span:nth-child(2)')),
                     }
@@ -152,9 +152,8 @@ export class HdRezkaService {
                         })).get()
                     }
                 }).get()
-            } as unknown as HdrMovieDto;
+            };
         } catch (e) {
-            console.error('Долбаёб, иди спи', e);
             throw e;
         }
     }

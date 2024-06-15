@@ -103,7 +103,7 @@ export class GroupsService {
     async updateInviteCode(groupId: number) {
         const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId));
 
-        if (group.secondProfileId || group.groupArchives.length) throw GroupIsFullConflictException;
+        if (group.secondProfileId || group.archives.length) throw GroupIsFullConflictException;
 
         return this.modelService.updateModelGroup(groupId, { inviteCode: this.utils.createRandomString() });
     }
@@ -111,11 +111,11 @@ export class GroupsService {
     async kickSecondPartnerFromGroup(groupId: number) {
         const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId));
 
-        if (!group.secondProfileId && !group.groupArchives.length) throw UserNotFoundException;
+        if (!group.secondProfileId && !group.archives.length) throw UserNotFoundException;
 
         return this.modelService.updateModelGroup(groupId, {
             secondProfile: { disconnect: true },
-            groupArchives: { deleteMany: {} }
+            archives: { deleteMany: {} }
         });
     }
 

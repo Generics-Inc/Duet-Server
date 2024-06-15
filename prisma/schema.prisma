@@ -8,6 +8,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// USER
+
 model User {
   id       Int    @id @default(autoincrement())
   username String @unique
@@ -68,27 +70,32 @@ model Profile {
   firstName String
   lastName  String
   birthday  String
-  gender    Gender @default(NOT_SPECIFIED)
 
+  gender      Gender  @default(NOT_SPECIFIED)
   description String?
   photo       String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  groupsArchives        GroupArchive[] @relation(name: "profile")
-  anotherGroupsArchives GroupArchive[] @relation(name: "partner")
+  moviesModerates       MovieModerate[]
+  anotherGroupsArchives GroupArchive[]  @relation(name: "partner")
+  groupsArchives        GroupArchive[]  @relation(name: "profile")
   groupsRequests        GroupRequest[]
+  groupsMovies          GroupMovie[]
   moviesRatings         MovieRating[]
-  moviesTags            MovieTag[]
   movies                Movie[]
-  user                  User           @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
-  mainGroup             Group?         @relation("mainProfile")
-  secondGroup           Group?         @relation("secondProfile")
+  user                  User            @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
+  mainGroup             Group?          @relation("mainProfile")
+  secondGroup           Group?          @relation("secondProfile")
 
   @@unique([id, username])
   @@map("Profiles")
 }
+
+// END USER
+
+// GROUP
 
 model Group {
   id          Int     @id @default(autoincrement())
@@ -104,10 +111,9 @@ model Group {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  groupArchives GroupArchive[]
-  groupRequests GroupRequest[]
-  movies        Movie[]
-  moviesTags    MovieTag[]
+  archives      GroupArchive[]
+  requests      GroupRequest[]
+  movies        GroupMovie[]
   mainProfile   Profile?       @relation("mainProfile", fields: [mainProfileId], references: [id], onDelete: SetNull)
   secondProfile Profile?       @relation("secondProfile", fields: [secondProfileId], references: [id], onDelete: SetNull)
 
@@ -147,50 +153,96 @@ model GroupArchive {
   @@map("GroupsArchives")
 }
 
-model HDRezkaMirror {
-  url    String              @unique
-  status HDRezkaMirrorStatus @default(WORKED)
+model GroupMovie {
+  id      Int @id @default(autoincrement())
+  groupId Int
+
+  creatorId   Int?
+  movieId     Int?
+  isWatched   Boolean @default(false)
+  moreToWatch Int[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  taskCreate GroupMovieCreateTask?
+  group      Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator    Profile?              @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  movie      Movie?                @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("GroupsMovies")
 }
 
-model Movie {
-  id          Int       @id @default(autoincrement())
-  groupId     Int
-  ageRating   Int
-  time        Int
-  name        String
-  link        String
-  photo       String
-  country     String
-  releaseDate DateTime
-  type        MovieType
+model GroupMovieCreateTask {
+  id           Int       @id @default(autoincrement())
+  groupMovieId Int       @unique
+  link         String
+  name         String
+  addName      String
+  type         MovieType
 
-  profileId    Int?
+  isError Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groupMovie GroupMovie @relation(fields: [groupMovieId], references: [id], onDelete: Cascade)
+
+  @@map("GroupsMoviesCreateTasks")
+}
+
+// END GROUP
+
+// MOVIE
+
+model Movie {
+  id   Int       @id @default(autoincrement())
+  name String
+  type MovieType
+
+  creatorId    Int?
+  ageRating    Int?
+  time         Int?
+  country      String?
   originalName String?
   slogan       String?
   description  String?
-  isWatched    Boolean @default(false)
+  link         String? @unique
+  photo        String  @default("not set")
+  moderated    Boolean @default(false)
 
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  releaseDate DateTime?
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
 
-  genres  String[]
-  ratings MovieRating[]
-  parts   MoviePart[]
-  seasons MovieSeason[]
-  tags    MovieTag[]    @relation("movieTags")
-  group   Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  profile Profile?      @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  genres      String[]
+  ratings     MovieRating[]
+  groupsAdded GroupMovie[]
+  seasons     MovieSeason[]
+  part        MoviePart?
+  moderate    MovieModerate?
+  creator     Profile?       @relation(fields: [creatorId], references: [id], onDelete: SetNull)
 
   @@map("Movies")
 }
 
+model MovieModerate {
+  id        Int @id @default(autoincrement())
+  movieId   Int @unique
+  creatorId Int
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  movie   Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+}
+
 model MovieRating {
-  id            Int @id @default(autoincrement())
+  id            Int   @id @default(autoincrement())
   movieId       Int
   countOfScopes Int
-  scope         Int
+  scope         Float
 
   profileId    Int?
   providerName String?
@@ -198,32 +250,40 @@ model MovieRating {
   movie   Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
   profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
+  @@unique([movieId, providerName])
   @@map("MoviesRatings")
 }
 
 model MoviePart {
-  id          Int       @id @default(autoincrement())
-  movieId     Int
+  link        String    @unique
   releaseYear Int
   name        String
-  link        String
   type        MovieType
 
-  rating  Int?
-  current Boolean @default(false)
+  rating      Float?
+  partsListId Int?
+  movieId     Int?    @unique
+  current     Boolean @default(false)
 
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movie     Movie?          @relation(fields: [movieId], references: [id], onDelete: SetNull)
+  partsList MoviePartsList? @relation(fields: [partsListId], references: [id], onDelete: Cascade)
 
   @@map("MoviesParts")
 }
 
+model MoviePartsList {
+  id Int @id @default(autoincrement())
+
+  parts MoviePart[]
+
+  @@map("MoviesPartsLists")
+}
+
 model MovieSeason {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   movieId     Int
   number      Int
-  releaseDate DateTime
-
-  isWatched Boolean @default(false)
+  releaseDate DateTime?
 
   series MovieSeria[]
   movie  Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
@@ -232,34 +292,24 @@ model MovieSeason {
 }
 
 model MovieSeria {
-  id       Int    @id @default(autoincrement())
-  seasonId Int
-  number   Int
-  name     String
-
-  isWatched Boolean @default(false)
+  id          Int       @id @default(autoincrement())
+  seasonId    Int
+  number      Int
+  name        String
+  releaseDate DateTime?
 
   season MovieSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@map("MoviesSeries")
 }
 
-model MovieTag {
-  id      Int    @id @default(autoincrement())
-  groupId Int
-  name    String
-  color   String
+// END MOVIE
 
-  profileId Int?
+model HDRezkaMirror {
+  url    String              @unique
+  status HDRezkaMirrorStatus @default(WORKED)
 
   createdAt DateTime @default(now())
-
-  movies  Movie[]  @relation("movieTags")
-  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  profile Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
-
-  @@unique([groupId, name])
-  @@map("MoviesTags")
 }
 
 model Photo {

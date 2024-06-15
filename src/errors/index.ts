@@ -33,7 +33,8 @@ export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Файл н
 export const FolderNotFoundException = new ExceptionGenerator(404, 8, 'Папка не найдена');
 export const BasketNotFoundException = new ExceptionGenerator(404, 9, 'Контейнер не найден');
 export const MovieNotFoundException = new ExceptionGenerator(404, 10, 'Фильм не найден');
-export const ProviderResourceFoundException = new ExceptionGenerator(404, 11, 'Источник данных не найден у провайдера');
+export const ProviderResourceNotFoundException = new ExceptionGenerator(404, 11, 'Источник данных не найден у провайдера');
+export const MovieTaskNotFoundException = new ExceptionGenerator(404, 12, 'Задача на создание фильма не найдена');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');
@@ -41,6 +42,8 @@ export const GroupArchiveIncludeConflictException = new ExceptionGenerator(409, 
 export const GroupRequestConflictException = new ExceptionGenerator(409, 2, 'Запрос, на присоединение в группу, уже существует. Ожидайте ответа от владельца');
 export const GroupIsFullConflictException = new ExceptionGenerator(409, 3, 'Группа уже полная');
 export const UserAlreadyInGroupConflictException = new ExceptionGenerator(409, 4, 'Пользователь уже находится в группе');
+export const MovieAlreadyInGroupConflictException = new ExceptionGenerator(409, 5, 'Фильм уже находится в группе');
+export const TaskIsAlreadyRunningConflictException = new ExceptionGenerator(409, 6, 'Задача уже запущена и не имеет ошибок');
 
 // 423 - Locked
 export const RoleAccessDividedException = new ExceptionGenerator(423, 0, 'Доступ к данному эндпоинту запрещён!');

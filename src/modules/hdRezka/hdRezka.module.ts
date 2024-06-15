@@ -15,6 +15,9 @@ import {MailsModule} from "@modules/mails/mails.module";
     ],
     providers: [
         HdRezkaService
+    ],
+    exports: [
+        HdRezkaService
     ]
 })
 export class HdRezkaModule {}

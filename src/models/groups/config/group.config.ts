@@ -7,8 +7,8 @@ import {GroupModelPConfig} from "./groupModel.config";
 
 export const GroupPConfig: Prisma.GroupSelect = {
     ...GroupModelPConfig,
-    groupArchives: { select: GroupArchiveModelPConfig },
-    groupRequests: { select: GroupRequestModelPConfig },
+    archives: { select: GroupArchiveModelPConfig },
+    requests: { select: GroupRequestModelPConfig },
     mainProfile: { select: ProfileMinimalPConfig },
     secondProfile: { select: ProfileMinimalPConfig }
 };

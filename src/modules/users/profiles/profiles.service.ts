@@ -40,7 +40,7 @@ export class UsersProfilesService {
         const getPartnerStatusKey = (partnerId?: number, group?: GroupDto): GroupStatusPartner => {
             if (!group) return GroupStatusPartner.NO_PARTNER;
             else if (partnerId !== null) return GroupStatusPartner.IN_GROUP;
-            else if (group.groupArchives.length) return GroupStatusPartner.GROUP_IN_ARCHIVE;
+            else if (group.archives.length) return GroupStatusPartner.GROUP_IN_ARCHIVE;
             else if (!group.inviteCode) return GroupStatusPartner.LEAVED;
             else return GroupStatusPartner.NO_PARTNER;
         };
@@ -53,7 +53,7 @@ export class UsersProfilesService {
 
         return {
             selfId: profile.id,
-            partnerId: partnerId ?? group?.groupArchives[0]?.profileId,
+            partnerId: partnerId ?? group?.archives[0]?.profileId,
             selfStatus: getSelfStatusKey(archive, group),
             partnerStatus: getPartnerStatusKey(partnerId, group),
             isMainInGroup: isMain

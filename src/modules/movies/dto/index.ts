@@ -1,1 +1,2 @@
-export * from './create-movie.dto';
+export * from './createMovie.dto';
+export * from './createMovieAsync.dto';

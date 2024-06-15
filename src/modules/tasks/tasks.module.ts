@@ -7,6 +7,9 @@ import {XmlParserQueue} from "@modules/tasks/queues/xmlParser.queue";
 import {SearcherModule} from "@modules/searcher/searcher.module";
 import {MoviesModel} from "@models/movies/movies.model";
 import {FilesModule} from "@modules/files/files.module";
+import {MovieParserQueue} from "@modules/tasks/queues/movieParser.queue";
+import {HdRezkaModule} from "@modules/hdRezka/hdRezka.module";
+import {GroupsModel} from "@models/groups/groups.model";
 
 @Module({
     imports: [
@@ -34,12 +37,15 @@ import {FilesModule} from "@modules/files/files.module";
             },
         }),
         SearcherModule,
+        HdRezkaModule,
         MoviesModel,
+        GroupsModel,
         FilesModule
     ],
     providers: [
         TasksService,
-        XmlParserQueue
+        XmlParserQueue,
+        MovieParserQueue
     ],
     exports: [
         TasksService
