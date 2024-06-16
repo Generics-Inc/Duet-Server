@@ -27,8 +27,6 @@ export class GroupsArchivesService {
     async revertGroupFromArchive(profileId: number, recordId: number) {
         const { group, groupId, id } = this.utils.ifEmptyGivesError(await this.modelService.getFullByIdAndProfileId(recordId, profileId), GroupArchiveNotFoundException);
 
-        console.log(await this.modelService.getFullByIdAndProfileId(recordId, profileId))
-
         const updateGroup = this.groupsModelService.updateModelGroup(groupId, {
             [!group.mainProfileId ? 'mainProfile' : 'secondProfile']: {
                 connect: {
@@ -47,9 +45,26 @@ export class GroupsArchivesService {
     async deleteArchiveRecordWithChecks(id: number, profileId: number) {
         const { groupId } = this.utils.ifEmptyGivesError(await this.modelService.getFullByIdAndProfileId(id, profileId), GroupArchiveNotFoundException);
         const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getById(groupId), GroupNotFoundException);
-        const isLastUser = group.archives.length === 1 && group.mainProfileId === null;
 
-        if (isLastUser) await this.groupsService.deleteGroupById(profileId, group.id);
-        else await this.modelService.deleteModelById(id, profileId);
+        const isGroupEmpty = group.mainProfileId === null && group.secondProfileId === null;
+        const isLastUser = group.archives.length === 1 && isGroupEmpty;
+        const isMain = isLastUser || group.mainProfileId === null;
+
+        if (isLastUser) {
+            await this.groupsService.deleteGroupById(profileId, group.id);
+        } else {
+            if (isMain) {
+                const deleteRecord = this.modelService.deleteModelById(id, profileId);
+                const updateGroup = this.groupsModelService.updateModelGroup(groupId, {
+                    mainProfile: { connect: { id: group.secondProfileId } },
+                    secondProfile: { disconnect: true }
+                });
+
+                await this.prismaService.$transaction([deleteRecord, updateGroup])
+                    .then(r => r[0]);
+            } else {
+                await this.modelService.deleteModelById(id, profileId);
+            }
+        }
     }
 }

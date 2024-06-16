@@ -81,18 +81,12 @@ export class GroupsService {
     async leaveFromGroup(profileId: number) {
         const group = this.utils.ifEmptyGivesError(await this.getByProfileId(profileId), GroupNotFoundException);
 
-        const isLastUser = group.secondProfileId === null;
         const isMainUser = profileId === group.mainProfileId;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
         const modifyKeyPartner = !isMainUser ? 'mainProfile' : 'secondProfile';
 
         const createGroupArchive = this.groupsArchivesModelService.createModel(profileId, group.id, group[modifyKeyPartner]?.id);
-        const updateGroup = this.modelService.updateModelGroup(group.id, {
-            ...(!isLastUser && isMainUser ? {
-                mainProfile: { connect: { id: group.secondProfileId }},
-                secondProfile: { disconnect: true }
-            }: { [modifyKey]: { disconnect: true }})
-        })
+        const updateGroup = this.modelService.updateModelGroup(group.id, { [modifyKey]: { disconnect: true } });
 
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
     }
