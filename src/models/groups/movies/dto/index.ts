@@ -3,6 +3,7 @@ export * from './createGroupMovieAsync.dto';
 export * from './groupMovie.dto';
 export * from './groupMovieCreateTask.dto';
 export * from './groupMovieCreateTaskModel.dto';
+export * from './groupMovieMinimal.dto';
 export * from './groupMovieModel.dto';
 export * from './groupMovieRating.dto';
 export * from './groupMovieRatingModel.dto';

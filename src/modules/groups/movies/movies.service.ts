@@ -42,7 +42,9 @@ export class GroupsMoviesService  {
     }
 
     async getMovieByIdAndGroupId(id: number, groupId: number) {
-        return this.utils.ifEmptyGivesError(await this.modelService.getMovieByIdAndGroupId(id, groupId), MovieNotFoundException);
+        const movie = this.utils.ifEmptyGivesError(await this.modelService.getMovieByIdAndGroupId(id, groupId), MovieNotFoundException);
+        movie.movie?.partsList?.parts.forEach(part => part.link === movie.movie.link && (part.current = true));
+        return movie;
     }
     async getReadyMovieByIdAndGroupId(id: number, groupId: number) {
         const groupMovie = await this.getMovieByIdAndGroupId(id, groupId);

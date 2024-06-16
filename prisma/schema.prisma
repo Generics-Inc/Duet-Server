@@ -230,6 +230,7 @@ model Movie {
   name String
   type MovieType
 
+  partsListId  Int?
   creatorId    Int?
   ageRating    Int?
   time         Int?
@@ -251,7 +252,8 @@ model Movie {
   seasons     MovieSeason[]
   part        MoviePart?
   moderate    MovieModerate?
-  creator     Profile?       @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  partsList   MoviePartsList? @relation(fields: [partsListId], references: [id], onDelete: SetNull)
+  creator     Profile?        @relation(fields: [creatorId], references: [id], onDelete: SetNull)
 
   @@map("Movies")
 }
@@ -301,7 +303,8 @@ model MoviePart {
 model MoviePartsList {
   id Int @id @default(autoincrement())
 
-  parts MoviePart[]
+  parts  MoviePart[]
+  movies Movie[]
 
   @@map("MoviesPartsLists")
 }

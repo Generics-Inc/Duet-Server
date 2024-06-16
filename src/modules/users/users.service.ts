@@ -55,7 +55,6 @@ export class UsersService {
                     file: uploadedPhoto
                 })) : undefined;
             } catch (e) {
-                console.error(e);
                 await this.modelService.deleteModelById(user.id);
                 throw AccountCreateException;
             }

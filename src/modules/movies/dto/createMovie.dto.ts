@@ -1,8 +1,5 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {
-    IsBoolean,
-    IsOptional
-} from "class-validator";
+import {IsBoolean, IsOptional} from "class-validator";
 import {ExposeAll} from "@root/decorators";
 import {CreateMovieModelDto} from "@models/movies/dto";
 

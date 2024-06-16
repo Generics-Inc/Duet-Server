@@ -57,7 +57,7 @@ export class MoviesModelService {
         });
     }
     async createMovieExtend(data: CreateMovieModelExtendDto): Promise<MovieDto> {
-        await this.upsertPartList(data.parts);
+        const parts = await this.upsertPartList(data.parts);
 
         const createMovieData: Prisma.MovieCreateInput = {
             name: data.name,
@@ -71,7 +71,8 @@ export class MoviesModelService {
             description: data.description,
             moderated: true,
             releaseDate: data.releaseDate,
-            genres: data.genres
+            genres: data.genres,
+            partsList: { connect: { id: parts.id } }
         }
 
         const movie = await this.repo.findUnique({ where: { link: data.link }});
@@ -141,7 +142,7 @@ export class MoviesModelService {
         return this.repo.findUnique({
             where: { id },
             select: MoviePConfig
-        });
+        }) as PrismaPromise<MovieDto>;
     }
 
     private async upsertPartList(parts: CreateMoviePartDto[]): Promise<MoviePartsListDto> {

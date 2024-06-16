@@ -61,7 +61,6 @@ export class MovieParserQueue {
 
             await this.groupsMovieModelService.closeTaskById(taskCreate.id);
         } catch (e) {
-            console.error(e);
             if (taskCreate) await this.groupsMovieModelService.setTaskErrorStatusById(taskCreate.id, true);
         }
 

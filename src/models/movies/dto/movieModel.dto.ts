@@ -1,22 +1,34 @@
-import {MovieType} from "@prisma/client";
+import {ApiProperty} from "@nestjs/swagger";
+import {MovieMinimalDto} from "./movieMinimal.dto";
 
-export class MovieModelDto {
-    id: number;
-    name: string;
-    type: MovieType;
-    photo: string;
-    moderated: boolean;
-    updatedAt: Date;
-    createdAt: Date;
+export class MovieModelDto extends MovieMinimalDto {
+    @ApiProperty({ description: 'Список жанров', type: String, isArray: true })
     genres: string[];
 
-    creatorId?: number;
+    @ApiProperty({ description: 'Флаг проверки модератором', type: Boolean })
+    moderated: boolean;
+
+    @ApiProperty({ description: 'Возрастной рейтинг', type: Number, required: false })
     ageRating?: number;
+
+    @ApiProperty({ description: 'ID списка частей', type: Number, required: false })
+    partsListId?: number;
+
+    @ApiProperty({ description: 'Время материала или части', type: Number, required: false })
     time?: number;
+
+    @ApiProperty({ description: 'Ссылка на контент', type: String, required: false })
     link?: string;
+
+    @ApiProperty({ description: 'Страна производитель', type: String, required: false })
     country?: string;
-    originalName?: string;
+
+    @ApiProperty({ description: 'Слоган', type: String, required: false })
     slogan?: string;
+
+    @ApiProperty({ description: 'Описание', type: String, required: false })
     description?: string;
+
+    @ApiProperty({ description: 'Дата релиза', type: Date, required: false })
     releaseDate?: Date;
 }
