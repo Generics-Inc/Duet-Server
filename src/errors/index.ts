@@ -55,6 +55,7 @@ export const ProfileAccessDividedException = new ExceptionGenerator(423, 3, 'Д�
 export const AccessWithoutMainRightsInGroupDividedException = new ExceptionGenerator(423, 4, 'Доступ заблокирован! Требуется активная группа и права на главного в группе');
 export const DirectoryAccessDividedException = new ExceptionGenerator(423, 5, 'Доступ заблокирован! Вы не имеете доступа к этой директории');
 export const AccessWithIncompleteDividedException = new ExceptionGenerator(423, 6, 'Доступ заблокирован! Группа должна содержать партнёра');
+export const MovieIsNotReadyDividedException = new ExceptionGenerator(423, 7, 'Доступ заблокирован! Фильм не готов, возможно он создан с ошибкой или ещё создаётся');
 
 // 520 - Unknown
 export const UnknownErrorException = new ExceptionGenerator(520, 0, 'Неизвестная ошибка');

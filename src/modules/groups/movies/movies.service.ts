@@ -2,6 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {GroupsMoviesModelService} from "@models/groups/movies/movies.service";
 import { utils } from "@root/helpers";
 import {
+    MovieIsNotReadyDividedException,
     MovieNotFoundException, MovieSeriaNotFoundException,
     MovieTaskNotFoundException,
     TaskIsAlreadyRunningConflictException,
@@ -27,7 +28,7 @@ export class GroupsMoviesService  {
     // Movie
 
     async setWatchedMovie(groupMovieId: number, groupId: number) {
-        const groupMovie = await this.getMovieByIdAndGroupId(groupMovieId, groupId);
+        const groupMovie = await this.getReadyMovieByIdAndGroupId(groupMovieId, groupId);
         const isWatched = groupMovie.isWatched;
         const isOneMoreSeasons = groupMovie.movie.seasons.length && isWatched;
 
@@ -43,6 +44,13 @@ export class GroupsMoviesService  {
     async getMovieByIdAndGroupId(id: number, groupId: number) {
         return this.utils.ifEmptyGivesError(await this.modelService.getMovieByIdAndGroupId(id, groupId), MovieNotFoundException);
     }
+    async getReadyMovieByIdAndGroupId(id: number, groupId: number) {
+        const groupMovie = await this.getMovieByIdAndGroupId(id, groupId);
+
+        if (!groupMovie.movie) throw MovieIsNotReadyDividedException;
+
+        return groupMovie;
+    }
     async getMinimalMovieByIdAndGroupId(id: number, groupId: number) {
         return this.utils.ifEmptyGivesError(await this.modelService.getMinimalMovieByIdAndGroupId(id, groupId), MovieNotFoundException);
     }
@@ -55,7 +63,7 @@ export class GroupsMoviesService  {
     // WatchedSeria
 
     async setWatchedSeria(id: number, groupMovieId: number, groupId: number) {
-        const groupMovie = await this.getMovieByIdAndGroupId(groupMovieId, groupId);
+        const groupMovie = await this.getReadyMovieByIdAndGroupId(groupMovieId, groupId);
         let watchedSeriaId = (await this.modelService.getWatchedSeriaByIdAndGroupId(id, groupId))?.seriaId;
         let isCurrentDelete = false;
 
@@ -114,5 +122,23 @@ export class GroupsMoviesService  {
         return this.tasksService.sendMessageToMovieParserQueue({
             taskId: id
         });
+    }
+
+    // Rating
+
+    async upsertRatingByGroupMovieIdAndGroupIdAndProfileId(groupMovieId: number, groupId: number, profileId: number, scope: number) {
+        const groupMovie = await this.getReadyMovieByIdAndGroupId(groupMovieId, groupId);
+        const movieRating = await this.moviesModelService.getRatingByProviderNameAndMovieId('Duet', groupMovie.movieId);
+        const userRating = await this.modelService.getRatingByGroupMovieIdAndProfileId(groupMovieId, profileId);
+
+        if (userRating) {
+            const newScope = (movieRating.countOfScopes * movieRating.scope - userRating.scope + scope) / movieRating.countOfScopes;
+            await this.moviesModelService.updateRatingScopeById(movieRating.id, newScope);
+            return this.modelService.updateRatingScopeById(userRating.id, scope);
+        } else {
+            const newScope = (movieRating.countOfScopes * movieRating.scope + scope) / (movieRating.countOfScopes + 1);
+            await this.moviesModelService.updateRatingScopeById(movieRating.id, newScope, movieRating.countOfScopes + 1);
+            return this.modelService.createRating(profileId, groupMovieId, scope);
+        }
     }
 }

@@ -189,15 +189,17 @@ model GroupMovieWatchedSeria {
 }
 
 model GroupMovieRating {
-  id           Int @id @default(autoincrement())
+  id           Int   @id @default(autoincrement())
   profileId    Int
   groupMovieId Int
+  scope        Float
 
   createdAt DateTime @default(now())
 
   profile    Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
   groupMovie GroupMovie @relation(fields: [groupMovieId], references: [id], onDelete: Cascade)
 
+  @@unique([profileId, groupMovieId])
   @@map("GroupsMoviesRatings")
 }
 

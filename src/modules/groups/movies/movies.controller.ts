@@ -1,7 +1,9 @@
-import {Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards} from "@nestjs/common";
+import {Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards} from "@nestjs/common";
 import {GroupsMoviesService} from "./movies.service";
 import {OnlyHaveGroupGuard} from "@modules/auth/guard";
 import {UserProfile} from "@modules/users/decorator";
+import {ProfileDto} from "@models/users/profiles/dto";
+import {CreateRatingDto} from "@modules/groups/movies/dto";
 
 @UseGuards(OnlyHaveGroupGuard)
 @Controller('groups/movies')
@@ -32,13 +34,28 @@ export class GroupsMoviesController {
         return this.selfService.setWatchedSeria(seriaId, movieId, groupId);
     }
 
-    @Patch(':movieId')
-    setWatchedMovieById(@UserProfile('groupId') groupId: number, @Param('movieId', ParseIntPipe) movieId: number) {
+    @Patch(':movieId/setWatched')
+    setWatchedMovieById(
+        @UserProfile('groupId') groupId: number,
+        @Param('movieId', ParseIntPipe) movieId: number
+    ) {
         return this.selfService.setWatchedMovie(movieId, groupId);
     }
 
+    @Patch(':movieId/setRating')
+    setRatingMovieById(
+        @UserProfile() profile: ProfileDto,
+        @Param('movieId', ParseIntPipe) movieId: number,
+        @Body() body: CreateRatingDto
+    ) {
+        return this.selfService.upsertRatingByGroupMovieIdAndGroupIdAndProfileId(movieId, profile.groupId, profile.id, body.scope);
+    }
+
     @Delete(':movieId')
-    deleteById(@UserProfile('groupId') groupId: number, @Param('movieId', ParseIntPipe) movieId: number) {
+    deleteById(
+        @UserProfile('groupId') groupId: number,
+        @Param('movieId', ParseIntPipe) movieId: number
+    ) {
         return this.selfService.deleteMovieByIdAndGroupId(movieId, groupId);
     }
 }

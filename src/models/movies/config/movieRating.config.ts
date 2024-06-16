@@ -1,7 +1,7 @@
 import {definePConfig} from "@root/helpers";
 
 
-export const MovieRatingModelPConfig = definePConfig('MovieRating', {
+export const MovieRatingPConfig = definePConfig('MovieRating', {
     id: true,
     movieId: true,
     providerName: true,

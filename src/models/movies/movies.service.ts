@@ -5,11 +5,11 @@ import {
     CreateMovieModelDto,
     CreateMoviePartDto,
     MovieDto,
-    MoviePartsListDto,
+    MoviePartsListDto, MovieRatingDto,
     MovieSeriaDto
 } from "@models/movies/dto";
 import {CreateMovieModelExtendDto} from "@models/movies/dto/createMovieModelExtend.dto";
-import {MoviePartsListPConfig, MoviePConfig, MovieSeriaPConfig} from "@models/movies/config";
+import {MoviePartsListPConfig, MoviePConfig, MovieRatingPConfig, MovieSeriaPConfig} from "@models/movies/config";
 
 
 @Injectable()
@@ -19,6 +19,7 @@ export class MoviesModelService {
     private repoSeries: Prisma.MovieSeriaDelegate;
     private repoPart: Prisma.MoviePartDelegate;
     private repoPartsList: Prisma.MoviePartsListDelegate;
+    private repoRating: Prisma.MovieRatingDelegate;
 
     constructor(prismaService: PrismaService) {
         this.repo = prismaService.movie;
@@ -26,6 +27,7 @@ export class MoviesModelService {
         this.repoSeries = prismaService.movieSeria;
         this.repoPart = prismaService.moviePart;
         this.repoPartsList = prismaService.moviePartsList;
+        this.repoRating = prismaService.movieRating;
     }
 
     async createMovie(profileId: number, data: CreateMovieModelDto): Promise<MovieDto> {
@@ -97,7 +99,16 @@ export class MoviesModelService {
                 data: {
                     ...createMovieData,
                     photo: 'loading',
-                    ratings: { create: data.ratings },
+                    ratings: {
+                        create: [
+                            ...data.ratings,
+                            {
+                                providerName: 'Duet',
+                                countOfScopes: 0,
+                                scope: 0
+                            }
+                        ]
+                    },
                     seasons: {
                         create: data.seasons.map((season, seasonI) => ({
                             number: season.number ?? seasonI,
@@ -214,6 +225,31 @@ export class MoviesModelService {
                 }
             },
             select: MovieSeriaPConfig
+        });
+    }
+
+    // Ratings
+
+    updateRatingScopeById(id: number, scope: number, countOfScopes?: number): PrismaPromise<MovieRatingDto> {
+        return this.repoRating.update({
+            where: { id },
+            data: {
+                scope,
+                countOfScopes
+            },
+            select: MovieRatingPConfig
+        });
+    }
+
+    getRatingByProviderNameAndMovieId(providerName: string, movieId: number): PrismaPromise<MovieRatingDto> {
+        return this.repoRating.findUnique({
+            where: {
+                movieId_providerName: {
+                    movieId,
+                    providerName
+                }
+            },
+            select: MovieRatingPConfig
         });
     }
 }

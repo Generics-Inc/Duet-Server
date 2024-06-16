@@ -8,6 +8,6 @@ export * from './movie.dto';
 export * from './movieModel.dto';
 export * from './moviePartModel.dto';
 export * from './moviePartsList.dto';
-export * from './movieRatingModel.dto';
+export * from './movieRating.dto';
 export * from './movieSeason.dto';
 export * from './movieSeria.dto';

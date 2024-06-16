@@ -1,4 +1,4 @@
-export class MovieRatingModelDto {
+export class MovieRatingDto {
     id: number;
     movieId: number;
     providerName: string;

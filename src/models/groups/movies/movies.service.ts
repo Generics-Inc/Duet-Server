@@ -4,13 +4,13 @@ import {PrismaService} from "@modules/prisma/prisma.service";
 import {
     CreateGroupMovieDto,
     CreateGroupMovieAsyncDto,
-    GroupMovieCreateTaskDto, GroupMovieDto, GroupMovieWatchedSeriaDto
+    GroupMovieCreateTaskDto, GroupMovieDto, GroupMovieWatchedSeriaDto, GroupMovieRatingDto
 } from "@models/groups/movies/dto"
 import {
     GroupMovieCreateTaskPConfig,
     GroupMovieMinimalPConfig,
     GroupMovieModelPConfig,
-    GroupMoviePConfig, GroupMovieWatchedSeriaPConfig
+    GroupMoviePConfig, GroupMovieRatingPConfig, GroupMovieWatchedSeriaPConfig
 } from "@models/groups/movies/config";
 import {GroupMovieMinimalDto} from "@models/groups/movies/dto/groupMovieMinimal.dto";
 import {MovieDto} from "@models/movies/dto";
@@ -20,11 +20,13 @@ import {MovieDto} from "@models/movies/dto";
 export class GroupsMoviesModelService {
     private repo: Prisma.GroupMovieDelegate;
     private repoWatchedSeria: Prisma.GroupMovieWatchedSeriaDelegate;
+    private repoRating: Prisma.GroupMovieRatingDelegate;
     private repoCreateTask: Prisma.GroupMovieCreateTaskDelegate;
 
     constructor(prismaService: PrismaService) {
         this.repo = prismaService.groupMovie;
         this.repoWatchedSeria = prismaService.groupMovieWatchedSeria;
+        this.repoRating = prismaService.groupMovieRating;
         this.repoCreateTask = prismaService.groupMovieCreateTask;
     }
 
@@ -205,5 +207,38 @@ export class GroupsMoviesModelService {
             where: { id },
             select: GroupMovieCreateTaskPConfig
         });
+    }
+
+    // Rating
+
+    createRating(profileId: number, groupMovieId: number, scope: number): PrismaPromise<GroupMovieRatingDto> {
+        return this.repoRating.create({
+            data: {
+                profile: { connect: { id: profileId } },
+                groupMovie: { connect: { id: groupMovieId } },
+                scope
+            },
+            select: GroupMovieRatingPConfig
+        });
+    }
+
+    updateRatingScopeById(id: number, scope: number): PrismaPromise<GroupMovieRatingDto> {
+        return this.repoRating.update({
+            where: { id },
+            data: { scope },
+            select: GroupMovieRatingPConfig
+        });
+    }
+
+    getRatingByGroupMovieIdAndProfileId(groupMovieId: number, profileId: number): PrismaPromise<GroupMovieRatingDto> {
+        return this.repoRating.findUnique({
+            where: {
+                profileId_groupMovieId: {
+                    profileId,
+                    groupMovieId
+                }
+            },
+            select: GroupMovieRatingPConfig
+        })
     }
 }
