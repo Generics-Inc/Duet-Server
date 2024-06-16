@@ -4,9 +4,14 @@ import {PrismaService} from "@modules/prisma/prisma.service";
 import {
     CreateGroupMovieDto,
     CreateGroupMovieAsyncDto,
-    GroupMovieCreateTaskDto, GroupMovieDto
+    GroupMovieCreateTaskDto, GroupMovieDto, GroupMovieWatchedSeriaDto
 } from "@models/groups/movies/dto"
-import {GroupMovieCreateTaskPConfig, GroupMovieMinimalPConfig, GroupMoviePConfig} from "@models/groups/movies/config";
+import {
+    GroupMovieCreateTaskPConfig,
+    GroupMovieMinimalPConfig,
+    GroupMovieModelPConfig,
+    GroupMoviePConfig, GroupMovieWatchedSeriaPConfig
+} from "@models/groups/movies/config";
 import {GroupMovieMinimalDto} from "@models/groups/movies/dto/groupMovieMinimal.dto";
 import {MovieDto} from "@models/movies/dto";
 
@@ -14,24 +19,29 @@ import {MovieDto} from "@models/movies/dto";
 @Injectable()
 export class GroupsMoviesModelService {
     private repo: Prisma.GroupMovieDelegate;
-    private repoTask: Prisma.GroupMovieCreateTaskDelegate;
+    private repoWatchedSeria: Prisma.GroupMovieWatchedSeriaDelegate;
+    private repoCreateTask: Prisma.GroupMovieCreateTaskDelegate;
 
     constructor(prismaService: PrismaService) {
         this.repo = prismaService.groupMovie;
-        this.repoTask = prismaService.groupMovieCreateTask;
+        this.repoWatchedSeria = prismaService.groupMovieWatchedSeria;
+        this.repoCreateTask = prismaService.groupMovieCreateTask;
     }
 
-    create(creatorId: number, groupId: number, movieId: number, data: CreateGroupMovieDto) {
+    // Movie
+
+    create(creatorId: number, groupId: number, movieId: number, data: CreateGroupMovieDto): PrismaPromise<GroupMovieDto> {
         return this.repo.create({
             data: {
                 group: { connect: { id: groupId } },
                 movie: { connect: { id: movieId } },
                 creator: { connect: { id: creatorId } },
                 ...data
-            }
+            },
+            select: GroupMoviePConfig
         });
     }
-    createAsync(creatorId: number, groupId: number, data: CreateGroupMovieAsyncDto) {
+    createAsync(creatorId: number, groupId: number, data: CreateGroupMovieAsyncDto): PrismaPromise<GroupMovieDto> {
         return this.repo.create({
             data: {
                 group: { connect: { id: groupId } },
@@ -39,10 +49,24 @@ export class GroupsMoviesModelService {
                 taskCreate: { create: data }
             },
             select: GroupMoviePConfig
-        }) as unknown as PrismaPromise<GroupMovieDto>;
+        });
     }
 
-    connectMovie(groupId: number, movie: MovieDto) {
+    updateMovieMoreToWatchById(id: number, moreToWatch: [number, number], isWatched = false) {
+        return this.updateMovieById(id, {
+            moreToWatch: {
+                set: moreToWatch
+            },
+            isWatched
+        });
+    }
+    updateMovieWatchedStatusById(id: number, isWatched: boolean) {
+        return this.updateMovieById(id, {
+            isWatched
+        });
+    }
+
+    connectMovie(groupId: number, movie: MovieDto): PrismaPromise<GroupMovieDto> {
         const isOneMoreSeasons = movie.seasons.length;
 
         return this.repo.update({
@@ -54,10 +78,10 @@ export class GroupsMoviesModelService {
                 }
             },
             select: GroupMoviePConfig
-        }) as unknown as PrismaPromise<GroupMovieDto>;
+        });
     }
 
-    getMovieByLink(link: string) {
+    getMovieByLink(link: string): PrismaPromise<GroupMovieDto> {
         return this.repo.findFirst({
             where: {
                 OR: [
@@ -66,28 +90,97 @@ export class GroupsMoviesModelService {
                 ]
             },
             select: GroupMoviePConfig
-        }) as unknown as PrismaPromise<GroupMovieDto>;
+        });
     }
-    getMovieByIdAndGroupId(id: number, groupId: number) {
+    getMovieByIdAndGroupId(id: number, groupId: number): PrismaPromise<GroupMovieDto> {
         return this.repo.findUnique({
             where: { id, groupId },
             select: GroupMoviePConfig
-        }) as unknown as PrismaPromise<GroupMovieDto>;
+        });
     }
-
-    getManyMinimalMoviesByGroupId(groupId: number) {
-        return this.repo.findMany({
-            where: {groupId},
+    getMinimalMovieByIdAndGroupId(id: number, groupId: number): PrismaPromise<GroupMovieMinimalDto> {
+        return this.repo.findUnique({
+            where: { id, groupId },
             select: GroupMovieMinimalPConfig
-        }) as PrismaPromise<GroupMovieMinimalDto[]>;
+        });
     }
 
-    deleteMovieById(id: number) {
-        return this.repo.delete({ where: { id } });
+    getManyMinimalMoviesByGroupId(groupId: number): PrismaPromise<GroupMovieMinimalDto[]> {
+        return this.repo.findMany({
+            where: { groupId },
+            select: GroupMovieMinimalPConfig
+        });
     }
+
+    deleteModelMovieById(id: number): PrismaPromise<GroupMovieMinimalDto> {
+        return this.repo.delete({
+            where: { id },
+            select: GroupMovieModelPConfig
+        });
+    }
+
+    private updateMovieById(id: number, data: Prisma.GroupMovieUpdateInput): PrismaPromise<GroupMovieDto> {
+        return this.repo.update({
+            where: { id },
+            data,
+            select: GroupMoviePConfig
+        });
+    }
+
+    // WatchedSeria
+
+    createManyWatchedSeriesByGroupMovieIdAndIds(groupMovieId: number, ids: number[]) {
+        return this.repoWatchedSeria.createMany({
+            data: ids.map(id => ({
+                seriaId: id,
+                groupMovieId
+            }))
+        });
+    }
+
+    getWatchedSeriaByIdAndGroupId(id: number, groupId: number): PrismaPromise<GroupMovieWatchedSeriaDto> {
+        return this.repoWatchedSeria.findFirst({
+            where: {
+                seriaId: id,
+                groupMovie: {
+                    groupId
+                }
+            },
+            select: GroupMovieWatchedSeriaPConfig
+        });
+    }
+
+    getWatchedSeriesFilterIdByGroupMovieId(groupMovieId: number, filter: Prisma.IntFilter<"GroupMovieWatchedSeria">): PrismaPromise<GroupMovieWatchedSeriaDto[]> {
+        return this.repoWatchedSeria.findMany({
+            where: {
+                seriaId: filter,
+                groupMovieId
+            },
+            select: GroupMovieWatchedSeriaPConfig
+        });
+    }
+
+    deleteManyWatchedSeriesByIds(ids: number[]) {
+        return this.repoWatchedSeria.deleteMany({
+            where: {
+                seriaId: {
+                    in: ids
+                }
+            }
+        });
+    }
+    deleteAllWatchedSeriesByGroupMovieId(groupMovieId: number) {
+        return this.repoWatchedSeria.deleteMany({
+            where: {
+                groupMovieId
+            }
+        });
+    }
+
+    // CreateTask
 
     setTaskErrorStatusById(id: number, newStatus: boolean): PrismaPromise<GroupMovieCreateTaskDto> {
-        return this.repoTask.update({
+        return this.repoCreateTask.update({
             where: { id },
             data: { isError: newStatus },
             select: GroupMovieCreateTaskPConfig
@@ -95,25 +188,22 @@ export class GroupsMoviesModelService {
     }
 
     getTaskById(id: number): PrismaPromise<GroupMovieCreateTaskDto> {
-        return this.repoTask.findUnique({
+        return this.repoCreateTask.findUnique({
             where: { id },
             select: GroupMovieCreateTaskPConfig
         });
     }
-    getTaskByMovieId(movieId: number): PrismaPromise<GroupMovieCreateTaskDto> {
-        return this.repoTask.findUnique({
-            where: { groupMovieId: movieId },
-            select: GroupMovieCreateTaskPConfig
-        });
-    }
     getTaskByIdAndGroupId(id: number, groupId: number): PrismaPromise<GroupMovieCreateTaskDto> {
-        return this.repoTask.findUnique({
+        return this.repoCreateTask.findUnique({
             where: { id, groupMovie: { groupId } },
             select: GroupMovieCreateTaskPConfig
         });
     }
 
-    closeTaskById(id: number) {
-        return this.repoTask.delete({ where: { id }});
+    closeTaskById(id: number): PrismaPromise<GroupMovieCreateTaskDto> {
+        return this.repoCreateTask.delete({
+            where: { id },
+            select: GroupMovieCreateTaskPConfig
+        });
     }
 }

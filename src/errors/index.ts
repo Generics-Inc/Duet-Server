@@ -35,6 +35,8 @@ export const BasketNotFoundException = new ExceptionGenerator(404, 9, 'Конт�
 export const MovieNotFoundException = new ExceptionGenerator(404, 10, 'Фильм не найден');
 export const ProviderResourceNotFoundException = new ExceptionGenerator(404, 11, 'Источник данных не найден у провайдера');
 export const MovieTaskNotFoundException = new ExceptionGenerator(404, 12, 'Задача на создание фильма не найдена');
+export const MovieSeriaNotFoundException = new ExceptionGenerator(404, 13, 'Серия не найдена');
+export const WatchedSeriaNotFoundException = new ExceptionGenerator(404, 14, 'Просмотренная серия не найдена');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');

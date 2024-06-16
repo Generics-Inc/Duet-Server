@@ -5,8 +5,8 @@ import {XmlParserMessageDto} from "@modules/tasks/dto";
 import {SearcherService} from "@modules/searcher/searcher.service";
 import {MoviesModelService} from "@models/movies/movies.service";
 import {FilesService} from "@modules/files/files.service";
-import {Movie} from "@prisma/client";
 import { utils } from "@root/helpers";
+import {MovieDto} from "@models/movies/dto";
 
 
 @Injectable()
@@ -32,7 +32,7 @@ export class XmlParserQueue {
     })
     async handler(msg: XmlParserMessageDto) {
         const start = Date.now();
-        let movie: Movie;
+        let movie: MovieDto;
 
         try {
             movie = await this.moviesModelService.getMovieById(msg.reqId);
@@ -65,7 +65,7 @@ export class XmlParserQueue {
     private validateLoadPhoto(photos: Buffer[]) {
         if (!photos.length) throw new Error("Фотография не была найдена или загружена");
     }
-    private validateMovieExists(movie: Movie) {
+    private validateMovieExists(movie: MovieDto) {
         if (!movie) throw new Error("Запись в таблице не найдена");
     }
 }

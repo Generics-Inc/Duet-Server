@@ -1,9 +1,9 @@
-import {Prisma} from "@prisma/client";
-import {ProfilePConfig} from "@models/users/profiles/config/profile.config";
+import {definePConfig} from "@root/helpers";
 import {GroupArchiveModelPConfig} from "@models/groups/archives/config/groupArchiveModel.config";
+import {ProfilePConfig} from "./profile.config";
 
 
-export const ProfileFullPConfig: Prisma.ProfileSelect = {
+export const ProfileFullPConfig = definePConfig('Profile', {
     ...ProfilePConfig,
     groupsArchives: { select: GroupArchiveModelPConfig }
-}
+});

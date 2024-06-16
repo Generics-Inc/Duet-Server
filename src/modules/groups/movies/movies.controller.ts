@@ -23,8 +23,22 @@ export class GroupsMoviesController {
         return this.selfService.restartTaskByIdAndGroupId(id, groupId);
     }
 
-    @Delete(':id')
-    deleteById(@UserProfile('groupId') groupId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.selfService.deleteMovieByIdAndGroupId(id, groupId);
+    @Patch(':movieId/series/:seriaId')
+    setWatchedSeriaById(
+        @UserProfile('groupId') groupId: number,
+        @Param('movieId', ParseIntPipe) movieId: number,
+        @Param('seriaId', ParseIntPipe) seriaId: number
+    ) {
+        return this.selfService.setWatchedSeria(seriaId, movieId, groupId);
+    }
+
+    @Patch(':movieId')
+    setWatchedMovieById(@UserProfile('groupId') groupId: number, @Param('movieId', ParseIntPipe) movieId: number) {
+        return this.selfService.setWatchedMovie(movieId, groupId);
+    }
+
+    @Delete(':movieId')
+    deleteById(@UserProfile('groupId') groupId: number, @Param('movieId', ParseIntPipe) movieId: number) {
+        return this.selfService.deleteMovieByIdAndGroupId(movieId, groupId);
     }
 }

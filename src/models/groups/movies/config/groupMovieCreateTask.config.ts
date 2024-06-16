@@ -1,8 +1,9 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 import {GroupMovieModelPConfig} from "./groupMovieModel.config";
 import {GroupMovieCreateTaskModelPConfig} from "./groupMovieCreateTaskModel.config";
 
-export const GroupMovieCreateTaskPConfig: Prisma.GroupMovieCreateTaskSelect  = {
+
+export const GroupMovieCreateTaskPConfig = definePConfig('GroupMovieCreateTask', {
     ...GroupMovieCreateTaskModelPConfig,
     groupMovie: { select: GroupMovieModelPConfig }
-};
+});

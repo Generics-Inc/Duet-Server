@@ -1,6 +1,7 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
-export const MoviePartModelPConfig: Prisma.MoviePartSelect = {
+
+export const MoviePartModelPConfig = definePConfig('MoviePart', {
     link: true,
     releaseYear: true,
     name: true,
@@ -9,5 +10,5 @@ export const MoviePartModelPConfig: Prisma.MoviePartSelect = {
 
     rating: true,
     partsListId: true,
-    movieId: true,
-};
+    movieId: true
+});

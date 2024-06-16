@@ -1,10 +1,11 @@
-import { Prisma } from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 import {MovieRatingModelPConfig} from "./movieRatingModel.config";
 import {MovieSeasonPConfig} from "./movieSeason.config";
 import {MovieModelPConfig} from "./movieModel.config";
 
-export const MoviePConfig: Prisma.MovieSelect = {
+
+export const MoviePConfig = definePConfig('Movie', {
     ...MovieModelPConfig,
     ratings: { select: MovieRatingModelPConfig },
     seasons: { select: MovieSeasonPConfig }
-};
+});

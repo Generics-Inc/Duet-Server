@@ -1,9 +1,9 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
 
-export const AccountModelPConfig: Prisma.ConnectedAccountSelect = {
+export const AccountModelPConfig = definePConfig('ConnectedAccount', {
     id: true,
     userId: true,
     UUID: true,
     type: true
-};
+});

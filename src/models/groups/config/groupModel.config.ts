@@ -1,12 +1,12 @@
+import {definePConfig} from "@root/helpers";
 import {GroupMinimalPConfig} from "./groupMinimal.config";
-import { Prisma } from "@prisma/client";
 
 
-export const GroupModelPConfig: Prisma.GroupSelect = {
+export const GroupModelPConfig = definePConfig('Group', {
     ...GroupMinimalPConfig,
     mainProfileId: true,
     secondProfileId: true,
     inviteCode: true,
     relationStartedAt: true,
     updatedAt: true
-};
+});

@@ -1,9 +1,9 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 import {SessionMinimalPConfig} from "./sessionMinimal.config";
 
 
-export const SessionModelPConfig: Prisma.SessionSelect = {
+export const SessionModelPConfig = definePConfig('Session', {
     ...SessionMinimalPConfig,
     accessToken: true,
     refreshToken: true
-}
+});

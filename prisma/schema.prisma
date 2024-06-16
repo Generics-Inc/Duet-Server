@@ -78,16 +78,16 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  groupsMoviesRatings   GroupMovieRating[]
   moviesModerates       MovieModerate[]
-  anotherGroupsArchives GroupArchive[]  @relation(name: "partner")
-  groupsArchives        GroupArchive[]  @relation(name: "profile")
+  anotherGroupsArchives GroupArchive[]     @relation(name: "partner")
+  groupsArchives        GroupArchive[]     @relation(name: "profile")
   groupsRequests        GroupRequest[]
   groupsMovies          GroupMovie[]
-  moviesRatings         MovieRating[]
   movies                Movie[]
-  user                  User            @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
-  mainGroup             Group?          @relation("mainProfile")
-  secondGroup           Group?          @relation("secondProfile")
+  user                  User               @relation(fields: [id, username], references: [id, username], onDelete: Cascade)
+  mainGroup             Group?             @relation("mainProfile")
+  secondGroup           Group?             @relation("secondProfile")
 
   @@unique([id, username])
   @@map("Profiles")
@@ -165,12 +165,40 @@ model GroupMovie {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  taskCreate GroupMovieCreateTask?
-  group      Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  creator    Profile?              @relation(fields: [creatorId], references: [id], onDelete: SetNull)
-  movie      Movie?                @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  watchedSeries GroupMovieWatchedSeria[]
+  ratings       GroupMovieRating[]
+  taskCreate    GroupMovieCreateTask?
+  group         Group                    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator       Profile?                 @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  movie         Movie?                   @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@map("GroupsMovies")
+}
+
+model GroupMovieWatchedSeria {
+  seriaId      Int
+  groupMovieId Int
+
+  createdAt DateTime @default(now())
+
+  groupMovie GroupMovie @relation(fields: [groupMovieId], references: [id], onDelete: Cascade)
+  seria      MovieSeria @relation(fields: [seriaId], references: [id], onDelete: Cascade)
+
+  @@unique([groupMovieId, seriaId])
+  @@map("GroupsMoviesWatchedSeries")
+}
+
+model GroupMovieRating {
+  id           Int @id @default(autoincrement())
+  profileId    Int
+  groupMovieId Int
+
+  createdAt DateTime @default(now())
+
+  profile    Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  groupMovie GroupMovie @relation(fields: [groupMovieId], references: [id], onDelete: Cascade)
+
+  @@map("GroupsMoviesRatings")
 }
 
 model GroupMovieCreateTask {
@@ -239,16 +267,13 @@ model MovieModerate {
 }
 
 model MovieRating {
-  id            Int   @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   movieId       Int
+  providerName  String
   countOfScopes Int
   scope         Float
 
-  profileId    Int?
-  providerName String?
-
-  movie   Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([movieId, providerName])
   @@map("MoviesRatings")
@@ -298,7 +323,8 @@ model MovieSeria {
   name        String
   releaseDate DateTime?
 
-  season MovieSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  groupMovieWatchedSeria GroupMovieWatchedSeria[]
+  season                 MovieSeason              @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@map("MoviesSeries")
 }

@@ -1,11 +1,10 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
-export const MovieRatingModelPConfig: Prisma.MovieRatingSelect = {
+
+export const MovieRatingModelPConfig = definePConfig('MovieRating', {
     id: true,
     movieId: true,
+    providerName: true,
     countOfScopes: true,
-    scope: true,
-
-    profileId: true,
-    providerName: true
-};
+    scope: true
+});

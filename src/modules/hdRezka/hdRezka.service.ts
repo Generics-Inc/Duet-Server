@@ -149,9 +149,9 @@ export class HdRezkaService {
                             name: getText($(el), '.td-2 b'),
                             number: $series.length - i,
                             releaseDate: this.parseMovieDate(getText($(el).find('.td-4')))
-                        })).get()
+                        })).get().reverse()
                     }
-                }).get()
+                }).get().reverse()
             };
         } catch (e) {
             throw e;

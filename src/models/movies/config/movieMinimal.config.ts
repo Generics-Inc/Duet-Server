@@ -1,6 +1,7 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
-export const MovieMinimalPConfig: Prisma.MovieSelect = {
+
+export const MovieMinimalPConfig = definePConfig('Movie', {
     id: true,
     name: true,
     type: true,
@@ -9,5 +10,5 @@ export const MovieMinimalPConfig: Prisma.MovieSelect = {
     createdAt: true,
 
     creatorId: true,
-    originalName: true,
-};
+    originalName: true
+});

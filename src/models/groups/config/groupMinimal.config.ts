@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
 
-export const GroupMinimalPConfig: Prisma.GroupSelect = {
+export const GroupMinimalPConfig = definePConfig('Group', {
     id: true,
     name: true,
     description: true,
     photo: true,
     createdAt: true
-};
+});

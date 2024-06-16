@@ -1,10 +1,10 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
 
-export const GroupArchiveModelPConfig: Prisma.GroupArchiveSelect = {
+export const GroupArchiveModelPConfig = definePConfig('GroupArchive', {
     id: true,
     groupId: true,
     profileId: true,
     partnerId: true,
     createdAt: true
-};
+});

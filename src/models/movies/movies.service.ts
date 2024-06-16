@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import {PrismaService} from "@modules/prisma/prisma.service";
-import {Prisma} from '@prisma/client';
-import {CreateMovieModelDto, CreateMoviePartDto, MovieDto, MoviePartsListDto} from "@models/movies/dto";
+import {Prisma, PrismaPromise} from '@prisma/client';
+import {
+    CreateMovieModelDto,
+    CreateMoviePartDto,
+    MovieDto,
+    MoviePartsListDto,
+    MovieSeriaDto
+} from "@models/movies/dto";
 import {CreateMovieModelExtendDto} from "@models/movies/dto/createMovieModelExtend.dto";
-import {MoviePartsListPConfig, MoviePConfig} from "@models/movies/config";
+import {MoviePartsListPConfig, MoviePConfig, MovieSeriaPConfig} from "@models/movies/config";
 
 
 @Injectable()
@@ -22,7 +28,7 @@ export class MoviesModelService {
         this.repoPartsList = prismaService.moviePartsList;
     }
 
-    async createMovie(profileId: number, data: CreateMovieModelDto) {
+    async createMovie(profileId: number, data: CreateMovieModelDto): Promise<MovieDto> {
         const { seasons, ..._data } = data;
 
         return this.repo.create({
@@ -46,9 +52,9 @@ export class MoviesModelService {
                 ..._data,
             },
             select: MoviePConfig
-        }) as unknown as Promise<MovieDto>;
+        });
     }
-    async createMovieExtend(data: CreateMovieModelExtendDto) {
+    async createMovieExtend(data: CreateMovieModelExtendDto): Promise<MovieDto> {
         await this.upsertPartList(data.parts);
 
         const createMovieData: Prisma.MovieCreateInput = {
@@ -85,7 +91,7 @@ export class MoviesModelService {
                     }
                 },
                 select: MoviePConfig
-            }) as unknown as Promise<MovieDto>;
+            });
         } else {
             return this.repo.create({
                 data: {
@@ -108,19 +114,23 @@ export class MoviesModelService {
                     ...(data.parts.length ? { part: { connect: { link: data.link } } } : {})
                 },
                 select: MoviePConfig
-            }) as unknown as Promise<MovieDto>;
+            });
         }
     }
 
-    updateMoviePhotoById(id: number, photo: string) {
+    updateMoviePhotoById(id: number, photo: string): PrismaPromise<MovieDto> {
         return this.repo.update({
             where: { id },
             data: { photo },
+            select: MoviePConfig
         });
     }
 
-    getMovieById(id: number) {
-        return this.repo.findUnique({ where: { id } });
+    getMovieById(id: number): PrismaPromise<MovieDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: MoviePConfig
+        });
     }
 
     private async upsertPartList(parts: CreateMoviePartDto[]): Promise<MoviePartsListDto> {
@@ -167,5 +177,43 @@ export class MoviesModelService {
                 select: MoviePartsListPConfig
             });
         }
+    }
+
+    // Series
+
+    getSeriaByIdAndGroupMovieId(id: number, groupMovieId: number): PrismaPromise<MovieSeriaDto> {
+        return this.repoSeries.findUnique({
+            where: {
+                id,
+                season: {
+                    movie: {
+                        groupsAdded: {
+                            some: {
+                                id: groupMovieId
+                            }
+                        }
+                    }
+                }
+            },
+            select: MovieSeriaPConfig
+        });
+    }
+
+    getManySeriesFilterIdByGroupMovieId(groupMovieId: number, filter: Prisma.IntFilter<"MovieSeria">): PrismaPromise<MovieSeriaDto[]> {
+        return this.repoSeries.findMany({
+            where: {
+                id: filter,
+                season: {
+                    movie: {
+                        groupsAdded: {
+                            some: {
+                                id: groupMovieId
+                            }
+                        }
+                    }
+                }
+            },
+            select: MovieSeriaPConfig
+        });
     }
 }

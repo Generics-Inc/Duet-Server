@@ -1,6 +1,7 @@
-import { Prisma } from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 
-export const GroupMovieModelPConfig: Prisma.GroupMovieSelect = {
+
+export const GroupMovieModelPConfig = definePConfig('GroupMovie', {
     id: true,
     groupId: true,
     creatorId: true,
@@ -10,4 +11,4 @@ export const GroupMovieModelPConfig: Prisma.GroupMovieSelect = {
     updatedAt: true,
 
     movieId: true
-};
+});

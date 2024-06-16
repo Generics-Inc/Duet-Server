@@ -11,12 +11,14 @@ import {FilesModule} from "@modules/files/files.module";
 import {GroupsMoviesService} from "@modules/groups/movies/movies.service";
 import {GroupsMoviesController} from "@modules/groups/movies/movies.controller";
 import {TasksModule} from "@modules/tasks/tasks.module";
+import {MoviesModel} from "@models/movies/movies.model";
 
 
 @Module({
     imports: [
         TasksModule,
         GroupsModel,
+        MoviesModel,
         UsersModel,
         FilesModule
     ],
