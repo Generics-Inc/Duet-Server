@@ -1,9 +1,9 @@
 import {ApiProperty} from "@nestjs/swagger";
 import {ProfileDto} from "./profile.dto";
-import {GroupModelDto} from "@models/groups/dto";
+import {GroupArchiveModelDto} from "@models/groups/archives/dto";
 
 
 export class ProfileFullDto extends ProfileDto {
-    @ApiProperty({ description: 'Архивированные группы пользователя', type: GroupModelDto, isArray: true })
-    groupsArchives: GroupModelDto[];
+    @ApiProperty({ description: 'Архивированные группы пользователя', type: GroupArchiveModelDto, isArray: true })
+    groupsArchives: GroupArchiveModelDto[];
 }
