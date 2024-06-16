@@ -71,6 +71,12 @@ export class GroupsService {
 
         return this.modelService.getById(profile.groupId);
     }
+    async getPreparedByProfileId(profileId: number) {
+        const profile = this.utils.ifEmptyGivesError(await this.usersProfilesModelService.getById(profileId), UserNotFoundException);
+        if (!profile.groupId) return null;
+
+        return this.modelService.getPreparedById(profileId, profile.groupId);
+    }
 
     async leaveFromGroup(profileId: number) {
         const group = this.utils.ifEmptyGivesError(await this.getByProfileId(profileId), GroupNotFoundException);
