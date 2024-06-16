@@ -94,14 +94,16 @@ export async function accessToMovie(
     if (!movieId) return { status: false };
 
     const profile = await usersProfilesModelService.getById(reqProfileId);
-    //const movie = await moviesModelService.getMovieById(movieId);
+    const movie = await moviesModelService.getModelMovieById(movieId);
 
-    const isProfileInMovieGroup = true //movie.groupId === profile.groupId;
+    const isMovieInGroup =  !!(profile.groupId ? await moviesModelService.getModelMovieByIdAndGroupId(movieId, profile.groupId) : null);
+    const isPublic = movie.moderated;
 
     return {
-        status: isProfileInMovieGroup,
+        status: isPublic || isMovieInGroup,
         stages: {
-            isProfileInMovieGroup
+            isPublic,
+            isMovieInGroup
         }
     };
 }

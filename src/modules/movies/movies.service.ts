@@ -54,6 +54,8 @@ export class MoviesService {
                 type: 'image',
                 text: movie.name
             });
+        } else {
+            await this.modelService.updateMoviePhotoById(movie.id, 'not set');
         }
 
         return groupMovie;

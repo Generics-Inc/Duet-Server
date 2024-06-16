@@ -60,8 +60,7 @@ export class GroupsArchivesService {
                     secondProfile: { disconnect: true }
                 });
 
-                await this.prismaService.$transaction([deleteRecord, updateGroup])
-                    .then(r => r[0]);
+                await this.prismaService.$transaction([deleteRecord, updateGroup]);
             } else {
                 await this.modelService.deleteModelById(id, profileId);
             }

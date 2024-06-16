@@ -4,12 +4,18 @@ import {Prisma, PrismaPromise} from '@prisma/client';
 import {
     CreateMovieModelDto,
     CreateMoviePartDto,
-    MovieDto,
+    MovieDto, MovieModelDto,
     MoviePartsListDto, MovieRatingDto,
     MovieSeriaDto
 } from "@models/movies/dto";
 import {CreateMovieModelExtendDto} from "@models/movies/dto/createMovieModelExtend.dto";
-import {MoviePartsListPConfig, MoviePConfig, MovieRatingPConfig, MovieSeriaPConfig} from "@models/movies/config";
+import {
+    MovieModelPConfig,
+    MoviePartsListPConfig,
+    MoviePConfig,
+    MovieRatingPConfig,
+    MovieSeriaPConfig
+} from "@models/movies/config";
 
 
 @Injectable()
@@ -142,7 +148,26 @@ export class MoviesModelService {
         return this.repo.findUnique({
             where: { id },
             select: MoviePConfig
-        }) as PrismaPromise<MovieDto>;
+        });
+    }
+    getModelMovieById(id: number): PrismaPromise<MovieModelDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: MovieModelPConfig
+        });
+    }
+    getModelMovieByIdAndGroupId(id: number, groupId: number): PrismaPromise<MovieModelDto> {
+        return this.repo.findUnique({
+            where: {
+                id,
+                groupsAdded: {
+                    some: {
+                        groupId
+                    }
+                }
+            },
+            select: MovieModelPConfig
+        });
     }
 
     private async upsertPartList(parts: CreateMoviePartDto[]): Promise<MoviePartsListDto> {
