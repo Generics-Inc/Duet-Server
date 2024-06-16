@@ -1,8 +1,8 @@
 import {Injectable} from '@nestjs/common';
 import {Prisma} from "@prisma/client";
 import {PrismaService} from "@modules/prisma/prisma.service";
-import {ProfileMinimalPConfig, ProfilePConfig} from "./config";
-import {ProfileDto, ProfileMinimalDto} from "./dto";
+import {ProfileFullPConfig, ProfileMinimalPConfig, ProfilePConfig} from "./config";
+import {ProfileDto, ProfileFullDto, ProfileMinimalDto} from "./dto";
 
 
 @Injectable()
@@ -25,6 +25,12 @@ export class UsersProfilesModelService {
         return this.repo.findUnique({
             where: { id },
             select: ProfilePConfig
+        }).then(this.prepareProfile);
+    }
+    async getFullById(id: number): Promise<ProfileFullDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: ProfileFullPConfig
         }).then(this.prepareProfile);
     }
     getMinimalById(id: number): Promise<ProfileMinimalDto> {

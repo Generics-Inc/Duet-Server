@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {Prisma, PrismaPromise} from "@prisma/client";
 import {CreateGroupDto} from "@modules/groups/dto";
 import {PrismaService} from "@modules/prisma/prisma.service";
-import {GroupDto, GroupModelDto} from "@models/groups/dto";
+import {GroupDto, GroupModelDto, GroupPreparedDto} from "@models/groups/dto";
 import {GroupModelPConfig, GroupPConfig} from "@models/groups/config";
 
 
@@ -51,11 +51,26 @@ export class GroupsModelService {
             select: GroupModelPConfig
         });
     }
+    getPreparedById(profileId: number, id: number): Promise<GroupPreparedDto> {
+        return this.repo.findUnique({
+            where: { id },
+            select: GroupPConfig
+        }).then(r => this.prepareGroup(profileId, r));
+    }
 
     deleteById(id: number): PrismaPromise<GroupDto> {
         return this.repo.delete({
             where: { id },
             select: GroupPConfig
         });
+    }
+
+    private prepareGroup(profileId: number, group: any) {
+        if (!group) return group;
+        const isMain = group.mainProfile?.id === profileId;
+        group.partner = group[isMain ? 'secondProfile' : 'mainProfile'];
+        delete group.mainProfile;
+        delete group.secondProfile;
+        return group;
     }
 }

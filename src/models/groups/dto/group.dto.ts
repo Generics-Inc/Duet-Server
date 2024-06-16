@@ -7,10 +7,10 @@ import {GroupModelDto} from "./groupModel.dto";
 
 export class GroupDto extends GroupModelDto {
     @ApiProperty({ description: 'Записи группы в корзине', type: GroupArchiveModelDto, isArray: true })
-    groupArchives: GroupArchiveModelDto[];
+    archives: GroupArchiveModelDto[];
 
     @ApiProperty({ description: 'Запросы на присоединение к группе', type: GroupRequestModelDto, isArray: true })
-    groupRequests: GroupRequestModelDto[];
+    requests: GroupRequestModelDto[];
 
     @ApiProperty({ description: 'Партнёр-создатель', type: ProfileMinimalDto })
     mainProfile: ProfileMinimalDto;

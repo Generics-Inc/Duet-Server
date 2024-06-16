@@ -4,6 +4,7 @@ import { XMLParser } from 'fast-xml-parser';
 import {HttpService} from "@nestjs/axios";
 import {SearcherGetConfig, SearcherXML} from "@modules/types";
 import {SearcherException} from "@root/errors";
+import getImageBufferByLink from "@root/helpers/getImageBufferByLink";
 
 
 @Injectable()
@@ -74,9 +75,7 @@ export class SearcherService {
             try {
                 if (loadedImages.length >= _config.count) continue;
 
-                loadedImages.push(await this.httpService.axiosRef.get(url, {
-                    responseType: 'arraybuffer'
-                }).then(r => Buffer.from(r.data)));
+                loadedImages.push(await getImageBufferByLink(url));
             } catch (e) {}
         }
 

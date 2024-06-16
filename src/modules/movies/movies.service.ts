@@ -1,82 +1,74 @@
 import { Injectable } from '@nestjs/common';
 import {MoviesModelService} from "@models/movies/movies.service";
-import {HttpService} from "@nestjs/axios";
-import {CreateMovieDto} from "@modules/movies/dto";
+import {CreateMovieAsyncDto, CreateMovieDto} from "@modules/movies/dto";
 import {TasksService} from "@modules/tasks/tasks.service";
 import {UploadedPostFileReturn} from "@modules/app/decorators";
 import {FilesService} from "@modules/files/files.service";
+import {GroupsMoviesModelService} from "@models/groups/movies/movies.service";
+import {utils} from "@root/helpers";
+import {MovieAlreadyInGroupConflictException} from "@root/errors";
+
 
 @Injectable()
 export class MoviesService {
+    private utils = utils();
+
     constructor(
         private modelService: MoviesModelService,
+        private groupsMoviesModelService: GroupsMoviesModelService,
         private tasksService: TasksService,
-        private filesService: FilesService,
-        private httpService: HttpService
+        private filesService: FilesService
     ) {}
 
     getModel() {
         return this.modelService;
     }
 
-    // async createMovie(profileId: number, groupId: number, { body, file }: UploadedPostFileReturn<CreateMovieDto>) {
-    //     let movie = await this.modelService.createMovie(profileId, groupId, {
-    //         name: body.name,
-    //         type: body.type,
-    //         isWatched: body.isWatched,
-    //         description: body.description,
-    //         tags: {
-    //             connectOrCreate: body.tags.map(tag => ({
-    //                 where: {
-    //                     groupId_name: {
-    //                         groupId,
-    //                         name: tag.name
-    //                     }
-    //                 },
-    //                 create: {
-    //                     profile: { connect: { id: profileId } },
-    //                     group: { connect: { id: groupId } },
-    //                     name: tag.name,
-    //                     color: tag.color
-    //                 }
-    //             }))
-    //         },
-    //         ...(body.type === 'FILM' ? {} : {
-    //             seasons: {
-    //                 create: body.seasons.map(season => ({
-    //                     name: season.name,
-    //                     isWatched: body.isWatched,
-    //                     series: {
-    //                         create: season.series.map(seria => ({
-    //                             name: seria.name,
-    //                             isWatched: body.isWatched
-    //                         }))
-    //                     }
-    //                 }))
-    //             }
-    //         })
-    //     });
-    //
-    //     if (file) {
-    //         try {
-    //             movie = await this.modelService.updateMoviePhotoById(movie.id, await this.filesService.upload({
-    //                 profileId: profileId,
-    //                 bucketName: 'movie',
-    //                 fileName: 'main',
-    //                 fileDir: movie.id.toString(),
-    //                 file: file.buffer
-    //             }));
-    //         } catch (e) {
-    //             movie = await this.modelService.updateMoviePhotoById(movie.id, 'error');
-    //         }
-    //     } else {
-    //         this.tasksService.sendMessageToXMLParserQueue({
-    //             reqId: movie.id,
-    //             type: 'image',
-    //             text: movie.name
-    //         });
-    //     }
-    //
-    //     return movie;
-    // }
+    async createMovie(creatorId: number, groupId: number, { body, file }: UploadedPostFileReturn<CreateMovieDto>) {
+        const { useAIGenerationPhoto, isWatched, ..._body } = body;
+
+        const movie = await this.modelService.createMovie(creatorId, {
+            ..._body,
+            photo: 'loading'
+        });
+        const groupMovie = await this.groupsMoviesModelService.create(creatorId, groupId, movie.id, {
+            moreToWatch: [_body.seasons?.[1 - 1].series.length ?? 0, 1],
+            isWatched
+        });
+
+        if (file) {
+            try {
+                await this.modelService.updateMoviePhotoById(movie.id, await this.filesService.upload({
+                    profileId: creatorId,
+                    bucketName: 'movie',
+                    fileName: 'main',
+                    fileDir: movie.id.toString(),
+                    file: file.buffer
+                }));
+            } catch (e) {
+                await this.modelService.updateMoviePhotoById(movie.id, 'error');
+            }
+        } else if (useAIGenerationPhoto) {
+            this.tasksService.sendMessageToXMLParserQueue({
+                reqId: movie.id,
+                type: 'image',
+                text: movie.name
+            });
+        } else {
+            await this.modelService.updateMoviePhotoById(movie.id, 'not set');
+        }
+
+        return groupMovie;
+    }
+
+    async createMovieAsync(creatorId: number, groupId: number, data: CreateMovieAsyncDto) {
+        this.utils.ifEmptyGivesError(!await this.groupsMoviesModelService.getMovieByLink(data.link), MovieAlreadyInGroupConflictException);
+        const groupMovie = await this.groupsMoviesModelService.createAsync(creatorId, groupId, data);
+
+        this.tasksService.sendMessageToMovieParserQueue({
+            taskId: groupMovie.taskCreate.id
+        });
+
+        return groupMovie;
+    }
 }

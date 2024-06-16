@@ -13,27 +13,21 @@ export class GroupsArchivesService {
     private utils = utils();
 
     constructor(
-        private modelService: GroupsModelService,
+        private modelService: GroupsArchivesModelService,
+        private groupsModelService: GroupsModelService,
         private groupsService: GroupsService,
         private groupsRequestsModelService: GroupsRequestsModelService,
-        private groupsArchivesModelService: GroupsArchivesModelService,
         private prismaService: PrismaService
     ) {}
 
     getModel() {
-        return this.groupsArchivesModelService;
-    }
-
-    async getFullByProfileId() {
-
+        return this.modelService;
     }
 
     async revertGroupFromArchive(profileId: number, recordId: number) {
-        const { group, groupId, id } = this.utils.ifEmptyGivesError(await this.groupsArchivesModelService.getFullByIdAndProfileId(recordId, profileId), GroupArchiveNotFoundException);
+        const { group, groupId, id } = this.utils.ifEmptyGivesError(await this.modelService.getFullByIdAndProfileId(recordId, profileId), GroupArchiveNotFoundException);
 
-        console.log(await this.groupsArchivesModelService.getFullByIdAndProfileId(recordId, profileId))
-
-        const updateGroup = this.modelService.updateModelGroup(groupId, {
+        const updateGroup = this.groupsModelService.updateModelGroup(groupId, {
             [!group.mainProfileId ? 'mainProfile' : 'secondProfile']: {
                 connect: {
                     id: profileId
@@ -41,7 +35,7 @@ export class GroupsArchivesService {
             }
         });
         const deleteRequests = this.groupsRequestsModelService.deleteManyByProfileId(profileId);
-        const deleteRecord = this.groupsArchivesModelService.deleteModelById(id, profileId);
+        const deleteRecord = this.modelService.deleteModelById(id, profileId);
 
         await this.prismaService.$transaction([updateGroup, deleteRequests, deleteRecord]);
 
@@ -49,11 +43,27 @@ export class GroupsArchivesService {
     }
 
     async deleteArchiveRecordWithChecks(id: number, profileId: number) {
-        const { groupId } = this.utils.ifEmptyGivesError(await this.groupsArchivesModelService.getFullByIdAndProfileId(id, profileId), GroupArchiveNotFoundException);
-        const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId), GroupNotFoundException);
-        const isLastUser = group.groupArchives.length === 1 && group.mainProfileId === null;
+        const { groupId } = this.utils.ifEmptyGivesError(await this.modelService.getFullByIdAndProfileId(id, profileId), GroupArchiveNotFoundException);
+        const group = this.utils.ifEmptyGivesError(await this.groupsModelService.getById(groupId), GroupNotFoundException);
 
-        if (isLastUser) await this.groupsService.deleteGroupById(profileId, group.id);
-        else await this.groupsArchivesModelService.deleteModelById(id, profileId);
+        const isGroupEmpty = group.mainProfileId === null && group.secondProfileId === null;
+        const isLastUser = group.archives.length === 1 && isGroupEmpty;
+        const isMain = isLastUser || group.mainProfileId === null;
+
+        if (isLastUser) {
+            await this.groupsService.deleteGroupById(profileId, group.id);
+        } else {
+            if (isMain) {
+                const deleteRecord = this.modelService.deleteModelById(id, profileId);
+                const updateGroup = this.groupsModelService.updateModelGroup(groupId, {
+                    mainProfile: { connect: { id: group.secondProfileId } },
+                    secondProfile: { disconnect: true }
+                });
+
+                await this.prismaService.$transaction([deleteRecord, updateGroup]);
+            } else {
+                await this.modelService.deleteModelById(id, profileId);
+            }
+        }
     }
 }

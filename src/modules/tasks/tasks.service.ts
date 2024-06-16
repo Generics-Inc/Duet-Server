@@ -1,7 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
 import {Options} from "amqp-connection-manager";
-import {XmlParserMessageDto} from "@modules/tasks/dto";
+import {MovieParserMessageDto, XmlParserMessageDto} from "@modules/tasks/dto";
 
 @Injectable()
 export class TasksService {
@@ -15,6 +15,10 @@ export class TasksService {
 
     sendMessageToXMLParserQueue(body: XmlParserMessageDto) {
         this.sendMessage('xml.parser', body);
+    }
+
+    sendMessageToMovieParserQueue(body: MovieParserMessageDto) {
+        this.sendMessage('movie.parser', body);
     }
 }
 

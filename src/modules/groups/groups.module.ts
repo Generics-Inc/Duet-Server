@@ -8,29 +8,38 @@ import {GroupsRequestsService} from "@modules/groups/requests/requests.service";
 import {GroupsController} from "@modules/groups/groups.controller";
 import {GroupsService} from "@modules/groups/groups.service";
 import {FilesModule} from "@modules/files/files.module";
+import {GroupsMoviesService} from "@modules/groups/movies/movies.service";
+import {GroupsMoviesController} from "@modules/groups/movies/movies.controller";
+import {TasksModule} from "@modules/tasks/tasks.module";
+import {MoviesModel} from "@models/movies/movies.model";
 
 
 @Module({
     imports: [
+        TasksModule,
         GroupsModel,
+        MoviesModel,
         UsersModel,
         FilesModule
     ],
     controllers: [
         GroupsController,
         GroupsArchivesController,
-        GroupsRequestsController
+        GroupsRequestsController,
+        GroupsMoviesController
     ],
     providers: [
         GroupsService,
         GroupsArchivesService,
-        GroupsRequestsService
+        GroupsRequestsService,
+        GroupsMoviesService
     ],
     exports: [
         GroupsModel,
         GroupsService,
         GroupsArchivesService,
-        GroupsRequestsService
+        GroupsRequestsService,
+        GroupsMoviesService
     ]
 })
 export class GroupsModule {

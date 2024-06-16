@@ -33,7 +33,10 @@ export const FileNotFoundException = new ExceptionGenerator(404, 7, 'Файл н
 export const FolderNotFoundException = new ExceptionGenerator(404, 8, 'Папка не найдена');
 export const BasketNotFoundException = new ExceptionGenerator(404, 9, 'Контейнер не найден');
 export const MovieNotFoundException = new ExceptionGenerator(404, 10, 'Фильм не найден');
-export const ProviderResourceFoundException = new ExceptionGenerator(404, 11, 'Источник данных не найден у провайдера');
+export const ProviderResourceNotFoundException = new ExceptionGenerator(404, 11, 'Источник данных не найден у провайдера');
+export const MovieTaskNotFoundException = new ExceptionGenerator(404, 12, 'Задача на создание фильма не найдена');
+export const MovieSeriaNotFoundException = new ExceptionGenerator(404, 13, 'Серия не найдена');
+export const WatchedSeriaNotFoundException = new ExceptionGenerator(404, 14, 'Просмотренная серия не найдена');
 
 // 409 - Conflict
 export const AccountDataConflictException = new ExceptionGenerator(409, 0, 'Данные уже были использованы в другом аккаунте');
@@ -41,6 +44,8 @@ export const GroupArchiveIncludeConflictException = new ExceptionGenerator(409, 
 export const GroupRequestConflictException = new ExceptionGenerator(409, 2, 'Запрос, на присоединение в группу, уже существует. Ожидайте ответа от владельца');
 export const GroupIsFullConflictException = new ExceptionGenerator(409, 3, 'Группа уже полная');
 export const UserAlreadyInGroupConflictException = new ExceptionGenerator(409, 4, 'Пользователь уже находится в группе');
+export const MovieAlreadyInGroupConflictException = new ExceptionGenerator(409, 5, 'Фильм уже находится в группе');
+export const TaskIsAlreadyRunningConflictException = new ExceptionGenerator(409, 6, 'Задача уже запущена и не имеет ошибок');
 
 // 423 - Locked
 export const RoleAccessDividedException = new ExceptionGenerator(423, 0, 'Доступ к данному эндпоинту запрещён!');
@@ -50,6 +55,7 @@ export const ProfileAccessDividedException = new ExceptionGenerator(423, 3, 'Д�
 export const AccessWithoutMainRightsInGroupDividedException = new ExceptionGenerator(423, 4, 'Доступ заблокирован! Требуется активная группа и права на главного в группе');
 export const DirectoryAccessDividedException = new ExceptionGenerator(423, 5, 'Доступ заблокирован! Вы не имеете доступа к этой директории');
 export const AccessWithIncompleteDividedException = new ExceptionGenerator(423, 6, 'Доступ заблокирован! Группа должна содержать партнёра');
+export const MovieIsNotReadyDividedException = new ExceptionGenerator(423, 7, 'Доступ заблокирован! Фильм не готов, возможно он создан с ошибкой или ещё создаётся');
 
 // 520 - Unknown
 export const UnknownErrorException = new ExceptionGenerator(520, 0, 'Неизвестная ошибка');

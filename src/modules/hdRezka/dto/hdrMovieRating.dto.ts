@@ -1,5 +1,5 @@
 export class HdrMovieRatingDto {
-    name: string;
+    providerName: string;
     countOfScopes: number;
     scope: number;
 }

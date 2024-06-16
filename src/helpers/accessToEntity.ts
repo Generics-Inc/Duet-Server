@@ -1,8 +1,9 @@
 import {UsersProfilesModelService} from "@models/users/profiles/profiles.service";
 import {GroupsModelService} from "@models/groups/groups.service";
-import {GroupIncludes} from "../types";
 import {MoviesModelService} from "@models/movies/movies.service";
 import {GroupsArchivesModelService} from "@models/groups/archives/archives.service";
+import {GroupDto} from "@models/groups/dto";
+import {ProfileFullDto} from "@models/users/profiles/dto";
 
 export type AccessCheckReturn = Promise<{
     status: boolean,
@@ -39,12 +40,12 @@ export async function accessToProfile(
 ): AccessCheckReturn {
     if (!profileId) return { status: false };
 
-    const requester = await usersProfilesModelService.getById(reqProfileId);
+    const requester = await usersProfilesModelService.getFullById(reqProfileId);
     const requesterGroup = requester.groupId ? await groupsModelService.getById(requester.groupId) : null;
 
     const isCurrentProfile = reqProfileId === profileId;
     const isProfileInGroup = requesterGroup && [requesterGroup.mainProfileId, requesterGroup.secondProfileId].includes(profileId);
-    const isProfileInGroupArchive = requesterGroup && requesterGroup.groupArchives.map(record => record.profileId).includes(profileId);
+    const isProfileInGroupArchive = requesterGroup && requesterGroup.archives.map(record => record.profileId).includes(profileId);
 
     return {
         status: isCurrentProfile || isProfileInGroup || isProfileInGroupArchive,
@@ -71,14 +72,17 @@ export async function accessToProfileWithRequests(
     if (baseAccess.status) {
         return baseAccess;
     } else {
-        const requesterGroup = baseAccess.ctx.requesterGroup as GroupIncludes;
+        const requested = baseAccess.ctx.requester as ProfileFullDto;
+        const requesterGroup = baseAccess.ctx.requesterGroup as GroupDto;
 
-        const isProfileInGroupRequests = requesterGroup && requesterGroup.groupRequests.map(record => record.profileId).includes(profileId);
+        const isProfileInArchive = requested.groupsArchives.some(archive => archive.partnerId === profileId);
+        const isProfileInGroupRequests = requesterGroup && requesterGroup.requests.map(record => record.profileId).includes(profileId);
 
         return {
-            status: isProfileInGroupRequests,
+            status: isProfileInArchive || isProfileInGroupRequests,
             stages: {
                 ...baseAccess.stages,
+                isProfileInArchive,
                 isProfileInGroupRequests
             }
         };
@@ -94,14 +98,16 @@ export async function accessToMovie(
     if (!movieId) return { status: false };
 
     const profile = await usersProfilesModelService.getById(reqProfileId);
-    const movie = await moviesModelService.getMovieById(movieId);
+    const movie = await moviesModelService.getModelMovieById(movieId);
 
-    const isProfileInMovieGroup = movie.groupId === profile.groupId;
+    const isMovieInGroup =  !!(profile.groupId ? await moviesModelService.getModelMovieByIdAndGroupId(movieId, profile.groupId) : null);
+    const isPublic = movie.moderated;
 
     return {
-        status: isProfileInMovieGroup,
+        status: isPublic || isMovieInGroup,
         stages: {
-            isProfileInMovieGroup
+            isPublic,
+            isMovieInGroup
         }
     };
 }

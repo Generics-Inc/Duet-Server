@@ -1,5 +1,4 @@
 import {Module} from '@nestjs/common';
-import {HdRezkaController} from './hdRezka.controller';
 import {HdRezkaService} from './hdRezka.service';
 import {HttpModule} from "@nestjs/axios";
 import {MailsModule} from "@modules/mails/mails.module";
@@ -10,10 +9,10 @@ import {MailsModule} from "@modules/mails/mails.module";
         MailsModule,
         HttpModule
     ],
-    controllers: [
-        HdRezkaController
-    ],
     providers: [
+        HdRezkaService
+    ],
+    exports: [
         HdRezkaService
     ]
 })

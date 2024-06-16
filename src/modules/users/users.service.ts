@@ -7,6 +7,7 @@ import {PrismaService} from "@modules/prisma/prisma.service";
 import {FilesService} from "@modules/files/files.service";
 import {HttpService} from "@nestjs/axios";
 import {CreateAccountTypeDto, CreateUserDto} from "./dto";
+import getImageBufferByLink from "@root/helpers/getImageBufferByLink";
 
 
 @Injectable()
@@ -44,9 +45,7 @@ export class UsersService {
 
         if (data.photo) {
             try {
-                const uploadedPhoto = await this.httpService.axiosRef.get(data.photo, {
-                    responseType: 'arraybuffer'
-                }).then(r => Buffer.from(r.data));
+                const uploadedPhoto = await getImageBufferByLink(data.photo);
 
                 data.photo = uploadedPhoto ? (await this.filesService.upload({
                     profileId: user.id,
@@ -56,7 +55,6 @@ export class UsersService {
                     file: uploadedPhoto
                 })) : undefined;
             } catch (e) {
-                console.error(e);
                 await this.modelService.deleteModelById(user.id);
                 throw AccountCreateException;
             }

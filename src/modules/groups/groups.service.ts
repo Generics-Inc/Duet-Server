@@ -71,22 +71,22 @@ export class GroupsService {
 
         return this.modelService.getById(profile.groupId);
     }
+    async getPreparedByProfileId(profileId: number) {
+        const profile = this.utils.ifEmptyGivesError(await this.usersProfilesModelService.getById(profileId), UserNotFoundException);
+        if (!profile.groupId) return null;
+
+        return this.modelService.getPreparedById(profileId, profile.groupId);
+    }
 
     async leaveFromGroup(profileId: number) {
         const group = this.utils.ifEmptyGivesError(await this.getByProfileId(profileId), GroupNotFoundException);
 
-        const isLastUser = group.secondProfileId === null;
         const isMainUser = profileId === group.mainProfileId;
         const modifyKey = isMainUser ? 'mainProfile' : 'secondProfile';
         const modifyKeyPartner = !isMainUser ? 'mainProfile' : 'secondProfile';
 
         const createGroupArchive = this.groupsArchivesModelService.createModel(profileId, group.id, group[modifyKeyPartner]?.id);
-        const updateGroup = this.modelService.updateModelGroup(group.id, {
-            ...(!isLastUser && isMainUser ? {
-                mainProfile: { connect: { id: group.secondProfileId }},
-                secondProfile: { disconnect: true }
-            }: { [modifyKey]: { disconnect: true }})
-        })
+        const updateGroup = this.modelService.updateModelGroup(group.id, { [modifyKey]: { disconnect: true } });
 
         await this.prismaService.$transaction([createGroupArchive, updateGroup]);
     }
@@ -103,7 +103,7 @@ export class GroupsService {
     async updateInviteCode(groupId: number) {
         const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId));
 
-        if (group.secondProfileId || group.groupArchives.length) throw GroupIsFullConflictException;
+        if (group.secondProfileId || group.archives.length) throw GroupIsFullConflictException;
 
         return this.modelService.updateModelGroup(groupId, { inviteCode: this.utils.createRandomString() });
     }
@@ -111,11 +111,11 @@ export class GroupsService {
     async kickSecondPartnerFromGroup(groupId: number) {
         const group = this.utils.ifEmptyGivesError(await this.modelService.getById(groupId));
 
-        if (!group.secondProfileId && !group.groupArchives.length) throw UserNotFoundException;
+        if (!group.secondProfileId && !group.archives.length) throw UserNotFoundException;
 
         return this.modelService.updateModelGroup(groupId, {
             secondProfile: { disconnect: true },
-            groupArchives: { deleteMany: {} }
+            archives: { deleteMany: {} }
         });
     }
 

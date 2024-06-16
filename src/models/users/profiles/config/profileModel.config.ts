@@ -1,9 +1,9 @@
+import {definePConfig} from "@root/helpers";
 import {ProfileMinimalPConfig} from "./profileMinimal.config";
-import {Prisma} from "@prisma/client";
 
 
-export const ProfileModelPConfig: Prisma.ProfileSelect = {
+export const ProfileModelPConfig = definePConfig('Profile', {
     ...ProfileMinimalPConfig,
     birthday: true,
     updatedAt: true
-};
+});

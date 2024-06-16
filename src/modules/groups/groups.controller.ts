@@ -24,7 +24,7 @@ export class GroupsController {
     @ApiResponse({ type: GroupDto })
     @Get('me')
     async getMyGroup(@UserProfile('id') profileId: number) {
-        return this.utils.ifEmptyGivesError(await this.groupsService.getByProfileId(profileId), GroupNotFoundException);
+        return this.utils.ifEmptyGivesError(await this.groupsService.getPreparedByProfileId(profileId), GroupNotFoundException);
     }
 
     @ApiOperation({ summary: 'Создать группу авторизированного пользователя' })

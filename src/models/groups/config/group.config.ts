@@ -1,14 +1,14 @@
-import {Prisma} from "@prisma/client";
+import {definePConfig} from "@root/helpers";
 import {GroupArchiveModelPConfig} from "@models/groups/archives/config/groupArchiveModel.config";
 import {GroupRequestModelPConfig} from "@models/groups/requests/config/groupRequestModel.config";
 import {ProfileMinimalPConfig} from "@models/users/profiles/config/profileMinimal.config";
 import {GroupModelPConfig} from "./groupModel.config";
 
 
-export const GroupPConfig: Prisma.GroupSelect = {
+export const GroupPConfig = definePConfig('Group', {
     ...GroupModelPConfig,
-    groupArchives: { select: GroupArchiveModelPConfig },
-    groupRequests: { select: GroupRequestModelPConfig },
+    archives: { select: GroupArchiveModelPConfig },
+    requests: { select: GroupRequestModelPConfig },
     mainProfile: { select: ProfileMinimalPConfig },
     secondProfile: { select: ProfileMinimalPConfig }
-};
+});

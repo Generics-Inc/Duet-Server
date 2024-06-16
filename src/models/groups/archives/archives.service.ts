@@ -43,6 +43,12 @@ export class GroupsArchivesModelService {
             select: GroupArchivePConfig
         });
     }
+    getManyFullByProfileId(profileId: number): PrismaPromise<GroupArchiveFullDto[]> {
+        return this.repo.findMany({
+            where: { profileId },
+            select: GroupArchiveFullPConfig
+        });
+    }
 
     deleteModelById(id: number, profileId: number): PrismaPromise<GroupArchiveModelDto> {
         return this.repo.delete({
