@@ -5,11 +5,13 @@ import {MoviesModel} from "@models/movies/movies.model";
 import {TasksModule} from "@modules/tasks/tasks.module";
 import {FilesModule} from "@modules/files/files.module";
 import {GroupsModule} from "@modules/groups/groups.module";
+import {HdRezkaModule} from "@modules/hdRezka/hdRezka.module";
 import { MoviesGateway } from './movies.gateway';
 
 @Module({
     imports: [
         GroupsModule,
+        HdRezkaModule,
         MoviesModel,
         TasksModule,
         FilesModule

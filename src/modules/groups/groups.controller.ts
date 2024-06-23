@@ -2,7 +2,7 @@ import {Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, UseGuards} 
 import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags} from "@nestjs/swagger";
 import {GroupNotFoundException} from "@root/errors";
 import {utils} from "@root/helpers";
-import {GroupModelDto, GroupDto} from "@models/groups/dto";
+import {GroupModelDto, GroupPreparedDto} from "@models/groups/dto";
 import {GroupRequestModelDto} from "@models/groups/requests/dto";
 import {AccessTokenGuard, OnlyHaveGroupGuard, OnlyMainInGroupGuard, OnlyNotHaveGroupGuard} from "@modules/auth/guard";
 import {PostFile, UploadedPostFile, UploadedPostFileReturn} from "@modules/app/decorators";
@@ -21,7 +21,7 @@ export class GroupsController {
     constructor(private groupsService: GroupsService) {}
 
     @ApiOperation({ summary: 'Вывести активную группу авторизированного пользователя' })
-    @ApiResponse({ type: GroupDto })
+    @ApiResponse({ type: GroupPreparedDto })
     @Get('me')
     async getMyGroup(@UserProfile('id') profileId: number) {
         return this.utils.ifEmptyGivesError(await this.groupsService.getPreparedByProfileId(profileId), GroupNotFoundException);
