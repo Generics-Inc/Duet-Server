@@ -7,6 +7,7 @@ import {UsersModule} from "@modules/users/users.module";
 import {AccessTokenStrategy, RefreshTokenStrategy} from "./strategy";
 import {AuthController} from "./auth.controller";
 import {AuthService} from "./auth.service";
+import {WsGuardAccessToken} from "@modules/auth/guard";
 
 @Module({
     imports: [
@@ -28,7 +29,11 @@ import {AuthService} from "./auth.service";
     providers: [
         AuthService,
         AccessTokenStrategy,
-        RefreshTokenStrategy
+        RefreshTokenStrategy,
+        WsGuardAccessToken
+    ],
+    exports: [
+        WsGuardAccessToken
     ]
 })
 export class AuthModule {

@@ -26,11 +26,11 @@ import {AppService} from "./app.service";
                 limit: 20
             }
         ]),
+        AuthModule,
         PrismaModule,
         HdRezkaModule,
         MailsModule,
         TasksModule,
-        AuthModule,
         FilesModule,
         SessionsModule,
         GroupsModule,

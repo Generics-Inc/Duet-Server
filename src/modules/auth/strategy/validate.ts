@@ -8,6 +8,7 @@ import {md5} from "@nestjs/throttler/dist/hash";
 import {GroupsModelService} from "@models/groups/groups.service";
 
 export default async (
+    token: string,
     type: 'access' | 'refresh',
     req: Request,
     tokenPayload: TokenPayloadDto,
@@ -16,7 +17,6 @@ export default async (
     groupsModelService: GroupsModelService,
     usersProfilesModelService: UsersProfilesModelService
 ): Promise<PayloadReturnDto> => {
-    const token = req.get('Authorization').replace('Bearer', '').trim();
     const passHash = req.cookies.passHash;
 
     if (!Number.isInteger(tokenPayload.sessionId) || !Number.isInteger(tokenPayload.userId))

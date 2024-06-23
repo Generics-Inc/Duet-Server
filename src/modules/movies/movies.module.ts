@@ -5,6 +5,7 @@ import {MoviesModel} from "@models/movies/movies.model";
 import {TasksModule} from "@modules/tasks/tasks.module";
 import {FilesModule} from "@modules/files/files.module";
 import {GroupsModule} from "@modules/groups/groups.module";
+import { MoviesGateway } from './movies.gateway';
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import {GroupsModule} from "@modules/groups/groups.module";
         MoviesController
     ],
     providers: [
-        MoviesService
+        MoviesService,
+        MoviesGateway
     ]
 })
 export class MoviesModule {}
