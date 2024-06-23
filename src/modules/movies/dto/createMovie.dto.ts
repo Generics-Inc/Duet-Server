@@ -5,6 +5,7 @@ import {CreateMovieModelDto} from "@models/movies/dto";
 
 @ExposeAll()
 export class CreateMovieDto extends CreateMovieModelDto {
+    @ApiProperty({ description: 'Использовать ли генерацию постера с помощью ИИ', type: Boolean, required: false })
     @IsOptional()
     @IsBoolean()
     useAIGenerationPhoto?: boolean;
