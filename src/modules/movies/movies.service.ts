@@ -7,6 +7,7 @@ import {FilesService} from "@modules/files/files.service";
 import {GroupsMoviesModelService} from "@models/groups/movies/movies.service";
 import {utils} from "@root/helpers";
 import {MovieAlreadyInGroupConflictException} from "@root/errors";
+import {HdRezkaService} from "@modules/hdRezka/hdRezka.service";
 
 
 @Injectable()
@@ -16,6 +17,7 @@ export class MoviesService {
     constructor(
         private modelService: MoviesModelService,
         private groupsMoviesModelService: GroupsMoviesModelService,
+        private hdRezkaService: HdRezkaService,
         private tasksService: TasksService,
         private filesService: FilesService
     ) {}
@@ -70,5 +72,9 @@ export class MoviesService {
         });
 
         return groupMovie;
+    }
+
+    searchMoviesByQuery(query: string) {
+        return this.hdRezkaService.searchMovies(query);
     }
 }
