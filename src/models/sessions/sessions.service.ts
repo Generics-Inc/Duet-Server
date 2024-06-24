@@ -43,6 +43,11 @@ export class SessionsModelService {
             select: SessionModelPConfig
         });
     }
+    updateModelLastActivityById(id: number): PrismaPromise<SessionModelDto> {
+        return this.updateModel(id, {
+            lastActivityAt: new Date()
+        });
+    }
 
     getModelById(id: number): PrismaPromise<SessionModelDto> {
         return this.repo.findUnique({

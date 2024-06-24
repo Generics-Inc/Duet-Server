@@ -6,6 +6,7 @@ import {TasksModule} from "@modules/tasks/tasks.module";
 import {FilesModule} from "@modules/files/files.module";
 import {GroupsModule} from "@modules/groups/groups.module";
 import {HdRezkaModule} from "@modules/hdRezka/hdRezka.module";
+import { MoviesGateway } from './movies.gateway';
 
 @Module({
     imports: [
@@ -19,7 +20,8 @@ import {HdRezkaModule} from "@modules/hdRezka/hdRezka.module";
         MoviesController
     ],
     providers: [
-        MoviesService
+        MoviesService,
+        MoviesGateway
     ]
 })
 export class MoviesModule {}

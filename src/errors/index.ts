@@ -2,6 +2,7 @@ import {ExceptionGenerator} from "./ExceptionGenerator";
 
 export * from './ExceptionGenerator';
 export * from './GuardianFilter';
+export { default as WsSessionException } from './WsSessionException';
 
 // 401 - Unauthorized
 export const AuthorizedUserNotFoundException = new ExceptionGenerator(401, 1, 'Авторизированный пользователь не найден');

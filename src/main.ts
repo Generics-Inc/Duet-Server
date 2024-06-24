@@ -1,6 +1,7 @@
 require('module-alias/register');
 
 import * as CookieParser from 'cookie-parser';
+import {AsyncApiDocumentBuilder, AsyncApiModule, AsyncServerObject} from "nestjs-asyncapi";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {Logger, ValidationPipe} from "@nestjs/common";
 import {NestFactory} from '@nestjs/core';
@@ -44,21 +45,21 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('/swagger', app, document);
 
-    // const socketsServer: AsyncServerObject = {
-    //     url: 'ws://localhost:4000',
-    //     protocol: 'socket.io',
-    //     protocolVersion: '4',
-    //     description: 'Позволяет вам подключаться по протоколу webSocket к нашему Socket.IO серверу.'
-    // };
+    const socketsServer: AsyncServerObject = {
+        url: 'ws://localhost:4000',
+        protocol: 'socket.io',
+        protocolVersion: '4',
+        description: 'Подключаться по протоколу webSocket к Socket.IO сервера'
+    };
 
-    // const socketsConfig = new AsyncApiDocumentBuilder()
-    //     .setTitle('Loregram Sockets Nest API')
-    //     .setDescription('Документация событий сервера Loregram на базе webSockets')
-    //     .setVersion(process.env.npm_package_version)
-    //     .addServer('app', socketsServer)
-    //     .build();
-    // const socketsDocument = AsyncApiModule.createDocument(app, socketsConfig);
-    //await AsyncApiModule.setup('/api/swaggerEvents', app, socketsDocument);
+    const socketsConfig = new AsyncApiDocumentBuilder()
+        .setTitle('DUET Sockets Nest API')
+        .setDescription('Документация к webSockets')
+        .setVersion(process.env.npm_package_version)
+        .addServer('app', socketsServer)
+        .build();
+    const socketsDocument = AsyncApiModule.createDocument(app, socketsConfig);
+    await AsyncApiModule.setup('/swaggerWebSocket', app, socketsDocument);
 
     await app.listen(PORT, () => logger.log(`Server was started at http://localhost:${PORT}`));
 }

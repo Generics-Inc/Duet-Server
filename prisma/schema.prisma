@@ -53,6 +53,7 @@ model Session {
   current      Boolean @default(false)
   accessToken  String?
   refreshToken String?
+  activeSocket String?
 
   createdAt      DateTime @default(now())
   lastActivityAt DateTime @default(now())

@@ -3,8 +3,8 @@ import {IsString, Length} from "class-validator";
 
 
 export class SearchMovieDto {
-    @ApiProperty({ description: '', type: String, minLength: 1, maxLength: 100 })
+    @ApiProperty({ description: 'Название фильма', type: String, minLength: 1, maxLength: 500 })
     @IsString()
-    @Length(1, 100)
+    @Length(1, 500)
     text: string;
 }

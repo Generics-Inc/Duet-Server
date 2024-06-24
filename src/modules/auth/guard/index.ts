@@ -5,3 +5,4 @@ export * from './onlyHaveGroup.guard';
 export * from './onlyMainInGroup.guard';
 export * from './onlyNotHaveGroup.guard';
 export * from './refreshToken.guard';
+export * from './wsAccessToken.guard';

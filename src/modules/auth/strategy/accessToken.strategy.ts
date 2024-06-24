@@ -28,6 +28,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     async validate(req: Request, payload: TokenPayloadDto): Promise<PayloadReturnDto> {
         return await validate(
+            req.get('Authorization').replace('Bearer', '').trim(),
             'access',
             req,
             payload,
