@@ -17,9 +17,9 @@ import {ApiProperty} from "@nestjs/swagger";
 
 
 export class CreateMovieModelDto {
-    @ApiProperty({ description: 'Название', type: String })
+    @ApiProperty({ description: 'Название', type: String, minLength: 1, maxLength: 500 })
     @IsString()
-    @Length(0, 100)
+    @Length(1, 500)
     name: string;
 
     @ApiProperty({ description: 'Тип', enum: MovieType })
@@ -40,28 +40,28 @@ export class CreateMovieModelDto {
     @Max(5000)
     time?: number;
 
-    @ApiProperty({ description: 'Страна производитель', type: String, required: false })
+    @ApiProperty({ description: 'Страна производитель', type: String, required: false, minLength: 1, maxLength: 50 })
     @IsOptional()
     @IsString()
     @Length(1, 50)
     country?: string;
 
-    @ApiProperty({ description: 'Оригинальное название', type: String, required: false })
+    @ApiProperty({ description: 'Оригинальное название', type: String, required: false, minLength: 1, maxLength: 500 })
     @IsOptional()
     @IsString()
-    @Length(0, 100)
+    @Length(1, 500)
     originalName?: string;
 
-    @ApiProperty({ description: 'Слоган', type: String, required: false })
+    @ApiProperty({ description: 'Слоган', type: String, required: false, minLength: 1, maxLength: 1000 })
     @IsOptional()
     @IsString()
-    @Length(0, 1000)
+    @Length(1, 1000)
     slogan?: string;
 
-    @ApiProperty({ description: 'Описание', type: String, required: false })
+    @ApiProperty({ description: 'Описание', type: String, required: false, minLength: 1, maxLength: 5000 })
     @IsOptional()
     @IsString()
-    @Length(0, 5000)
+    @Length(1, 5000)
     description?: string;
 
     @ApiProperty({ description: 'Дата релиза', type: Date, required: false })
