@@ -21,7 +21,7 @@ import {PugAdapter} from "@nestjs-modules/mailer/dist/adapters/pug.adapter";
           dir: resolve(process.cwd(), 'templates'),
           adapter: new PugAdapter(),
           options: {
-            strict: true,
+            strict: false,
           },
         },
       })

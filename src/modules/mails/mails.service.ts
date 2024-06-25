@@ -41,8 +41,14 @@ export class MailsService {
             });
             await this.mailerService.sendMail({
                 to: email,
-                subject: 'Подтверждение подписку на обновления',
-                template: 'emailSubscribe',
+                subject: 'Подтверждение подписки на обновления',
+                text: 'welcome',
+                html: '<b>welcome</b>'
+            });
+            await this.mailerService.sendMail({
+                to: email,
+                subject: 'Подтверждение подписки на обновления',
+                template: 'emailSubscribe.pug',
                 context: {
                     LINK: `${this.subscribeUrl}?email=${email}&code=${code}&mode=1`,
                     EMAIL: email,
