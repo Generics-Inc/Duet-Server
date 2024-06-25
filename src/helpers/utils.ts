@@ -7,6 +7,7 @@ const symbols: string = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ1234567
 
 interface UtilsStruct {
     createRandomString(exclude?: string[], len?: number): string;
+    createRandomNumber(min: number, max: number, exclude?: number[]): number;
     ifEmptyGivesError<D extends any, E extends ExceptionGenerator>(data: D, exception?: E): D;
     checkIdCurrent(id: UtilsStructID): void;
     logClass<T, EX extends (keyof T)[]>(classObject: T, exclude: EX): UtilsStructLogClassReturn<T, EX>;
@@ -29,6 +30,16 @@ class Utils implements UtilsStruct {
         }
 
         return resultString;
+    }
+    createRandomNumber(min: number, max: number, exclude = []): number {
+        const generateNumber = () => Math.floor(Math.random() * (max - min + 1)) + min;
+
+        let resultNumber = generateNumber();
+        while (exclude.includes(resultNumber)) {
+            resultNumber = generateNumber();
+        }
+
+        return resultNumber;
     }
     ifEmptyGivesError<T extends any>(data: T, exception = DataNotFoundException): T {
         if (!data) throw exception;
