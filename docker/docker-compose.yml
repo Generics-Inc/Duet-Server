@@ -3,7 +3,6 @@ version: '3.9'
 services:
   api:
     container_name: duet-api
-    image: duet-api
     env_file:
       - .env
     build:
@@ -12,31 +11,6 @@ services:
     ports:
       - ${API_PORT:-4000}:${API_PORT:-4000}
     restart: always
-    depends_on:
-      - db
-  db:
-    container_name: duet-db
-    image: postgres:13-alpine
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_HOST_AUTH_METHOD=trust
-    volumes:
-      - postgres:/var/lib/postgresql/data
-      - ./containers/db/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
-    ports:
-      - ${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}
-    restart: unless-stopped
-    command: -p ${POSTGRES_PORT:-5432}
-  minio:
-    container_name: duet-minio
-    image: minio/minio
-    ports:
-      - '9000:9000'
-      - '9001:9001'
-    env_file:
-      - .env
-    command: server /data --console-address ":9001"
 
 volumes:
   postgres:

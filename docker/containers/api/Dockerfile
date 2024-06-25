@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY prisma ./prisma
+COPY templates ./templates
 
 ENV PUPPETEER_SKIP_DOWNLOAD true
 
