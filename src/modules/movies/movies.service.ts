@@ -64,7 +64,7 @@ export class MoviesService {
     }
 
     async createMovieAsync(creatorId: number, groupId: number, data: CreateMovieAsyncDto) {
-        this.utils.ifEmptyGivesError(!await this.groupsMoviesModelService.getMovieByLink(data.link), MovieAlreadyInGroupConflictException);
+        this.utils.ifEmptyGivesError(!await this.groupsMoviesModelService.getMovieByLinkAndGroupId(data.link, groupId), MovieAlreadyInGroupConflictException);
         const groupMovie = await this.groupsMoviesModelService.createAsync(creatorId, groupId, data);
 
         this.tasksService.sendMessageToMovieParserQueue({
