@@ -355,6 +355,16 @@ model SuperSecret {
   content String
 }
 
+model EmailSubscribers {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  code  Int
+
+  isVerify Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
 enum AccountType {
   EMAIL
   VK

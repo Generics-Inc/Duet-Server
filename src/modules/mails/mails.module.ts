@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { MailsService } from './mails.service';
 import {ConfigModule, ConfigService} from "@nestjs/config";
 import {MailerModule} from "@nestjs-modules/mailer";
-import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
-
+import { MailsController } from './mails.controller';
+import {resolve} from "path";
+import {PugAdapter} from "@nestjs-modules/mailer/dist/adapters/pug.adapter";
 
 @Module({
   imports: [
@@ -17,8 +18,8 @@ import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars
         },
         preview: false,
         template: {
-          dir: process.cwd() + '/src/modules/mails/templates/',
-          adapter: new HandlebarsAdapter(),
+          dir: resolve(process.cwd(), 'templates'),
+          adapter: new PugAdapter(),
           options: {
             strict: true,
           },
@@ -31,6 +32,9 @@ import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars
   ],
   exports: [
       MailsService
+  ],
+  controllers: [
+      MailsController
   ]
 })
 export class MailsModule {}

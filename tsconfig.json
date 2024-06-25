@@ -21,6 +21,6 @@
       "@root/*": ["src/*"],
       "@models/*": ["src/models/*"],
       "@modules/*": ["src/modules/*"]
-    }
+    },
   }
 }
