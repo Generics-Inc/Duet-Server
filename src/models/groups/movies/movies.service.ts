@@ -83,9 +83,10 @@ export class GroupsMoviesModelService {
         });
     }
 
-    getMovieByLink(link: string): PrismaPromise<GroupMovieDto> {
+    getMovieByLinkAndGroupId(link: string, groupId: number): PrismaPromise<GroupMovieDto> {
         return this.repo.findFirst({
             where: {
+                groupId,
                 OR: [
                     { taskCreate: { link } },
                     { movie: { link } }
