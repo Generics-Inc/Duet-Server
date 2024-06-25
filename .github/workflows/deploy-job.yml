@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Pull data from GitHub repository
         run: |
-          cd ~/
+          cd ~/app
           git submodule update --reference server --remote
   build:
     runs-on: self-hosted
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Run local rebuild container script
         run: |
-          cd ~/
+          cd ~/app
           ./build.sh rebuild server
   clean:
     runs-on: self-hosted
@@ -27,6 +27,6 @@ jobs:
     steps:
       - name: Clean old images
         run: |
-          cd ~/
+          cd ~/app
           ./build.sh clean
 
